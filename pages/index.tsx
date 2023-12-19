@@ -10,13 +10,17 @@ export default function Page() {
         <div id={starStyles.midground}/>
         <div id={starStyles.foreground}/>
         <div id={footerStyles.footer}>
+            <img src="mountains_footer.svg" id={footerStyles.footerImage}/>
             <div id={footerStyles.iconContainer}>
                 <a href="mailto:leonlenk@gmail.com" className="fa fa-google" id={footerStyles.socialIcon} />
                 <a href="https://www.linkedin.com/in/leon-lenk/" className="fa fa-linkedin" id={footerStyles.socialIcon} />
                 <a href="https://github.com/leonlenk" className="fa fa-github" id={footerStyles.socialIcon} />
             </div>
         </div>
-        <h1 id={indexStyles.title}>Welcome To My Website!</h1>
+        <div id={indexStyles.scrollableContainer}>
+            <h1 id={indexStyles.title}>Welcome To My Website!</h1>
+            <img src="whitePawn.svg" id={indexStyles.pawn} />
+        </div> 
     </main>
     </> 
     );

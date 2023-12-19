@@ -8,9 +8,9 @@
   
 // Function to generate multiple box-shadow values for stars
 @function multipleShadow($numberOfStars) {
-$value: "#{random(3000)}px #{random(3000)}px #FFF"; // Initial shadow
+$value: "#{random(100)}vw #{random(200)}vh #FFF"; // Initial shadow
 @for $i from 2 through $numberOfStars {
-    $value: "#{$value}, #{random(3000)}px #{random(3000)}px #FFF"; // Add more shadows
+    $value: "#{$value}, #{random(100)}vw #{random(200)}vh #FFF"; // Add more shadows
 }
 @return unquote($value); // Return the concatenated value
 }
@@ -20,8 +20,8 @@ $mediumShadows: multipleShadow(400); // Medium stars
 $bigShadows: multipleShadow(200); // Big stars
 
 #background {
-width: 1px;
-height: 1px;
+width: 0.07vw;
+height: 0.07vw;
 box-shadow: $smallShadows; // Apply small star shadows
 animation: animateStars 50s linear infinite;
 &::after {
@@ -30,8 +30,8 @@ animation: animateStars 50s linear infinite;
 }
 
 #midground {
-width: 2px;
-height: 2px;
+width: 0.15vw;
+height: 0.15vw;
 box-shadow: $mediumShadows; // Apply medium star shadows
 animation: animateStars 100s linear infinite;
 &::after {
@@ -42,8 +42,8 @@ animation: animateStars 100s linear infinite;
 }  
 
 #foreground {
-width: 3px;
-height: 3px;
+width: .3vw;
+height: .3vw;
 box-shadow: $bigShadows; // Apply big star shadows
 animation: animateStars 150s linear infinite;
 &::after {
