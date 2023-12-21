@@ -1,54 +1,63 @@
 @keyframes animateStars {
     from {
-      transform: translateY(0px);
+      transform: rotate(0);
     }
     to {
-      transform: translateY(-2000px);    }
-}
-  
-// Function to generate multiple box-shadow values for stars
-@function multipleShadow($numberOfStars) {
-$value: "#{random(100)}vw #{random(200)}vh #FFF"; // Initial shadow
-@for $i from 2 through $numberOfStars {
-    $value: "#{$value}, #{random(100)}vw #{random(200)}vh #FFF"; // Add more shadows
-}
-@return unquote($value); // Return the concatenated value
+      transform: rotate(720deg); 
+    }
 }
 
-$smallShadows: multipleShadow(1000); // Small stars
-$mediumShadows: multipleShadow(400); // Medium stars
-$bigShadows: multipleShadow(200); // Big stars
+// Function to generate multiple text-shadow values for stars
+@function multipleShadow($numberOfStars) {
+    $value: "#{random(200)}vw #{random(200)}vh #FFF"; // Initial shadow
+    @for $i from 2 through $numberOfStars {
+        $value: "#{$value}, #{300 - random(600)}vw #{300 - random(600)}vh #FFF"; // Add more shadows
+    }
+    @return unquote($value); // Return the concatenated value
+}
+
+$smallShadows: multipleShadow(1200); // Small stars
+$mediumShadows: multipleShadow(900); // Medium stars
+$bigShadows: multipleShadow(600); // Big stars
 
 #background {
-width: 0.07vw;
-height: 0.07vw;
-box-shadow: $smallShadows; // Apply small star shadows
-animation: animateStars 50s linear infinite;
-&::after {
-    box-shadow: $smallShadows; // Apply small star shadows to pseudo-element
-}
+    text-align: center;
+    font-size: 10px;
+    transform-origin: 50vw 120vh;
+    text-shadow: $smallShadows; // Apply small star shadows
+    animation: animateStars 180s linear infinite;
+    &::after {
+        text-shadow: $smallShadows; // Apply small star shadows to pseudo-element
+    }
 }
 
 #midground {
-width: 0.15vw;
-height: 0.15vw;
-box-shadow: $mediumShadows; // Apply medium star shadows
-animation: animateStars 100s linear infinite;
-&::after {
-    width: 2px;
-    height: 2px;
-    box-shadow: $mediumShadows; // Apply medium star shadows to pseudo-element
-}
+    text-align: center;
+    font-size: 20px;
+    transform-origin: 50vw 120vh;
+    text-shadow: $mediumShadows; // Apply medium star shadows
+    animation: animateStars 300s linear infinite;
+    &::after {
+        text-shadow: $mediumShadows; // Apply medium star shadows to pseudo-element
+    }
 }  
 
 #foreground {
-width: .3vw;
-height: .3vw;
-box-shadow: $bigShadows; // Apply big star shadows
-animation: animateStars 150s linear infinite;
-&::after {
-    width: 3px;
-    height: 3px;
-    box-shadow: $bigShadows; // Apply big star shadows to pseudo-element
+    text-align: center;
+    font-size: 25px;
+    transform-origin: 50vw 120vh;
+    text-shadow: $bigShadows; // Apply big star shadows
+    animation: animateStars 400s linear infinite;
+    &::after {
+        text-shadow: $bigShadows; // Apply big star shadows to pseudo-element
+    }
 }
+
+#starContainer {
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow-y: hidden;
+    position: fixed;
 }

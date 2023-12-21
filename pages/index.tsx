@@ -6,9 +6,11 @@ export default function Page() {
     return (
     <>
     <main>
-        <div id={starStyles.background}/>
-        <div id={starStyles.midground}/>
-        <div id={starStyles.foreground}/>
+        <div id={starStyles.starContainer}>
+            <p id={starStyles.background}>★</p>
+            <p id={starStyles.midground}>★</p>
+            <p id={starStyles.foreground}>★</p>
+        </div>
         <div id={footerStyles.footer}>
             <img src="mountains_footer.svg" id={footerStyles.footerImage}/>
             <div id={footerStyles.iconContainer}>
@@ -19,7 +21,7 @@ export default function Page() {
         </div>
         <div id={indexStyles.scrollableContainer}>
             <h1 id={indexStyles.title}>Welcome To My Website!</h1>
-            <img src="whitePawn.svg" id={indexStyles.pawn} />
+            {/* <img src="whitePawn.svg" id={indexStyles.pawn} /> */}
         </div> 
     </main>
     </> 
