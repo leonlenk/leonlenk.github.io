@@ -6,9 +6,9 @@
 
 // Function to generate multiple text-shadow values for stars
 @function multipleShadow($numberOfStars) {
-    $value: "#{random(200)}vw #{random(200)}vh #FFF"; // Initial shadow
+    $value: "#{300 - random(600)}lvw #{300 - random(600)}lvh #FFF"; // Initial shadow
     @for $i from 2 through $numberOfStars {
-        $value: "#{$value}, #{300 - random(600)}vw #{300 - random(600)}vh #FFF"; // Add more shadows
+        $value: "#{$value}, #{300 - random(600)}lvw #{300 - random(600)}lvh #FFF"; // Add more shadows
     }
     @return unquote($value); // Return the concatenated value
 }
@@ -20,7 +20,7 @@ $bigShadows: multipleShadow(600); // Big stars
 .background {
     text-align: center;
     font-size: 10px;
-    transform-origin: 50vw 120vh;
+    transform-origin: 50lvw 100lvh;
     text-shadow: $smallShadows; // Apply small star shadows
     animation: animateStars 180s linear infinite;
     &::after {
@@ -31,7 +31,7 @@ $bigShadows: multipleShadow(600); // Big stars
 .midground {
     text-align: center;
     font-size: 20px;
-    transform-origin: 50vw 120vh;
+    transform-origin: 50lvw 100lvh;
     text-shadow: $mediumShadows; // Apply medium star shadows
     animation: animateStars 300s linear infinite;
     &::after {
@@ -42,7 +42,7 @@ $bigShadows: multipleShadow(600); // Big stars
 .foreground {
     text-align: center;
     font-size: 25px;
-    transform-origin: 50vw 120vh;
+    transform-origin: 50lvw 100lvh;
     text-shadow: $bigShadows; // Apply big star shadows
     animation: animateStars 400s linear infinite;
     &::after {
@@ -50,11 +50,23 @@ $bigShadows: multipleShadow(600); // Big stars
     }
 }
 
+.moon{
+    width: 8vmax;
+    height: auto;
+    z-index: 1;
+    position: absolute;
+    left: 10lvw;
+    top: 90lvh;
+    transform-origin: 40lvw 80lvh;
+    animation: animateStars 700s linear infinite;
+}
+
 .starContainer {
-    left: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    right: 0;
+    bottom: 0lvh;
+    width: 100lvw;
+    height: 100lvh;
     overflow-y: hidden;
+    overflow-x: hidden;
     position: fixed;
 }

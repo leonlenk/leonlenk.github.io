@@ -7,11 +7,6 @@ export default function Page() {
     return (
     <>
     <main>
-        <div className={starStyles.starContainer}>
-            <p className={starStyles.background}>★</p>
-            <p className={starStyles.midground}>★</p>
-            <p className={starStyles.foreground}>★</p>
-        </div>
         <div className={footerStyles.footer}>
             <object type="image/svg+xml" data="mountains_footer.svg" className={footerStyles.footerImage}/>
             <div className={footerStyles.iconContainer}>
@@ -28,6 +23,12 @@ export default function Page() {
                     <object type="image/svg+xml" data="star.svg" className={indexStyles.pawnStars} /> */}
                 </div>
             </div>
+        </div>
+        <div className={starStyles.starContainer}>
+            <object type="image/svg+xml" data="moon.svg" className={starStyles.moon}/>
+            <p className={starStyles.background}>★</p>
+            <p className={starStyles.midground}>★</p>
+            <p className={starStyles.foreground}>★</p>
         </div>
     </main>
     </> 
