@@ -1,17 +1,30 @@
-#title {
+.title {
     text-align: center;
     font-size: 10vw;
 }
 
-#pawn {
-    max-width: 100%;
-    width: 10%;
-    height: auto;
-    transform: rotate(35deg);
-    margin-left: 400px;
-    margin-right: auto;
+.scrollableContainer {
+    padding-bottom: 15vh;
 }
 
-#scrollableContainer {
-    padding-bottom: 15%;
+.constellationContainer {
+    display: flex;
+    flex-flow: column;
+}
+
+.pawnContainer {
+    max-width: 10vw;
+}
+
+.pawnSvgPath {
+    stroke:#ffffff;
+    stroke-width:2;
+    stroke-miterlimit:4;
+    stroke-dasharray:none;
+    stroke-opacity:1
+}
+
+.pawnStars {
+    width: 3vw;
+    height: auto;
 }

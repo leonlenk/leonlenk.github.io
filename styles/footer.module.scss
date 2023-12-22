@@ -1,4 +1,4 @@
-#footer {
+.footer {
     position: fixed;
     left: 0;
     bottom: 0;
@@ -10,14 +10,14 @@
     z-index: 1000000;
 }  
 
-#footerImage {
+.footerImage {
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
 }
 
-#iconContainer {
+.iconContainer {
     padding: 1vw;
     position: fixed;
     width: 100vw;

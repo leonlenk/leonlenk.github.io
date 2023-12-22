@@ -1,7 +1,4 @@
 @keyframes animateStars {
-    from {
-      transform: rotate(0);
-    }
     to {
       transform: rotate(720deg); 
     }
@@ -20,7 +17,7 @@ $smallShadows: multipleShadow(1200); // Small stars
 $mediumShadows: multipleShadow(900); // Medium stars
 $bigShadows: multipleShadow(600); // Big stars
 
-#background {
+.background {
     text-align: center;
     font-size: 10px;
     transform-origin: 50vw 120vh;
@@ -31,7 +28,7 @@ $bigShadows: multipleShadow(600); // Big stars
     }
 }
 
-#midground {
+.midground {
     text-align: center;
     font-size: 20px;
     transform-origin: 50vw 120vh;
@@ -42,7 +39,7 @@ $bigShadows: multipleShadow(600); // Big stars
     }
 }  
 
-#foreground {
+.foreground {
     text-align: center;
     font-size: 25px;
     transform-origin: 50vw 120vh;
@@ -53,7 +50,7 @@ $bigShadows: multipleShadow(600); // Big stars
     }
 }
 
-#starContainer {
+.starContainer {
     left: 0;
     bottom: 0;
     width: 100vw;
