@@ -1,0 +1,33 @@
+@import "../themes/light";
+
+.main {
+    @include background-gradient; 
+}
+
+.titleScreen {
+    width: 100lvw;
+    height: 100lvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .titleContainer {
+        display: flex;
+
+        --nameSize: 100px;
+
+        .name {
+            font-size: var(--nameSize);
+        }
+
+        .pupil {
+            --pupilSize: calc(var(--nameSize) * .62);
+            height: var(--pupilSize);
+            width: var(--pupilSize);
+            background-color: black;
+            border-radius: 50%;
+            display: inline-block;
+            margin-top: calc(var(--nameSize) - var(--pupilSize));
+        }
+    }
+}
