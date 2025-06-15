@@ -1,9 +1,0 @@
-@mixin background-gradient {
-    background: 
-    linear-gradient(20deg,  #ffa07a 30%, #ed62e2),
-    linear-gradient(110deg, #cead96, #f89560, #df824b, #d4aea0),
-    radial-gradient(#fab67220, #f06bd320),
-    ;
-    background-blend-mode: overlay;
-    background-size: cover;
-}
