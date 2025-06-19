@@ -1,0 +1,104 @@
+---
+import Reset from "./reset.astro";
+---
+
+<Reset />
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="style.css" />
+
+<style is:global>
+  body {
+    font-family: "Open Sans", sans-serif;
+    font-weight: 400;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    height: 100lvh;
+    width: 100lvw;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Lora", serif;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.03em;
+  }
+
+  h1 {
+    font-size: 3.2em;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  }
+
+  h2 {
+    font-size: 2.5em;
+    font-weight: 600; /* Semi-bold */
+  }
+
+  h3 {
+    font-size: 1.8em;
+    font-weight: 500; /* Medium weight */
+  }
+
+  h4 {
+    font-size: 1.4em;
+    font-weight: 400; /* Regular weight */
+  }
+
+  a {
+    color: #add8e6;
+    text-decoration: none;
+    transition:
+      color 0.3s ease,
+      text-shadow 0.3s ease;
+  }
+
+  a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  }
+
+  nav {
+    text-align: center;
+    padding: 20px 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  nav li a {
+    font-family: "Lora", serif;
+    font-size: 1.3em;
+    font-weight: 500;
+    color: #add8e6;
+    text-shadow: 0 0 5px rgba(173, 216, 230, 0.5);
+  }
+
+  nav li a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+  }
+</style>

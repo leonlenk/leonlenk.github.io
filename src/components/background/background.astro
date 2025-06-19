@@ -1,0 +1,41 @@
+---
+import styles from "./background.module.scss";
+import Stars from "./stars.astro";
+---
+
+<div class="backgroundContainer">
+  <Stars />
+  <slot />
+</div>
+
+<style lang="scss">
+  .backgroundContainer {
+    z-index: -2;
+    background: (
+      linear-gradient(to bottom right, #0f0f2dcf 50%, #5d0f4a67 95%),
+      radial-gradient(
+        circle at top left,
+        #78133d 0%,
+        #0f0f2d 50%,
+        #000000 100%
+      ),
+      radial-gradient(
+        circle at bottom right,
+        #6a07ffcb 0%,
+        #220f2d 50%,
+        #000000 100%
+      ),
+      radial-gradient(
+        circle at top right,
+        #0852eff7 0%,
+        #1f369c 50%,
+        #000000 100%
+      )
+    );
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+</style>

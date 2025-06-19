@@ -1,0 +1,103 @@
+---
+const {
+  numStars = 75,
+  starColor = "white",
+  minSize = 5,
+  maxSize = 20,
+  minDuration = 2.5,
+  maxDuration = 4.5,
+} = Astro.props;
+---
+
+<div
+  id="star-background"
+  class="starBackground"
+  style={`--star-color: ${starColor};`}
+  data-num-stars={numStars}
+  data-min-size={minSize}
+  data-max-size={maxSize}
+  data-min-duration={minDuration}
+  data-max-duration={maxDuration}
+>
+</div>
+
+<script>
+  import PoissonDiskSampling from 'poisson-disk-sampling';
+  const starBackground = document.getElementById("star-background");
+
+  if (starBackground) {
+    const numStars = parseInt(starBackground.dataset.numStars);
+    const minSize = parseInt(starBackground.dataset.minSize);
+    const maxSize = parseInt(starBackground.dataset.maxSize);
+    const minDuration = parseFloat(starBackground.dataset.minDuration);
+    const maxDuration = parseFloat(starBackground.dataset.maxDuration);
+
+    function getRandom(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function getRandomInt(min, max) {
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    for (let i = 0; i < numStars; i++) {
+      const star = document.createElement("span");
+      star.classList.add("star");
+      star.textContent = '✶';
+
+      // Random size
+      const size = getRandomInt(minSize, maxSize);
+      star.style.fontSize = `${size}px`; 
+      star.style.lineHeight = `${size}px`;
+
+      // Random position
+      star.style.top = `${getRandom(-15, 100)}%`;
+      star.style.left = `${getRandom(-15, 100)}%`;
+
+      // Random animation duration and delay
+      const duration = getRandom(minDuration, maxDuration);
+      const delay = getRandom(0, maxDuration);
+      star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
+
+      starBackground.appendChild(star);
+    }
+  }
+</script>
+
+<style lang="scss" is:global>
+  .starBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .star {
+    position: relative;
+    opacity: .8;
+    display: inline-block;
+    pointer-events: none;
+    animation-direction: normal;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+  }
+
+  @keyframes twinkle {
+  0% {  
+    opacity: 1;
+    transform: scale(1);
+  }
+  20%,
+  80% {
+    opacity: 0.8; 
+    transform: scale(0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, .8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>
