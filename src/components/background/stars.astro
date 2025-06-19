@@ -12,7 +12,7 @@ const {
 <div
   id="star-background"
   class="starBackground"
-  style={`--star-color: ${starColor};`}
+  style={`color: ${starColor};`}
   data-num-stars={numStars}
   data-min-size={minSize}
   data-max-size={maxSize}
@@ -22,7 +22,7 @@ const {
 </div>
 
 <script>
-  import PoissonDiskSampling from 'poisson-disk-sampling';
+  import PoissonDiskSampling from "poisson-disk-sampling";
   const starBackground = document.getElementById("star-background");
 
   if (starBackground) {
@@ -44,11 +44,11 @@ const {
     for (let i = 0; i < numStars; i++) {
       const star = document.createElement("span");
       star.classList.add("star");
-      star.textContent = '✶';
+      star.textContent = "✶";
 
       // Random size
       const size = getRandomInt(minSize, maxSize);
-      star.style.fontSize = `${size}px`; 
+      star.style.fontSize = `${size}px`;
       star.style.lineHeight = `${size}px`;
 
       // Random position
@@ -77,7 +77,7 @@ const {
 
   .star {
     position: relative;
-    opacity: .8;
+    opacity: 0.8;
     display: inline-block;
     pointer-events: none;
     animation-direction: normal;
@@ -85,19 +85,19 @@ const {
   }
 
   @keyframes twinkle {
-  0% {  
-    opacity: 1;
-    transform: scale(1);
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    30%,
+    70% {
+      opacity: 0.8;
+      transform: scale(0.7);
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
-  20%,
-  80% {
-    opacity: 0.8; 
-    transform: scale(0.7);
-    text-shadow: 0 0 5px rgba(255, 255, 255, .8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 </style>

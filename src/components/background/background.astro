@@ -5,8 +5,22 @@ import Stars from "./stars.astro";
 
 <div class="backgroundContainer">
   <Stars />
+  <audio
+    id="background-music"
+    loop
+    autoplay
+    src="../../../public/Aeolian_Harp.mp3"
+    playbackRate="0.01"></audio>
   <slot />
 </div>
+
+<script>
+  const backgroundMusic = document.getElementById("background-music");
+
+  if (backgroundMusic) {
+    backgroundMusic.playbackRate = 0.9;
+  }
+</script>
 
 <style lang="scss">
   .backgroundContainer {
