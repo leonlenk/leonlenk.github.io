@@ -4,7 +4,7 @@ const {
   starColor = "white",
   minSize = 5,
   maxSize = 20,
-  minDuration = 2.5,
+  minDuration = 3,
   maxDuration = 4.5,
 } = Astro.props;
 ---
@@ -12,7 +12,7 @@ const {
 <div
   id="star-background"
   class="starBackground"
-  style={`color: ${starColor};`}
+  style={`--star-color: ${starColor};`}
   data-num-stars={numStars}
   data-min-size={minSize}
   data-max-size={maxSize}
@@ -22,8 +22,9 @@ const {
 </div>
 
 <script>
-  import PoissonDiskSampling from "poisson-disk-sampling";
+  window.onload = function() {
   const starBackground = document.getElementById("star-background");
+  const stars = [];
 
   if (starBackground) {
     const numStars = parseInt(starBackground.dataset.numStars);
@@ -41,33 +42,83 @@ const {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    for (let i = 0; i < numStars; i++) {
-      const star = document.createElement("span");
-      star.classList.add("star");
-      star.textContent = "✶";
+    function generateStars() {
+      starBackground.innerHTML = "";
+      stars.length = 0;
 
-      // Random size
-      const size = getRandomInt(minSize, maxSize);
-      star.style.fontSize = `${size}px`;
-      star.style.lineHeight = `${size}px`;
+      for (let i = 0; i < numStars * document.body.clientHeight / window.innerHeight; i++) {
+        const star = document.createElement("span");
+        star.classList.add("star");
+        star.textContent = "✶";
 
-      // Random position
-      star.style.top = `${getRandom(-15, 100)}%`;
-      star.style.left = `${getRandom(-15, 100)}%`;
+        // Random size
+        const size = getRandomInt(minSize, maxSize);
+        star.style.fontSize = `${size}px`;
+        star.style.lineHeight = `${size}px`;
 
-      // Random animation duration and delay
-      const duration = getRandom(minDuration, maxDuration);
-      const delay = getRandom(0, maxDuration);
-      star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
+        // Store initial position as CSS custom properties
+        // This allows `transform: translateY` for parallax without affecting base position
+        const initialTop = getRandom(-20, 120);
+        const initialLeft = getRandom(0, 100);
+        star.style.setProperty("--initial-top", `${initialTop}%`);
+        star.style.setProperty("--initial-left", `${initialLeft}lvw`);
 
-      starBackground.appendChild(star);
+        // Set the base position using CSS vars
+        star.style.top = `var(--initial-top)`;
+        star.style.left = `var(--initial-left)`;
+
+        // Random animation duration and delay
+        const duration = getRandom(minDuration, maxDuration);
+        const delay = getRandom(0, maxDuration);
+        star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
+
+        // Assign a parallax speed factor (smaller factors = move less = further away)
+        // You can tie this to star size (e.g., smaller stars get smaller factors)
+        const parallaxFactor = getRandom(0.01 * size, 0.08 * size); // Adjust this range for desired depth effect
+        star.dataset.parallaxFactor = parallaxFactor; // Store factor on element
+
+        starBackground.appendChild(star);
+        stars.push(star); // Add to the array for parallax updates
+      }
     }
+
+    let currentScrollY = window.scrollY;
+
+    function updateParallax() {
+      const newScrollY = window.scrollY;
+      // Calculate the difference in scroll since the last frame
+      const deltaScroll = newScrollY - currentScrollY;
+      currentScrollY = newScrollY; // Update for the next frame
+
+      if (stars.length > 0) {
+        stars.forEach((star) => {
+          const factor = parseFloat(star.dataset.parallaxFactor);
+          const currentTranslateY = parseFloat(
+            star.style.getPropertyValue("--parallax-offset-y") || 0,
+          );
+          const newTranslateY = currentTranslateY - deltaScroll * factor;
+
+          star.style.setProperty("--parallax-offset-y", `${newTranslateY}px`);
+        });
+      }
+      requestAnimationFrame(updateParallax);
+    }
+
+    generateStars(); // Generate stars on initial load
+    updateParallax(); // Start the parallax update loop immediately
+
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(generateStars, 200); // Debounce for performance
+    });
   }
+}
 </script>
 
 <style lang="scss" is:global>
   .starBackground {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -76,28 +127,42 @@ const {
   }
 
   .star {
-    position: relative;
+    position: absolute;
+    color: var(--star-color, white);
     opacity: 0.8;
     display: inline-block;
     pointer-events: none;
     animation-direction: normal;
     text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+    text-align: center;
+    vertical-align: middle;
+    top: var(--initial-top);
+    left: var(--initial-left);
+
+    scale: var(--animation-scale, 1);
+    translate: 0 var(--parallax-offset-y, 0px);
   }
 
   @keyframes twinkle {
     0% {
       opacity: 1;
-      transform: scale(1);
+      --animation-scale: 1;
+      text-shadow:
+        0 0 20px rgba(255, 255, 255, 1),
+        0 0 30px rgba(255, 255, 255, 0.8);
     }
     30%,
-    70% {
+    80% {
       opacity: 0.8;
-      transform: scale(0.7);
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+      --animation-scale: 0.7;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 1);
     }
     100% {
       opacity: 1;
-      transform: scale(1);
+      --animation-scale: 1;
+      text-shadow:
+        0 0 20px rgba(255, 255, 255, 1),
+        0 0 30px rgba(255, 255, 255, 0.8);
     }
   }
 </style>

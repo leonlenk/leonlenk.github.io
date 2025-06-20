@@ -1,30 +1,27 @@
 ---
 import styles from "./background.module.scss";
 import Stars from "./stars.astro";
+import Globals from "../globals/globals.astro";
 ---
 
+<Globals />
 <div class="backgroundContainer">
   <Stars />
-  <audio
-    id="background-music"
-    loop
-    autoplay
-    src="../../../public/Aeolian_Harp.mp3"
-    playbackRate="0.01"></audio>
+  <audio id="background-music" loop autoplay src="/Aeolian_Harp.mp3"></audio>
   <slot />
 </div>
 
 <script>
+  // Music player logic remains the same
   const backgroundMusic = document.getElementById("background-music");
-
   if (backgroundMusic) {
     backgroundMusic.playbackRate = 0.9;
   }
+
 </script>
 
 <style lang="scss">
   .backgroundContainer {
-    z-index: -2;
     background: (
       linear-gradient(to bottom right, #0f0f2dcf 50%, #5d0f4a67 95%),
       radial-gradient(
@@ -32,11 +29,11 @@ import Stars from "./stars.astro";
         #78133d 0%,
         #0f0f2d 50%,
         #000000 100%
-      ),
-      radial-gradient(
-        circle at bottom right,
-        #6a07ffcb 0%,
-        #220f2d 50%,
+        ),
+        radial-gradient(
+          circle at bottom right,
+          #6a07ffcb 0%,
+          #220f2d 50%,
         #000000 100%
       ),
       radial-gradient(
@@ -44,12 +41,16 @@ import Stars from "./stars.astro";
         #0852eff7 0%,
         #1f369c 50%,
         #000000 100%
-      )
-    );
-    height: 100%;
+        )
+        );
+        display: flow-root;
+    position: relative;
+    isolation: isolate;
     width: 100%;
-    margin: 0;
-    padding: 0;
+    background-size: 100% 200vh; 
+    background-repeat: no-repeat; 
+    background-position-y: 0;
     box-sizing: border-box;
+    background-attachment: fixed;
   }
 </style>

@@ -13,7 +13,7 @@ import Reset from "./reset.astro";
   href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
   rel="stylesheet"
 />
-<link rel="stylesheet" href="style.css" />
+
 
 <style is:global>
   body {
@@ -21,10 +21,7 @@ import Reset from "./reset.astro";
     font-weight: 400;
     color: #e0e0e0;
     font-size: 1.1rem;
-    height: 100lvh;
-    width: 100lvw;
   }
-
   h1,
   h2,
   h3,
@@ -57,6 +54,14 @@ import Reset from "./reset.astro";
   h4 {
     font-size: 1.4em;
     font-weight: 400; /* Regular weight */
+  }
+
+  p {
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
   }
 
   a {
