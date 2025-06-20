@@ -14,8 +14,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "packageManager": "pnpm@9.8.0",
   "dependencies": {
-    "astro": "^5.9.3"
+    "astro": "^5.9.3",
+    "sharp": "^0.34.2"
   },
   "devDependencies": {
     "eslint": "^9.29.0",
