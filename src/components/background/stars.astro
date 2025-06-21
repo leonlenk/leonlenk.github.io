@@ -1,6 +1,6 @@
 ---
 const {
-  numStars = 75,
+  numStars = 100,
   starColor = "white",
   minSize = 5,
   maxSize = 20,
@@ -22,98 +22,108 @@ const {
 </div>
 
 <script>
-  window.onload = function() {
-  const starBackground = document.getElementById("star-background");
-  const stars = [];
+  window.onload = function () {
+    const starBackground = document.getElementById("star-background");
+    const stars = [];
 
-  if (starBackground) {
-    const numStars = parseInt(starBackground.dataset.numStars);
-    const minSize = parseInt(starBackground.dataset.minSize);
-    const maxSize = parseInt(starBackground.dataset.maxSize);
-    const minDuration = parseFloat(starBackground.dataset.minDuration);
-    const maxDuration = parseFloat(starBackground.dataset.maxDuration);
+    if (starBackground) {
+      const numStars = parseInt(starBackground.dataset.numStars);
+      const minSize = parseInt(starBackground.dataset.minSize);
+      const maxSize = parseInt(starBackground.dataset.maxSize);
+      const minDuration = parseFloat(starBackground.dataset.minDuration);
+      const maxDuration = parseFloat(starBackground.dataset.maxDuration);
 
-    function getRandom(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
-    function getRandomInt(min, max) {
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function generateStars() {
-      starBackground.innerHTML = "";
-      stars.length = 0;
-
-      for (let i = 0; i < numStars * document.body.clientHeight / window.innerHeight; i++) {
-        const star = document.createElement("span");
-        star.classList.add("star");
-        star.textContent = "✶";
-
-        // Random size
-        const size = getRandomInt(minSize, maxSize);
-        star.style.fontSize = `${size}px`;
-        star.style.lineHeight = `${size}px`;
-
-        // Store initial position as CSS custom properties
-        // This allows `transform: translateY` for parallax without affecting base position
-        const initialTop = getRandom(-20, 120);
-        const initialLeft = getRandom(0, 100);
-        star.style.setProperty("--initial-top", `${initialTop}%`);
-        star.style.setProperty("--initial-left", `${initialLeft}lvw`);
-
-        // Set the base position using CSS vars
-        star.style.top = `var(--initial-top)`;
-        star.style.left = `var(--initial-left)`;
-
-        // Random animation duration and delay
-        const duration = getRandom(minDuration, maxDuration);
-        const delay = getRandom(0, maxDuration);
-        star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
-
-        // Assign a parallax speed factor (smaller factors = move less = further away)
-        // You can tie this to star size (e.g., smaller stars get smaller factors)
-        const parallaxFactor = getRandom(0.01 * size, 0.08 * size); // Adjust this range for desired depth effect
-        star.dataset.parallaxFactor = parallaxFactor; // Store factor on element
-
-        starBackground.appendChild(star);
-        stars.push(star); // Add to the array for parallax updates
+      function getRandom(min, max) {
+        return Math.random() * (max - min) + min;
       }
-    }
 
-    let currentScrollY = window.scrollY;
-
-    function updateParallax() {
-      const newScrollY = window.scrollY;
-      // Calculate the difference in scroll since the last frame
-      const deltaScroll = newScrollY - currentScrollY;
-      currentScrollY = newScrollY; // Update for the next frame
-
-      if (stars.length > 0) {
-        stars.forEach((star) => {
-          const factor = parseFloat(star.dataset.parallaxFactor);
-          const currentTranslateY = parseFloat(
-            star.style.getPropertyValue("--parallax-offset-y") || 0,
-          );
-          const newTranslateY = currentTranslateY - deltaScroll * factor;
-
-          star.style.setProperty("--parallax-offset-y", `${newTranslateY}px`);
-        });
+      function getRandomInt(min, max) {
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
       }
-      requestAnimationFrame(updateParallax);
+
+      function generateStars() {
+        starBackground.innerHTML = "";
+        stars.length = 0;
+        // the number of screen lengths a user can scroll through
+        const numVerticalScreens = document.body.clientHeight / window.innerHeight;
+
+        for (
+          let i = 0;
+          i < numStars * numVerticalScreens;
+          i++
+        ) {
+          const star = document.createElement("span");
+          star.classList.add("star");
+          star.textContent = "✶";
+
+          // Random size
+          // Apply a bias towards smaller sizes
+          const biasedSize = minSize + Math.pow(Math.random(), 1.5) * (maxSize - minSize);
+          const size = Math.round(biasedSize); // Round to integer for fontSize
+
+          star.style.fontSize = `${size}px`;
+          star.style.lineHeight = `${size}px`;
+
+          // Store initial position as CSS custom properties
+          // This allows `transform: translateY` for parallax without affecting base position
+          // because of the parallax big stars will run out of view quickly hence we need to make them
+          // extend a bit beyone the page limits based on numVerticalScreens 
+          const initialTop = getRandom(-numVerticalScreens * 20, 100 + numVerticalScreens * 20);
+          const initialLeft = getRandom(0, 100);
+          star.style.setProperty("--initial-top", `${initialTop}%`);
+          star.style.setProperty("--initial-left", `${initialLeft}lvw`);
+
+          // Set the base position using CSS vars
+          star.style.top = `var(--initial-top)`;
+          star.style.left = `var(--initial-left)`;
+
+          // Random animation duration and delay
+          const duration = getRandom(minDuration, maxDuration);
+          const delay = getRandom(0, maxDuration);
+          star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
+
+          // Assign a parallax speed factor (smaller factors = move less = further away)
+          const parallaxFactor = getRandom(0.3, .9  )* (size ** 1.3 / maxSize);
+          star.dataset.parallaxFactor = parallaxFactor; // Store factor on element
+
+          starBackground.appendChild(star);
+          stars.push(star); // Add to the array for parallax updates
+        }
+      }
+
+      let currentScrollY = window.scrollY;
+
+      function updateParallax() {
+        const newScrollY = window.scrollY;
+        // Calculate the difference in scroll since the last frame
+        const deltaScroll = newScrollY - currentScrollY;
+        currentScrollY = newScrollY; // Update for the next frame
+
+        if (stars.length > 0) {
+          stars.forEach((star) => {
+            const factor = parseFloat(star.dataset.parallaxFactor);
+            const currentTranslateY = parseFloat(
+              star.style.getPropertyValue("--parallax-offset-y") || 0,
+            );
+            const newTranslateY = currentTranslateY - deltaScroll * factor;
+
+            star.style.setProperty("--parallax-offset-y", `${newTranslateY}px`);
+          });
+        }
+        requestAnimationFrame(updateParallax);
+      }
+
+      generateStars(); // Generate stars on initial load
+      updateParallax(); // Start the parallax update loop immediately
+
+      let resizeTimeout;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(generateStars, 200); // Debounce for performance
+      });
     }
-
-    generateStars(); // Generate stars on initial load
-    updateParallax(); // Start the parallax update loop immediately
-
-    let resizeTimeout;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(generateStars, 200); // Debounce for performance
-    });
-  }
-}
+  };
 </script>
 
 <style lang="scss" is:global>
@@ -152,7 +162,7 @@ const {
         0 0 30px rgba(255, 255, 255, 0.8);
     }
     30%,
-    80% {
+    85% {
       opacity: 0.8;
       --animation-scale: 0.7;
       text-shadow: 0 0 15px rgba(255, 255, 255, 1);

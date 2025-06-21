@@ -17,7 +17,6 @@ import Globals from "../globals/globals.astro";
   if (backgroundMusic) {
     backgroundMusic.playbackRate = 0.9;
   }
-
 </script>
 
 <style lang="scss">
@@ -29,11 +28,11 @@ import Globals from "../globals/globals.astro";
         #78133d 0%,
         #0f0f2d 50%,
         #000000 100%
-        ),
-        radial-gradient(
-          circle at bottom right,
-          #6a07ffcb 0%,
-          #220f2d 50%,
+      ),
+      radial-gradient(
+        circle at bottom right,
+        #6a07ffcb 0%,
+        #220f2d 50%,
         #000000 100%
       ),
       radial-gradient(
@@ -41,15 +40,15 @@ import Globals from "../globals/globals.astro";
         #0852eff7 0%,
         #1f369c 50%,
         #000000 100%
-        )
-        );
-        display: flow-root;
+      )
+    );
+    display: flow-root;
     position: relative;
     isolation: isolate;
     width: 100%;
-    background-size: 100% 200vh; 
-    background-repeat: no-repeat; 
-    background-position-y: 0;
+    background-size: 100% 200vh;
+    background-repeat: no-repeat;
+
     box-sizing: border-box;
     background-attachment: fixed;
   }
