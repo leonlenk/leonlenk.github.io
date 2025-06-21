@@ -9,9 +9,8 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 <!doctype html>
 <Globals />
 <html lang="en">
-
   <body>
-    <Navbar></Navbar>
+    <Navbar />
     <Background>
       <h1 class="namePlate">Welcome</h1>
       <div class="textContainer">
@@ -120,15 +119,14 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     margin: 0 auto;
     text-justify: inter-word;
     padding: 30px 40px;
-    backdrop-filter: blur(.5px); 
-    -webkit-backdrop-filter: blur(.5px); /* For Safari compatibility */
+    backdrop-filter: blur(0.5px);
+    -webkit-backdrop-filter: blur(0.5px); /* For Safari compatibility */
     max-width: 60ch;
     min-width: 20ch;
     margin-top: 60px;
     height: 100%;
     line-height: 1.6;
   }
-  
 
   .textContainer img {
     width: 150px;
@@ -139,10 +137,10 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     float: right;
   }
 
-  @media (max-width: 768px) { 
+  @media (max-width: 768px) {
     .textContainer {
       max-width: 80vw;
       background-color: transparent;
     }
-  } 
+  }
 </style>

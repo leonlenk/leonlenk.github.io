@@ -46,20 +46,18 @@ const {
         starBackground.innerHTML = "";
         stars.length = 0;
         // the number of screen lengths a user can scroll through
-        const numVerticalScreens = document.body.clientHeight / window.innerHeight;
+        const numVerticalScreens =
+          document.body.clientHeight / window.innerHeight;
 
-        for (
-          let i = 0;
-          i < numStars * numVerticalScreens;
-          i++
-        ) {
+        for (let i = 0; i < numStars * numVerticalScreens; i++) {
           const star = document.createElement("span");
           star.classList.add("star");
           star.textContent = "✶";
 
           // Random size
           // Apply a bias towards smaller sizes
-          const biasedSize = minSize + Math.pow(Math.random(), 1.5) * (maxSize - minSize);
+          const biasedSize =
+            minSize + Math.pow(Math.random(), 1.5) * (maxSize - minSize);
           const size = Math.round(biasedSize); // Round to integer for fontSize
 
           star.style.fontSize = `${size}px`;
@@ -68,8 +66,11 @@ const {
           // Store initial position as CSS custom properties
           // This allows `transform: translateY` for parallax without affecting base position
           // because of the parallax big stars will run out of view quickly hence we need to make them
-          // extend a bit beyone the page limits based on numVerticalScreens 
-          const initialTop = getRandom(-numVerticalScreens * 20, 100 + numVerticalScreens * 20);
+          // extend a bit beyone the page limits based on numVerticalScreens
+          const initialTop = getRandom(
+            -numVerticalScreens * 20,
+            100 + numVerticalScreens * 20,
+          );
           const initialLeft = getRandom(0, 100);
           star.style.setProperty("--initial-top", `${initialTop}%`);
           star.style.setProperty("--initial-left", `${initialLeft}lvw`);
@@ -84,7 +85,7 @@ const {
           star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
 
           // Assign a parallax speed factor (smaller factors = move less = further away)
-          const parallaxFactor = getRandom(0.3, .9  )* (size ** 1.3 / maxSize);
+          const parallaxFactor = getRandom(0.3, 0.9) * (size ** 1.3 / maxSize);
           star.dataset.parallaxFactor = parallaxFactor; // Store factor on element
 
           starBackground.appendChild(star);

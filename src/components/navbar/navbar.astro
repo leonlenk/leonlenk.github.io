@@ -1,11 +1,17 @@
 ---
 import Globals from "../globals/globals.astro";
 ---
+
 <Globals />
 <div id="navContainer" class="navContainer">
   <div class="navContent">
     <!-- Hamburger Menu Button (visible only on mobile) -->
-    <button id="hamburger-btn" class="hamburger" aria-label="Toggle menu" aria-expanded="false">
+    <button
+      id="hamburger-btn"
+      class="hamburger"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+    >
       <span></span>
       <span></span>
       <span></span>
@@ -31,9 +37,9 @@ import Globals from "../globals/globals.astro";
   // Function to toggle the mobile menu
   function toggleMenu() {
     if (navContainer && hamburgerBtn) {
-      const isExpanded = hamburgerBtn.getAttribute('aria-expanded') === 'true';
+      const isExpanded = hamburgerBtn.getAttribute("aria-expanded") === "true";
       navContainer.classList.toggle("is-open");
-      hamburgerBtn.setAttribute('aria-expanded', !isExpanded);
+      hamburgerBtn.setAttribute("aria-expanded", !isExpanded);
     }
   }
 
@@ -44,11 +50,14 @@ import Globals from "../globals/globals.astro";
 
   // Close menu on link click
   if (navLinks) {
-      navLinks.addEventListener('click', (event) => {
-          if (event.target.tagName === 'A' && navContainer.classList.contains('is-open')) {
-              toggleMenu();
-          }
-      });
+    navLinks.addEventListener("click", (event) => {
+      if (
+        event.target.tagName === "A" &&
+        navContainer.classList.contains("is-open")
+      ) {
+        toggleMenu();
+      }
+    });
   }
 
   // --- Modified Scroll Logic ---
@@ -56,7 +65,7 @@ import Globals from "../globals/globals.astro";
     if (!navContainer) return;
 
     // **MODIFIED**: Do not hide the navbar if the mobile menu is open
-    if (navContainer.classList.contains('is-open')) {
+    if (navContainer.classList.contains("is-open")) {
       return;
     }
 
@@ -92,14 +101,14 @@ import Globals from "../globals/globals.astro";
   });
 
   // Reset state on Astro page transitions
-  document.addEventListener('astro:after-swap', () => {
+  document.addEventListener("astro:after-swap", () => {
     if (navContainer) {
       lastScrollY = 0;
       navContainer.classList.remove("hide-nav");
       // Ensure mobile menu is closed on page change
       navContainer.classList.remove("is-open");
       if (hamburgerBtn) {
-        hamburgerBtn.setAttribute('aria-expanded', 'false');
+        hamburgerBtn.setAttribute("aria-expanded", "false");
       }
     }
   });
@@ -146,17 +155,19 @@ import Globals from "../globals/globals.astro";
   }
 
   .navContent li a {
-    font-family: 'Lora', serif;
+    font-family: "Lora", serif;
     font-size: 1.2em;
     color: #d1ade6;
     text-decoration: none;
     text-shadow: 0 0 5px rgba(173, 216, 230, 0.5);
-    transition: color 0.3s ease, text-shadow 0.3s ease;
+    transition:
+      color 0.3s ease,
+      text-shadow 0.3s ease;
     white-space: nowrap;
   }
 
   .navContent li a:hover {
-    color: #FFFFFF;
+    color: #ffffff;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
   }
 
@@ -189,7 +200,7 @@ import Globals from "../globals/globals.astro";
   @media (max-width: 768px) {
     .navContent {
       flex-wrap: wrap;
-      justify-content: flex-end; 
+      justify-content: flex-end;
     }
 
     .hamburger {
@@ -203,7 +214,7 @@ import Globals from "../globals/globals.astro";
       align-items: center;
       gap: 25px;
       // Add padding to create space between hamburger and the first link
-      padding-top: 30px; 
+      padding-top: 30px;
       padding-bottom: 10px;
     }
 
