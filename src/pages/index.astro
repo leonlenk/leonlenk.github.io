@@ -1,16 +1,17 @@
 ---
 import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
+import Navbar from "../components/navbar/navbar.astro";
 import { Image } from "astro:assets";
 import bunnysuitImage from "../../public/index/bunnysuit.jpg";
 ---
 
 <!doctype html>
+<Globals />
 <html lang="en">
-  <head>
-    <Globals />
-  </head>
+
   <body>
+    <Navbar></Navbar>
     <Background>
       <h1 class="namePlate">Welcome</h1>
       <div class="textContainer">
@@ -118,7 +119,9 @@ import bunnysuitImage from "../../public/index/bunnysuit.jpg";
     z-index: 1;
     margin: 0 auto;
     text-justify: inter-word;
-    padding: 40px;
+    padding: 30px 40px;
+    backdrop-filter: blur(.5px); 
+    -webkit-backdrop-filter: blur(.5px); /* For Safari compatibility */
     max-width: 60ch;
     min-width: 20ch;
     margin-top: 60px;

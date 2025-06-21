@@ -1,0 +1,131 @@
+---
+import Globals from "../globals/globals.astro";
+---
+<Globals />
+<div id="navContainer" class="navContainer">
+<div class="navContent">
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/portfolio">Portfolio</a></li>
+        <li><a href="/contact">Contact</a></li>
+    </ul>
+</div>
+</div>
+
+<script>
+    const navContainer = document.getElementById("navContainer");
+    let lastScrollY = 0; // Initialize to 0 to ensure it always starts visible at the top
+  
+    // Function to handle scroll events
+    function handleScroll() {
+      if (!navContainer) return; // Ensure navContainer exists before proceeding
+  
+      const currentScrollY = window.scrollY;
+      const navHeight = navContainer.offsetHeight; // Get the actual height of the navbar
+  
+      // Define a scroll threshold. You can make this larger if you want to scroll more before it hides.
+      // A good starting point is the navbar's height itself.
+      const scrollThreshold = navHeight; // Hide only after scrolling past the navbar's height
+  
+      if (currentScrollY > lastScrollY) {
+        // Scrolling down
+        if (currentScrollY > scrollThreshold) {
+          navContainer.classList.add("hide-nav");
+        }
+      } else {
+        // Scrolling up
+        navContainer.classList.remove("hide-nav");
+      }
+  
+      lastScrollY = currentScrollY;
+    }
+  
+    // Use requestAnimationFrame for smoother scroll handling
+    let ticking = false;
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  
+    // Ensure it's always visible at the very top (scroll position 0)
+    window.addEventListener("scroll", () => {
+      if (window.scrollY === 0 && navContainer) {
+        navContainer.classList.remove("hide-nav");
+      }
+    });
+  
+    // Add a listener to ensure it works after the initial load or if the user navigates back
+    document.addEventListener('astro:after-swap', () => {
+      if (navContainer) {
+        lastScrollY = 0; // Reset lastScrollY on page change
+        // Ensure it's visible on new page load, or when coming back to top
+        navContainer.classList.remove("hide-nav");
+      }
+    });
+  
+  </script>
+
+<style lang="scss">
+    .navContainer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+        z-index: 100;
+        padding: 20px 0;
+        background: rgba(10, 10, 30, 0.5);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 2px 15px rgba(98, 0, 255, 0.08);
+
+        // Add transition for smooth animation
+        transition: transform 0.3s ease-out; /* Controls how fast it slides up/down */
+    }
+
+    // Class to hide the navbar
+    .navContainer.hide-nav {
+        transform: translateY(-100%); /* Moves it up by its own full height */
+    }
+
+    .navContent {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center; /* Centers the ul within navContent */
+        align-items: center;
+        padding: 0 20px;
+    }
+
+    .navContent ul {
+        list-style: none;
+        justify-content: center; /* Centers the li items within the ul */
+        padding: 0;
+        margin: 0;
+        display: flex;
+        gap: 60px;
+    }
+
+    .navContent li a {
+        font-family: 'Lora', serif;
+        font-size: 1.2em;
+        color: #d1ade6;
+        text-decoration: none;
+        text-shadow: 0 0 5px rgba(173, 216, 230, 0.5);
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .navContent li a:hover {
+        color: #FFFFFF;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+    }
+</style>
