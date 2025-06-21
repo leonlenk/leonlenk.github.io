@@ -6,8 +6,8 @@ import Globals from "../globals/globals.astro";
 
 <Globals />
 <div class="backgroundContainer">
-  <Stars />
-  <audio id="background-music" loop autoplay src="/Aeolian_Harp.mp3"></audio>
+  <Stars client:idle />
+  <audio client:idle id="background-music" loop autoplay src="/Aeolian_Harp.mp3"></audio>
   <slot />
 </div>
 
