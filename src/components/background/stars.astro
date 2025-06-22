@@ -37,11 +37,6 @@ const {
         return Math.random() * (max - min) + min;
       }
 
-      function getRandomInt(min, max) {
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      }
-
       function generateStars() {
         starBackground.innerHTML = "";
         stars.length = 0;
@@ -119,9 +114,26 @@ const {
       updateParallax(); // Start the parallax update loop immediately
 
       let resizeTimeout;
+      let lastWidth = window.innerWidth;
+      let lastHeight = window.innerHeight;
+
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(generateStars, 200); // Debounce for performance
+        resizeTimeout = setTimeout(() => {
+          // Check for significant changes, e.g., device orientation change
+          const newWidth = window.innerWidth;
+          const newHeight = window.innerHeight;
+          // Regenerate only if width or height changes substantially, or aspect ratio flips
+          if (
+            Math.abs(newWidth - lastWidth) > 75 || // More than 75px width change
+            Math.abs(newHeight - lastHeight) > 75  // More than 75px height change
+          ) {
+            starBackground.style.height = "100%"; // Reset height before recalculation
+            generateStars();
+          }
+          lastWidth = newWidth;
+          lastHeight = newHeight;
+        }, 300);// Debounce for performance
       });
     }
   };
