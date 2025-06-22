@@ -20,6 +20,32 @@ import Navbar from "../components/navbar/navbar.astro";
 
 <style lang="scss">
   .fillerContainer {
-    height: 600lvh;
+    height: 300vh;
+    transition: height 0.5s ease-in-out;
   }
 </style>
+
+<script>
+  const filler = document.querySelector('.fillerContainer');
+
+  // Don't run this code on the server, only in the browser
+  if (filler) {
+    let currentHeight = 300;
+
+    const addMoreHeight = () => {
+      // Check if the user has scrolled near the bottom of the page
+      // (window.scrollY + window.innerHeight) is the position of the bottom of the viewport
+      // document.documentElement.scrollHeight is the total height of the page
+      // We trigger the resize when the viewport bottom is within 200px of the page bottom
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 200) {
+        
+        // Increase the height value
+        currentHeight += 100; // Add 100vh each time
+        filler.style.height = `${currentHeight}vh`;
+      }
+    };
+
+    // Listen for scroll events
+    window.addEventListener('scroll', addMoreHeight);
+  }
+</script>
