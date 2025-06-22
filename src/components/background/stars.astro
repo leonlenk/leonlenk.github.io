@@ -1,6 +1,6 @@
 ---
 const {
-  numStars = 50,
+  numStars = 75,
   starColor = "white",
   minSize = 5,
   maxSize = 20,
@@ -35,8 +35,8 @@ const {
     let stars = [];
     let screenWidth = window.outerWidth;
     let screenHeight = window.outerHeight;
-    function getRandom(min, max) {
-      return Math.random() * (max - min) + min;
+    function getRandom(min, max, skew=1) {
+      return Math.pow(Math.random(), skew) * (max - min) + min;
     }
 
     function createStars() {
@@ -50,14 +50,14 @@ const {
         starElement.classList.add("star");
         starElement.textContent = "✶";
 
+        const size = getRandom(minSize, maxSize, 3);
         const star = {
           element: starElement,
           x: getRandom(0, screenWidth),
           y: getRandom(0, screenHeight),
-          z: Math.pow(getRandom(0.3, 1.0), 4),
+          z: getRandom(.3, .9) * size/minSize,
         };
 
-        const size = minSize + star.z * (maxSize - minSize);
         const duration = getRandom(minDuration, maxDuration);
         const delay = getRandom(0, duration);
         starElement.style.fontSize = `${size}px`;
