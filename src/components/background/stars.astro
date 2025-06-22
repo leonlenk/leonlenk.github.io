@@ -1,6 +1,6 @@
 ---
 const {
-  numStars = 100,
+  numStars = 50,
   starColor = "white",
   minSize = 5,
   maxSize = 20,
@@ -24,146 +24,135 @@ const {
 <script>
   window.onload = function () {
     const starBackground = document.getElementById("star-background");
-    const stars = [];
+    if (!starBackground) return;
 
-    if (starBackground) {
-      const numStars = parseInt(starBackground.dataset.numStars);
-      const minSize = parseInt(starBackground.dataset.minSize);
-      const maxSize = parseInt(starBackground.dataset.maxSize);
-      const minDuration = parseFloat(starBackground.dataset.minDuration);
-      const maxDuration = parseFloat(starBackground.dataset.maxDuration);
+    const numStars = parseInt(starBackground.dataset.numStars) || 150;
+    const minSize = parseInt(starBackground.dataset.minSize) || 1;
+    const maxSize = parseInt(starBackground.dataset.maxSize) || 7;
+    const minDuration = parseFloat(starBackground.dataset.minDuration) || 4;
+    const maxDuration = parseFloat(starBackground.dataset.maxDuration) || 8;
 
-      function getRandom(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-
-      function generateStars() {
-        starBackground.innerHTML = "";
-        stars.length = 0;
-        // the number of screen lengths a user can scroll through
-        const numVerticalScreens =
-          document.body.clientHeight / window.innerHeight;
-
-        for (let i = 0; i < numStars * numVerticalScreens; i++) {
-          const star = document.createElement("span");
-          star.classList.add("star");
-          star.textContent = "✶";
-
-          // Random size
-          // Apply a bias towards smaller sizes
-          const biasedSize =
-            minSize + Math.pow(Math.random(), 1.5) * (maxSize - minSize);
-          const size = Math.round(biasedSize); // Round to integer for fontSize
-
-          star.style.fontSize = `${size}px`;
-          star.style.lineHeight = `${size}px`;
-
-          // Store initial position as CSS custom properties
-          // This allows `transform: translateY` for parallax without affecting base position
-          // because of the parallax big stars will run out of view quickly hence we need to make them
-          // extend a bit beyone the page limits based on numVerticalScreens
-          const initialTop = getRandom(
-            -numVerticalScreens * 20,
-            100 + numVerticalScreens * 20,
-          );
-          const initialLeft = getRandom(0, 100);
-          star.style.setProperty("--initial-top", `${initialTop}%`);
-          star.style.setProperty("--initial-left", `${initialLeft}lvw`);
-
-          // Set the base position using CSS vars
-          star.style.top = `var(--initial-top)`;
-          star.style.left = `var(--initial-left)`;
-
-          // Random animation duration and delay
-          const duration = getRandom(minDuration, maxDuration);
-          const delay = getRandom(0, maxDuration);
-          star.style.animation = `twinkle ${duration}s ease-in-out infinite ${delay}s`;
-
-          // Assign a parallax speed factor (smaller factors = move less = further away)
-          const parallaxFactor = getRandom(0.3, 0.9) * (size ** 1.3 / maxSize);
-          star.dataset.parallaxFactor = parallaxFactor; // Store factor on element
-
-          starBackground.appendChild(star);
-          stars.push(star); // Add to the array for parallax updates
-        }
-      }
-
-      let currentScrollY = window.scrollY;
-
-      function updateParallax() {
-        const newScrollY = window.scrollY;
-        // Calculate the difference in scroll since the last frame
-        const deltaScroll = newScrollY - currentScrollY;
-        currentScrollY = newScrollY; // Update for the next frame
-
-        if (stars.length > 0) {
-          stars.forEach((star) => {
-            const factor = parseFloat(star.dataset.parallaxFactor);
-            const currentTranslateY = parseFloat(
-              star.style.getPropertyValue("--parallax-offset-y") || 0,
-            );
-            const newTranslateY = currentTranslateY - deltaScroll * factor;
-
-            star.style.setProperty("--parallax-offset-y", `${newTranslateY}px`);
-          });
-        }
-        requestAnimationFrame(updateParallax);
-      }
-
-      generateStars(); // Generate stars on initial load
-      updateParallax(); // Start the parallax update loop immediately
-
-      let resizeTimeout;
-      let lastWidth = window.innerWidth;
-      let lastHeight = window.innerHeight;
-
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          // Check for significant changes, e.g., device orientation change
-          const newWidth = window.innerWidth;
-          const newHeight = window.innerHeight;
-          // Regenerate only if width or height changes substantially, or aspect ratio flips
-          if (
-            Math.abs(newWidth - lastWidth) > 75 || // More than 75px width change
-            Math.abs(newHeight - lastHeight) > 75  // More than 75px height change
-          ) {
-            starBackground.style.height = "100%"; // Reset height before recalculation
-            generateStars();
-          }
-          lastWidth = newWidth;
-          lastHeight = newHeight;
-        }, 300);// Debounce for performance
-      });
+    let stars = [];
+    let screenWidth = window.outerWidth;
+    let screenHeight = window.outerHeight;
+    function getRandom(min, max) {
+      return Math.random() * (max - min) + min;
     }
+
+    function createStars() {
+      screenWidth = window.outerWidth;
+      screenHeight = window.outerHeight;
+      starBackground.innerHTML = "";
+      stars = [];
+
+      for (let i = 0; i < numStars; i++) {
+        const starElement = document.createElement("span");
+        starElement.classList.add("star");
+        starElement.textContent = "✶";
+
+        const star = {
+          element: starElement,
+          x: getRandom(0, screenWidth),
+          y: getRandom(0, screenHeight),
+          z: Math.pow(getRandom(0.3, 1.0), 4),
+        };
+
+        const size = minSize + star.z * (maxSize - minSize);
+        const duration = getRandom(minDuration, maxDuration);
+        const delay = getRandom(0, duration);
+        starElement.style.fontSize = `${size}px`;
+        starElement.style.lineHeight = `${size}px`;
+        starElement.style.animation = `twinkle ${duration}s ease-in-out infinite`;
+        starElement.style.animationDelay = `${delay}s`;
+
+        starElement.style.setProperty("--translate-x", `${star.x}px`);
+        starElement.style.setProperty("--translate-y", `${star.y}px`);
+
+        starBackground.appendChild(starElement);
+        stars.push(star);
+      }
+    }
+
+    let lastScrollY = window.scrollY;
+    function updatePositions() {
+      const deltaScroll = window.scrollY - lastScrollY;
+      lastScrollY = window.scrollY;
+
+      stars.forEach((star) => {
+        star.y -= deltaScroll * star.z;
+
+        // --- Recycle stars that go out of view ---
+        // If star scrolls past the top edge, move it to the bottom
+        if (star.y < -maxSize) {
+          star.x = getRandom(0, screenWidth);
+          star.y += screenHeight + maxSize * 2; // Reposition to bottom
+        }
+        // If star scrolls past the bottom edge, move it to the top
+        else if (star.y > screenHeight + maxSize) {
+          star.x = getRandom(0, screenWidth);
+          star.y -= screenHeight + maxSize * 2; // Reposition to top
+        }
+
+        // Apply the new position to the element
+        star.element.style.setProperty("--translate-y", `${star.y}px`);
+        star.element.style.setProperty("--translate-x", `${star.x}px`);
+      });
+
+      requestAnimationFrame(updatePositions);
+    }
+
+    createStars();
+    requestAnimationFrame(updatePositions);
+
+    let resizeTimeout;
+    let lastWidth = window.outerWidth;
+    let lastHeight = window.outerHeight;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+
+      resizeTimeout = setTimeout(() => {
+        // Check for significant changes, e.g., device orientation change
+        const newWidth = window.outerWidth;
+        const newHeight = window.outerHeight;
+
+        // Regenerate only if width or height changes substantially, or aspect ratio flips
+        if (
+          Math.abs(newWidth - lastWidth) > 50 || // More than 50px width change
+          Math.abs(newHeight - lastHeight) > 50 // More than 50px height change
+        ) {
+          createStars();
+        }
+
+        lastWidth = newWidth;
+        lastHeight = newHeight;
+      }, 200); // Debounce for performance
+    });
   };
 </script>
 
 <style lang="scss" is:global>
   .starBackground {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
   }
 
   .star {
     position: absolute;
+    top: 0;
+    left: 0;
     color: var(--star-color, white);
-    opacity: 0.8;
     display: inline-block;
-    pointer-events: none;
-    animation-direction: normal;
     text-shadow: 0 0 15px rgba(255, 255, 255, 1);
-    text-align: center;
-    vertical-align: middle;
-    top: var(--initial-top);
-    left: var(--initial-left);
-
-    scale: var(--animation-scale, 1);
-    translate: 0 var(--parallax-offset-y, 0px);
+    transform: translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0)
+      scale(var(--animation-scale, 1));
+    will-change: transform;
   }
 
   @keyframes twinkle {
