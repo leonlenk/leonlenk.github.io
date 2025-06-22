@@ -75,16 +75,31 @@ import Reset from "./reset.astro";
   h2 {
     font-size: 2.5em;
     font-weight: 600; /* Semi-bold */
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
   }
 
   h3 {
     font-size: 1.8em;
     font-weight: 500; /* Medium weight */
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
   }
 
   h4 {
     font-size: 1.4em;
     font-weight: 400; /* Regular weight */
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
   }
 
   p {
@@ -136,5 +151,43 @@ import Reset from "./reset.astro";
   nav li a:hover {
     color: #ffffff;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+  }
+</style>
+
+<style lang="scss" is:global>
+  .pageName {
+    margin-top: 100px;
+  }
+  .pageTextContainer {
+    background-color: #2f0ac214;
+    border-radius: 2rem;
+    position: relative;
+    z-index: 1;
+    margin: 60px auto;
+    margin-bottom: 160px;
+    text-justify: inter-word;
+    padding: 30px 40px;
+    backdrop-filter: blur(0.5px);
+    -webkit-backdrop-filter: blur(0.5px); /* For Safari compatibility */
+    max-width: 60ch;
+    min-width: 20ch;
+    height: 100%;
+    line-height: 1.6;
+  }
+
+  .pageTextContainer img {
+    width: 150px;
+    height: auto;
+    margin-left: 20px;
+    margin-right: 10px;
+    margin-top: 9px;
+    float: right;
+  }
+
+  @media (max-width: 768px) {
+    .pageTextContainer {
+      max-width: 80vw;
+      background-color: transparent;
+    }
   }
 </style>

@@ -1,0 +1,41 @@
+---
+import Background from "../components/background/background.astro";
+import Globals from "../components/globals/globals.astro";
+import Navbar from "../components/navbar/navbar.astro";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Globals />
+    <meta
+      name="description"
+      content="Leon's portfolio, primarly consisting of his publications"
+    />
+    <link rel="canonical" href="https://www.leonlenk.com/" />
+  </head>
+  <body>
+    <Navbar />
+    <Background>
+      <h1 class="pageName">Portfolio</h1>
+      <div class="pageTextContainer" style="margin-bottom: 70%;">
+        <h3 class="subHeader">Papers:</h3>
+        <ul>
+          <li>
+            <a href="https://ieeexplore.ieee.org/abstract/document/10937610/"
+              >L. Lenk et al., "Deep Learning for Steganographic Image
+              Detection," in 2024 IEEE MIT Undergraduate Research Technology
+              Conference (URTC), Oct. 2024, pp. 1-4.</a>
+          </li>
+        </ul>
+        <h4 class="subHeader"  style="margin-top: 30px;">More To Come</h4>
+      </div>
+    </Background>
+  </body>
+</html>
+
+<style lang="scss">
+  .subHeader {
+    padding-bottom: 20px;
+  }
+</style>

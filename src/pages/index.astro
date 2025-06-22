@@ -12,15 +12,21 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     <Globals />
     <meta
       name="description"
-      content="The landing page of Leon Lenk's personal website"
+      content="The landing and about page of Leon's personal website"
     />
     <link rel="canonical" href="https://www.leonlenk.com/" />
   </head>
   <body>
+    <audio
+      client:idle
+      id="background-music"
+      loop
+      autoplay
+      src="/Aeolian_Harp.mp3"></audio>
     <Navbar />
     <Background>
-      <h1 class="namePlate">Welcome</h1>
-      <div class="textContainer">
+      <h1 class="pageName">Welcome</h1>
+      <div class="pageTextContainer">
         <Image
           src={bunnysuitImage}
           alt="My bio pic :)"
@@ -50,40 +56,10 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   </body>
 </html>
 
-<style lang="scss">
-  .namePlate {
-    margin-top: 100px;
+<script>
+  // Music player logic remains the same
+  const backgroundMusic = document.getElementById("background-music");
+  if (backgroundMusic) {
+    backgroundMusic.playbackRate = 0.9;
   }
-  .textContainer {
-    background-color: #2f0ac214;
-    border-radius: 2rem;
-    position: relative;
-    z-index: 1;
-    margin: 60px auto;
-    margin-bottom: 160px;
-    text-justify: inter-word;
-    padding: 30px 40px;
-    backdrop-filter: blur(0.5px);
-    -webkit-backdrop-filter: blur(0.5px); /* For Safari compatibility */
-    max-width: 60ch;
-    min-width: 20ch;
-    height: 100%;
-    line-height: 1.6;
-  }
-
-  .textContainer img {
-    width: 150px;
-    height: auto;
-    margin-left: 20px;
-    margin-right: 10px;
-    margin-top: 9px;
-    float: right;
-  }
-
-  @media (max-width: 768px) {
-    .textContainer {
-      max-width: 80vw;
-      background-color: transparent;
-    }
-  }
-</style>
+</script>
