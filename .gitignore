@@ -1,5 +1,6 @@
 # custom
-src/content
+src/
+.vscode
 
 # Node.js
 node_modules/
