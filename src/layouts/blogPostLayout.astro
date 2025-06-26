@@ -1,0 +1,29 @@
+---
+const { frontmatter } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <article>
+      <h1>{frontmatter.title}</h1>
+      <p>
+        Published on: {
+          new Date(frontmatter.pubDate).toLocaleDateString("en-us", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        }
+      </p>
+      <p><em>{frontmatter.description}</em></p>
+      <hr />
+      <slot />
+    </article>
+  </body>
+</html>

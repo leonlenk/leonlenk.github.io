@@ -35,7 +35,7 @@ const {
     let stars = [];
     let screenWidth = window.outerWidth;
     let screenHeight = window.outerHeight;
-    function getRandom(min, max, skew=1) {
+    function getRandom(min, max, skew = 1) {
       return Math.pow(Math.random(), skew) * (max - min) + min;
     }
 
@@ -55,7 +55,7 @@ const {
           element: starElement,
           x: getRandom(0, screenWidth),
           y: getRandom(0, screenHeight),
-          z: getRandom(.3, .9) * size/minSize,
+          z: (getRandom(0.3, 0.9) * size) / minSize,
         };
 
         const duration = getRandom(minDuration, maxDuration);

@@ -1,0 +1,65 @@
+---
+import Background from "../components/background/background.astro";
+import Globals from "../components/globals/globals.astro";
+import Navbar from "../components/navbar/navbar.astro";
+import PostLink from "../layouts/postLink.astro";
+import { getCollection } from "astro:content";
+const allPosts = await getCollection("blog");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Globals />
+    <meta name="description" content="Leon's Poetry hub" />
+  </head>
+  <body>
+    <Navbar />
+    <Background>
+      <h1 class="pageName">My Blog</h1>
+      <div class="allPostsContainer">
+        <ul>
+          {
+            allPosts.sort((a, b) => {
+                const dateA = new Date(a.data.pubDate);
+                const dateB = new Date(b.data.pubDate);
+                return dateB - dateA;
+              }).map((post) => (
+              <li>
+                <PostLink
+                  path={`/blog/${post.slug}/`}
+                  title={post.data.title}
+                  body={
+                    " " + post.body.substring(0, 200) + (post.body.length > 200
+                      ? "..."
+                      : "")
+                  }
+                  footer={
+                    new Date(post.data.pubDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }) +
+                    " | Author: " +
+                    post.data.author +
+                    " | Tags: " +
+                    post.data.tags.map((tag) => tag).join(", ")
+                  }
+                />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </Background>
+  </body>
+</html>
+
+<style lang="scss">
+  .allPostsContainer {
+    margin: 60px auto;
+    position: relative;
+    max-width: 70ch;
+    min-width: 20ch;
+  }
+</style>

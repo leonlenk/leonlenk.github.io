@@ -1,0 +1,108 @@
+---
+const { path, title, body, footer } = Astro.props;
+---
+
+<a href={path}>
+  <div class="postContainer">
+    <h2 class="postTitle">{title}</h2>
+    <p class="postBody">
+        {body}
+    </p>
+    <p class="postFooter">
+      {footer}
+    </p>
+  </div>
+</a>
+
+<style lang="scss">
+  .postContainer {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    padding: 30px 40px; 
+    border-radius: 0.5rem;
+    background: linear-gradient(
+      90deg,
+      #f7017438,
+      #9018c038,
+      #777fd338,
+      #c615c338,
+      #f7017438
+    );
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px); 
+    animation: gradientAnimation 20s linear infinite;
+    background-size: 500% 100%;
+    margin-bottom: 50px; 
+  }
+
+  @keyframes gradientAnimation {
+    0% {
+      background-position: 0% 0%;
+    }
+    50% {
+      background-position: 250% 0%;
+    }
+    100% {
+      background-position: 500% 0%;
+    }
+  }
+
+  .postTitle {
+    font-size: 30px;
+  }
+
+  .postBody {
+    font-size: 16px; 
+    color: white;
+    margin: 15px 0px;
+  }
+
+  .postFooter {
+    font-size: 14px;
+    color: rgb(192, 193, 197);
+  }
+
+  /* Small screens (e.g., phones) */
+  @media (max-width: 768px) {
+    .postContainer {
+      padding: 20px 25px; 
+      margin-bottom: 20px; 
+      margin-left: 30px;
+      margin-right: 30px;
+    }
+
+    .postTitle {
+      font-size: 24px;
+    }
+
+    .postBody {
+      font-size: 15px; 
+      margin: 10px 0px; 
+    }
+
+    .postFooter {
+      font-size: 13px;
+    }
+  }
+
+  /* Extra small screens (e.g., older phones, very narrow views) */
+  @media (max-width: 480px) {
+    .postContainer {
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
+    .postTitle {
+      font-size: 20px;
+    }
+
+    .postBody {
+      font-size: 14px;
+    }
+
+    .postFooter {
+      font-size: 12px;
+    }
+  }
+</style>
