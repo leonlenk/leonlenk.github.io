@@ -56,8 +56,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
                 
                 <div class="about-content">
                   <p class="intro-text">
-                    This is my personal website, as I'm sure you can guess from the domain. 
-                    This is a place for me to aggregate all of my "intellectual" works.
+                    I'm Leon, a student at UCLA. This is my portfolio website. 
                   </p>
                   
                   <div class="interests-section">
@@ -87,26 +86,36 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
                   </div>
                   
                   <p class="content-text">
-                    Excluding writing, which is given its own section, all of my articles on these can be found in my blog. 
-                    Though I do not have it yet I would also like to one day add a recipe section as I quite like baking, 
-                    though I am not so good at photography which is often just as important as the quality of the food.
+                    Right now this will mostly serve as a home to all the written content I've produced. At some point
+                    I'll also add a section for my projects, for example I have a chess engine that I've been working on for a while.
+                    And one day I would also like to add a recipe section as baking has been a passion of mine for a long time.
+                    I'm not so good at photography, but I'll try my best to make the recipes look good. 
                   </p>
                   
                   <p class="content-text">
                     At any rate this website is (and probably will forever remain) a work in progress. 
-                    I don't expect this site to get much traffic, however if you feel so impelled to give me feedback 
-                    you can email me at <a href="mailto:me@leonlenk.com" class="email-link">me@leonlenk.com</a>.
+                    I don't expect this site to get much traffic, however if there is something broken please feel free to
+                    give me feedback you can email me at <a href="mailto:me@leonlenk.com" class="email-link">me@leonlenk.com</a>.
                   </p>
                   
                   <p class="content-text">
-                    Anyway take a look at my pages, I've put a decent amount of effort into this place, 
-                    or if you feel so inclined take a look at my friends sites which will be linked at some point. 
-                    Have fun and thank you for visiting.
+                    Anyway take a look at my pages, I've put a decent amount of effort into this place. 
+                    You should also take a look at my friends sites which are linked in the footer. 
+                    Have fun and thank you for visiting!
                   </p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+        
+        <div class="footer-section">
+          <a href="https://bulr.boo/" target="_blank" class="neocities-link" data-tooltip="bulr.boo">
+            <img alt="Bulr.boo" src="https://bulr.boo/images/badges/bulrboo.png" width="88" height="31" fetchpriority="low">
+          </a>
+          <a href="https://peppersalt.neocities.org" target="_blank" class="neocities-link" data-tooltip="peppersalt">
+            <img alt="peppersalt" src="https://peppersalt.neocities.org/buttons/PepperSaltedButton.gif" width="88" height="31" fetchpriority="low">
+          </a>
         </div>
       </div>
     </Background>
@@ -396,5 +405,68 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     .interest-text {
       font-size: 0.9rem;
     }
+  }
+
+  .footer-section {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .neocities-link {
+    display: inline-block;
+    transition: opacity 0.3s ease;
+    margin: 0 10px;
+  }
+
+  .neocities-link:hover {
+    opacity: 0.8;
+  }
+
+  .neocities-link img {
+    display: block;
+  }
+
+  .neocities-link {
+    position: relative;
+  }
+
+  .neocities-link::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 5px;
+  }
+
+  .neocities-link::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: -5px;
+  }
+
+  .neocities-link:hover::after,
+  .neocities-link:hover::before {
+    opacity: 1;
+    visibility: visible;
   }
 </style>
