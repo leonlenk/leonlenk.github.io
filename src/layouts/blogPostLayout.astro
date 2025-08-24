@@ -17,6 +17,11 @@ const { frontmatter } = Astro.props;
 
     <main class="blog-container">
       <article class="blog-post">
+        <!-- Reading Progress Bar -->
+        <div class="reading-progress-container">
+          <div class="reading-progress-bar" id="reading-progress"></div>
+          <div class="sections-list" id="sections-list"></div>
+        </div>
         <header class="blog-header">
           <h1 class="blog-title">{frontmatter.title}</h1>
           <div class="blog-meta">
@@ -42,12 +47,179 @@ const { frontmatter } = Astro.props;
       </article>
     </main>
 
+    <script>
+      // Set dark theme by default
+      document.documentElement.setAttribute('data-theme', 'dark');
+
+      // Reading Progress Bar functionality
+      function initReadingProgress() {
+        const progressBar = document.getElementById('reading-progress');
+        const sectionsList = document.getElementById('sections-list');
+        const content = document.querySelector('.blog-content');
+        
+        if (!progressBar || !content) return;
+
+        // Get all headers from the content
+        const headers = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        let currentHeaderIndex = -1;
+
+        // Populate sections list with simple tree structure
+        function populateSectionsList() {
+          if (!sectionsList || headers.length === 0) return;
+          
+          sectionsList.innerHTML = '';
+          
+          headers.forEach((header, index) => {
+            const sectionItem = document.createElement('div');
+            sectionItem.className = `section-item ${header.tagName.toLowerCase()}`;
+            sectionItem.dataset.index = index;
+            
+            const headerLevel = parseInt(header.tagName.charAt(1));
+            
+            // Simple tree prefix
+            let treePrefix = "";
+            if (headerLevel > 1) {
+              // Check if this is the last item at this level
+              let isLast = true;
+              for (let i = index + 1; i < headers.length; i++) {
+                const nextHeaderLevel = parseInt(headers[i].tagName.charAt(1));
+                if (nextHeaderLevel === headerLevel) {
+                  isLast = false;
+                  break;
+                } else if (nextHeaderLevel < headerLevel) {
+                  break;
+                }
+              }
+              
+              treePrefix = isLast ? "└─ " : "├─ ";
+            }
+            
+            const prefixSpan = document.createElement('span');
+            prefixSpan.className = 'tree-prefix';
+            prefixSpan.textContent = treePrefix;
+            
+            const textSpan = document.createElement('span');
+            textSpan.textContent = header.textContent;
+            
+            sectionItem.appendChild(prefixSpan);
+            sectionItem.appendChild(textSpan);
+            
+            // Add dynamic indentation
+            sectionItem.style.marginLeft = `${(headerLevel - 1) * 12}px`;
+            
+            // Add dynamic font size based on header level
+            const fontSize = Math.max(0.7, 0.95 - (headerLevel - 1) * 0.05);
+            sectionItem.style.fontSize = `${fontSize}rem`;
+            
+            sectionsList.appendChild(sectionItem);
+          });
+        }
+
+        // Initialize sections list
+        populateSectionsList();
+
+        function updateProgress() {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const contentTop = content.offsetTop;
+          const contentBottom = contentTop + content.offsetHeight;
+          const navbarHeight = 80;
+          
+          if (scrollTop + navbarHeight >= contentTop && scrollTop <= contentBottom) {
+            // Calculate progress within the content area
+            const contentScrollTop = scrollTop + navbarHeight - contentTop;
+            const contentScrollHeight = content.offsetHeight - window.innerHeight + navbarHeight;
+            const contentScrollPercent = Math.max(0, Math.min(100, (contentScrollTop / contentScrollHeight) * 100));
+            
+            progressBar.style.height = contentScrollPercent + '%';
+            progressBar.style.opacity = '1';
+            sectionsList.classList.add('active');
+
+            // Update current header
+            let newHeaderIndex = -1;
+            const scrollPosition = scrollTop + navbarHeight + 100;
+            
+            headers.forEach((header, index) => {
+              const headerTop = header.offsetTop;
+              const headerBottom = headerTop + header.offsetHeight;
+              
+              if (scrollPosition >= headerTop && scrollPosition < headerBottom) {
+                newHeaderIndex = index;
+              }
+            });
+
+            // If no header is found, find the last header that's above the scroll position
+            if (newHeaderIndex === -1) {
+              for (let i = headers.length - 1; i >= 0; i--) {
+                if (scrollPosition >= headers[i].offsetTop) {
+                  newHeaderIndex = i;
+                  break;
+                }
+              }
+            }
+
+            // Update active section in sidebar
+            const sectionItems = sectionsList.querySelectorAll('.section-item');
+            sectionItems.forEach((item, index) => {
+              item.classList.remove('active');
+              item.style.color = '';
+              item.style.textShadow = '';
+              item.style.fontWeight = '';
+              
+              if (index === newHeaderIndex) {
+                item.classList.add('active');
+                item.style.color = '#ffffff';
+                item.style.textShadow = '0 0 8px rgba(255, 255, 255, 0.6)';
+                item.style.fontWeight = '600';
+              }
+            });
+
+            // Highlight the current section in the sidebar
+            if (newHeaderIndex !== -1) {
+              const currentSectionItem = sectionsList.querySelector(`[data-index="${newHeaderIndex}"]`);
+              if (currentSectionItem) {
+                currentSectionItem.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center'
+                });
+              }
+            }
+
+            currentHeaderIndex = newHeaderIndex;
+          } else if (scrollTop + navbarHeight < contentTop) {
+            progressBar.style.height = '0%';
+            progressBar.style.opacity = '0.3';
+            sectionsList.classList.remove('active');
+            currentHeaderIndex = -1;
+          } else {
+            progressBar.style.height = '100%';
+            progressBar.style.opacity = '1';
+            sectionsList.classList.remove('active');
+            currentHeaderIndex = -1;
+          }
+        }
+
+        // Update progress on scroll
+        window.addEventListener('scroll', () => {
+          requestAnimationFrame(updateProgress);
+        });
+
+        // Initial call
+        updateProgress();
+      }
+
+      // Initialize reading progress when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initReadingProgress);
+      } else {
+        initReadingProgress();
+      }
+    </script>
+
   </body>
 </html>
 
 <style lang="scss">
   :root {
-    /* Dark theme colors */
     --bg-primary: #1c1934;
     --bg-secondary: #2d2d2d;
     --text-primary: #ffffff;
@@ -62,17 +234,117 @@ const { frontmatter } = Astro.props;
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
     margin: 0;
     padding: 0;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
   }
 
-  [data-theme="light"] body {
-    font-weight: 300;
+  /* Reading Progress Bar */
+  .reading-progress-container {
+    position: fixed;
+    top: 90px;
+    left: 0;
+    width: 6px;
+    height: 75vh;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0 3px 3px 0;
+    z-index: 1001;
+    margin-left: 10px;
   }
 
+  .reading-progress-bar {
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(180deg, #4a90e2 0%, #9b59b6 50%, #e74c3c 100%);
+    transition: height 0.1s ease-out, opacity 0.3s ease;
+    opacity: 0.8;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .sections-list {
+    position: absolute;
+    left: 30px;
+    top: 0;
+    width: 250px;
+    font-family: "Lora", serif;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    max-height: 75vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+
+  .sections-list.active {
+    opacity: 1;
+  }
+
+  .section-item {
+    margin-bottom: 4px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    opacity: 0.6;
+    position: relative;
+    font-family: "Courier New", monospace;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    white-space: pre;
+  }
+
+  .section-item:hover {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .section-item.active {
+    opacity: 1;
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+
+  .section-item.h1 { 
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .section-item.h2 { 
+    font-weight: 500;
+  }
+  
+  .section-item.h3 { 
+    font-weight: 400;
+  }
+  
+  .section-item.h4 { 
+    font-weight: 400;
+  }
+  
+  .section-item.h5 { 
+    font-weight: 400;
+  }
+  
+  .section-item.h6 { 
+    font-weight: 400;
+  }
+
+  .tree-prefix {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-family: "Courier New", monospace;
+    white-space: pre;
+  }
 
   /* Blog Container */
   .blog-container {
@@ -89,6 +361,7 @@ const { frontmatter } = Astro.props;
     padding: 40px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--border-color);
+    position: relative;
   }
 
   /* Blog Header */
@@ -257,6 +530,7 @@ const { frontmatter } = Astro.props;
     font-weight: 600;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
     letter-spacing: 0.03em;
+    transition: all 0.3s ease;
   }
 
   .blog-content h1 {
@@ -330,7 +604,16 @@ const { frontmatter } = Astro.props;
   }
 
   /* Responsive Design */
-  @media (max-width: 768px) {
+  @media (max-width: 1200px) {
+    .reading-progress-container {
+      left: 0;
+      top: 140px;
+    }
+
+    .sections-list {
+      display: none;
+    }
+
     .blog-container {
       padding: 140px 15px 40px 15px;
     }
@@ -348,7 +631,12 @@ const { frontmatter } = Astro.props;
       align-items: flex-start;
       gap: 10px;
     }
+  }
 
+  @media (max-width: 600px) {
+    .reading-progress-container {
+      display: none;
+    }
   }
 
   @media (max-width: 480px) {
