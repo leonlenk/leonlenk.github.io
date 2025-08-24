@@ -19,33 +19,382 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   <body>
     <Navbar />
     <Background>
-      <h1 class="pageName">Welcome</h1>
-      <div class="pageTextContainer">
-        <Image
-          src={bunnysuitImage}
-          alt="My bio pic :)"
-          loading="eager"
-          quality={100}
-        />
-        <p>
-          Hi, I'm Leon. On the right is me wearing a bunny suit in a clean room.
-          This is my personal website, as I'm sure you can guess from the
-          domain. This is a place for me to aggregate all of my "intellectual"
-          works. As you may notice my favorite topics are, in order, philosphy,
-          machine learning, writing, math, and history. Excluding writing, which
-          is given its own section, all of my articles on these can be found in
-          my blog. Though I do not have it yet I would also like to one day add
-          a recipe section as I quite like baking, though I am not so good at
-          photography which is often just as important as the quality of the
-          food. At any rate this website is (and probably will forever remain) a
-          work in progress. I don't expect this site to get much traffic,
-          however if you feel so impelled to give me feedback you can email me
-          at me@leonlenk.com. Anyway take a look at my pages, I've put a decent
-          amount of effort into this place, or if you feel so inclined take a
-          look at my friends sites which will be linked at some point. Have fun
-          and thank you for visiting.
-        </p>
+      <div class="home-container">
+        <div class="hero-section">
+          <h1 class="pageName">Welcome</h1>
+          <p class="hero-subtitle">Hi, I'm Leon</p>
+        </div>
+
+        <div class="main-content">
+          <div class="content-grid">
+            <div class="image-section">
+              <div class="image-card">
+                <Image
+                  src={bunnysuitImage}
+                  alt="My bio pic :)"
+                  loading="eager"
+                  quality={100}
+                  class="profile-image"
+                />
+                <div class="image-caption">
+                  <svg class="caption-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                  </svg>
+                  <span>Me in a bunny suit in a clean room</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-section">
+              <div class="about-card">
+                <div class="card-header">
+                  <svg class="header-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                  </svg>
+                  <h2 class="card-title">About Me</h2>
+                </div>
+                
+                <div class="about-content">
+                  <p class="intro-text">
+                    This is my personal website, as I'm sure you can guess from the domain. 
+                    This is a place for me to aggregate all of my "intellectual" works.
+                  </p>
+                  
+                  <div class="interests-section">
+                    <h3 class="interests-title">My Favorite Topics</h3>
+                    <div class="interests-grid">
+                      <div class="interest-item">
+                        <span class="interest-number">1</span>
+                        <span class="interest-text">Philosophy</span>
+                      </div>
+                      <div class="interest-item">
+                        <span class="interest-number">2</span>
+                        <span class="interest-text">Machine Learning</span>
+                      </div>
+                      <div class="interest-item">
+                        <span class="interest-number">3</span>
+                        <span class="interest-text">Writing</span>
+                      </div>
+                      <div class="interest-item">
+                        <span class="interest-number">4</span>
+                        <span class="interest-text">Math</span>
+                      </div>
+                      <div class="interest-item">
+                        <span class="interest-number">5</span>
+                        <span class="interest-text">History</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p class="content-text">
+                    Excluding writing, which is given its own section, all of my articles on these can be found in my blog. 
+                    Though I do not have it yet I would also like to one day add a recipe section as I quite like baking, 
+                    though I am not so good at photography which is often just as important as the quality of the food.
+                  </p>
+                  
+                  <p class="content-text">
+                    At any rate this website is (and probably will forever remain) a work in progress. 
+                    I don't expect this site to get much traffic, however if you feel so impelled to give me feedback 
+                    you can email me at <a href="mailto:me@leonlenk.com" class="email-link">me@leonlenk.com</a>.
+                  </p>
+                  
+                  <p class="content-text">
+                    Anyway take a look at my pages, I've put a decent amount of effort into this place, 
+                    or if you feel so inclined take a look at my friends sites which will be linked at some point. 
+                    Have fun and thank you for visiting.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </Background>
   </body>
 </html>
+
+<style lang="scss">
+  .home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-section {
+    text-align: center;
+    margin-bottom: 60px;
+    margin-top: 80px;
+  }
+
+  .hero-subtitle {
+    font-size: 1.5rem;
+    color: #cccccc;
+    margin: 0;
+    font-style: italic;
+  }
+
+  .main-content {
+    margin-top: 40px;
+  }
+
+  .content-grid {
+    display: grid;
+    gap: 50px;
+    grid-template-columns: 1fr 2fr;
+    align-items: start;
+  }
+
+  .image-section {
+    position: sticky;
+    top: 100px;
+  }
+
+  .image-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .image-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .profile-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+  }
+
+  .image-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    color: #cccccc;
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  .caption-icon {
+    width: 16px;
+    height: 16px;
+    color: #007bff;
+  }
+
+  .about-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .header-icon {
+    width: 28px;
+    height: 28px;
+    color: #007bff;
+  }
+
+  .card-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .about-content {
+    line-height: 1.7;
+  }
+
+  .intro-text {
+    font-size: 1.1rem;
+    color: #ffffff;
+    margin: 0 0 25px 0;
+    font-weight: 500;
+  }
+
+  .interests-section {
+    margin: 30px 0;
+    padding: 25px;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 123, 255, 0.1);
+  }
+
+  .interests-title {
+    font-size: 1.3rem;
+    color: #ffffff;
+    margin: 0 0 20px 0;
+    font-weight: 600;
+  }
+
+  .interests-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .interest-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .interest-item:hover {
+    background: rgba(0, 123, 255, 0.1);
+    transform: translateX(5px);
+  }
+
+  .interest-number {
+    background: linear-gradient(135deg, #007bff, #00d4ff);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .interest-text {
+    color: #cccccc;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .content-text {
+    color: #cccccc;
+    font-size: 1rem;
+    margin: 0 0 20px 0;
+  }
+
+  .email-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  .email-link:hover {
+    color: #00d4ff;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 1024px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .image-section {
+      position: static;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-section {
+      margin-bottom: 40px;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+
+    .about-card {
+      padding: 25px 20px;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+    }
+
+    .intro-text {
+      font-size: 1rem;
+    }
+
+    .interests-section {
+      padding: 20px;
+    }
+
+    .interests-title {
+      font-size: 1.2rem;
+    }
+
+    .content-text {
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+
+    .about-card {
+      padding: 20px 15px;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+    }
+
+    .interests-section {
+      padding: 15px;
+    }
+
+    .interest-item {
+      padding: 8px 12px;
+    }
+
+    .interest-text {
+      font-size: 0.9rem;
+    }
+  }
+</style>
