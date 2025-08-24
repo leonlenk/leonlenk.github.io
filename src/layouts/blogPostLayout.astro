@@ -141,6 +141,76 @@ const { frontmatter } = Astro.props;
     font-size: 0.8rem;
     font-weight: 500;
     border: 1px solid var(--border-color);
+    position: relative;
+    animation: rainbow-glow 3s ease-in-out infinite;
+  }
+
+  .tag::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+      #ff0000, #ff7f00, #ffff00, #00ff00, 
+      #0000ff, #4b0082, #9400d3, #ff0000);
+    background-size: 400% 400%;
+    border-radius: 22px;
+    z-index: -1;
+    animation: rainbow-border 3s ease-in-out infinite;
+    opacity: 0.5;
+  }
+
+  @keyframes rainbow-glow {
+    0%, 100% {
+      box-shadow: 
+        0 0 4px rgba(255, 0, 0, 0.35),
+        0 0 8px rgba(255, 127, 0, 0.25),
+        0 0 12px rgba(255, 255, 0, 0.15);
+    }
+    16.66% {
+      box-shadow: 
+        0 0 4px rgba(255, 127, 0, 0.35),
+        0 0 8px rgba(255, 255, 0, 0.25),
+        0 0 12px rgba(0, 255, 0, 0.15);
+    }
+    33.33% {
+      box-shadow: 
+        0 0 4px rgba(255, 255, 0, 0.35),
+        0 0 8px rgba(0, 255, 0, 0.25),
+        0 0 12px rgba(0, 0, 255, 0.15);
+    }
+    50% {
+      box-shadow: 
+        0 0 4px rgba(0, 255, 0, 0.35),
+        0 0 8px rgba(0, 0, 255, 0.25),
+        0 0 12px rgba(75, 0, 130, 0.15);
+    }
+    66.66% {
+      box-shadow: 
+        0 0 4px rgba(0, 0, 255, 0.35),
+        0 0 8px rgba(75, 0, 130, 0.25),
+        0 0 12px rgba(148, 0, 211, 0.15);
+    }
+    83.33% {
+      box-shadow: 
+        0 0 4px rgba(75, 0, 130, 0.35),
+        0 0 8px rgba(148, 0, 211, 0.25),
+        0 0 12px rgba(255, 0, 0, 0.15);
+    }
+  }
+
+  @keyframes rainbow-border {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   /* Blog Content */
