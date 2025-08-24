@@ -1,4 +1,6 @@
 ---
+import Globals from "../components/globals/globals.astro";
+import Navbar from "../components/navbar/navbar.astro";
 const { frontmatter } = Astro.props;
 ---
 
@@ -10,20 +12,262 @@ const { frontmatter } = Astro.props;
     <title>{frontmatter.title}</title>
   </head>
   <body>
-    <article>
-      <h1>{frontmatter.title}</h1>
-      <p>
-        Published on: {
-          new Date(frontmatter.pubDate).toLocaleDateString("en-us", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        }
-      </p>
-      <p><em>{frontmatter.description}</em></p>
-      <hr />
-      <slot />
-    </article>
+    <Globals />
+    <Navbar />
+
+    <main class="blog-container">
+      <article class="blog-post">
+        <header class="blog-header">
+          <h1 class="blog-title">{frontmatter.title}</h1>
+          <div class="blog-meta">
+            <time class="blog-date">
+              {new Date(frontmatter.pubDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+            <span class="blog-author">by {frontmatter.author}</span>
+            <div class="blog-tags">
+              {frontmatter.tags.map((tag) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </header>
+        
+        <div class="blog-content">
+          <slot />
+        </div>
+      </article>
+    </main>
+
   </body>
 </html>
+
+<style lang="scss">
+  :root {
+    /* Dark theme colors */
+    --bg-primary: #1c1934;
+    --bg-secondary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --accent-color: #4a9eff;
+    --tag-bg: #333333;
+    --tag-text: #cccccc;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 400;
+  }
+
+  [data-theme="light"] body {
+    font-weight: 300;
+  }
+
+
+  /* Blog Container */
+  .blog-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 90px 20px 40px 20px;
+    min-height: 100vh;
+  }
+
+  /* Blog Post */
+  .blog-post {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+  }
+
+  /* Blog Header */
+  .blog-header {
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .blog-title {
+    font-family: "Lora", serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 20px 0;
+    line-height: 1.2;
+    text-align: left;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.03em;
+  }
+
+  .blog-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .blog-date {
+    font-weight: 500;
+  }
+
+  .blog-author {
+    font-style: italic;
+  }
+
+  .blog-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+  }
+
+  /* Blog Content */
+  .blog-content {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  .blog-content h1,
+  .blog-content h2,
+  .blog-content h3,
+  .blog-content h4,
+  .blog-content h5,
+  .blog-content h6 {
+    font-family: "Lora", serif;
+    color: #ffffff;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.03em;
+  }
+
+  .blog-content h1 {
+    font-size: 2rem;
+  }
+
+  .blog-content h2 {
+    font-size: 1.75rem;
+  }
+
+  .blog-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .blog-content p {
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  .blog-content a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+  }
+
+  .blog-content a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  }
+
+  .blog-content ul,
+  .blog-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+  }
+
+  .blog-content li {
+    margin-bottom: 0.5rem;
+  }
+
+  .blog-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .blog-content code {
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--accent-color);
+  }
+
+  .blog-content pre {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 2rem 0;
+    border: 1px solid var(--border-color);
+  }
+
+  .blog-content pre code {
+    background: none;
+    padding: 0;
+    color: var(--text-primary);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .blog-container {
+      padding: 140px 15px 40px 15px;
+    }
+
+    .blog-post {
+      padding: 25px;
+    }
+
+    .blog-title {
+      font-size: 2rem;
+    }
+
+    .blog-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+  }
+
+  @media (max-width: 480px) {
+    .blog-container {
+      padding: 100px 15px 40px 15px;
+    }
+
+    .blog-post {
+      padding: 20px;
+    }
+
+    .blog-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>
