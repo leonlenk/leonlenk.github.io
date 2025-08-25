@@ -1,6 +1,7 @@
 ---
 import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
+import SharedStyles from "../components/globals/shared-styles.astro";
 import Navbar from "../components/navbar/navbar.astro";
 import { Image } from "astro:assets";
 import bunnysuitImage from "../../public/index/bunnysuit.webp";
@@ -19,6 +20,8 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   <body>
     <Navbar />
     <Background>
+      <Globals />
+      <SharedStyles />
       <div class="home-container">
         <div class="hero-section">
           <h1 class="pageName">Welcome</h1>
@@ -137,7 +140,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 
   .hero-subtitle {
     font-size: 1.5rem;
-    color: #cccccc;
+    color: var(--color-text-secondary);
     margin: 0;
     font-style: italic;
   }
@@ -159,9 +162,9 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   }
 
   .image-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
     padding: 20px;
     backdrop-filter: blur(10px);
     position: relative;
@@ -175,20 +178,15 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+    background: var(--gradient-shimmer);
     background-size: 200% 100%;
     animation: shimmer 3s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
   }
 
   .profile-image {
     width: 100%;
     height: auto;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     display: block;
   }
 
@@ -197,7 +195,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     align-items: center;
     gap: 8px;
     margin-top: 15px;
-    color: #cccccc;
+    color: var(--color-text-secondary);
     font-size: 0.9rem;
     font-style: italic;
   }
@@ -205,13 +203,13 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   .caption-icon {
     width: 16px;
     height: 16px;
-    color: #007bff;
+    color: var(--color-primary);
   }
 
   .about-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-xl);
     padding: 30px;
     backdrop-filter: blur(10px);
     position: relative;
@@ -225,7 +223,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+    background: var(--gradient-shimmer);
     background-size: 200% 100%;
     animation: shimmer 3s ease-in-out infinite;
   }
@@ -236,19 +234,19 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     gap: 15px;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--color-border-primary);
   }
 
   .header-icon {
     width: 28px;
     height: 28px;
-    color: #007bff;
+    color: var(--color-primary);
   }
 
   .card-title {
     font-size: 1.8rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
@@ -258,7 +256,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 
   .intro-text {
     font-size: 1.1rem;
-    color: #ffffff;
+    color: var(--color-text-primary);
     margin: 0 0 25px 0;
     font-weight: 500;
   }
@@ -267,13 +265,13 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     margin: 30px 0;
     padding: 25px;
     background: rgba(0, 123, 255, 0.05);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     border: 1px solid rgba(0, 123, 255, 0.1);
   }
 
   .interests-title {
     font-size: 1.3rem;
-    color: #ffffff;
+    color: var(--color-text-primary);
     margin: 0 0 20px 0;
     font-weight: 600;
   }
@@ -289,8 +287,8 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     gap: 15px;
     padding: 10px 15px;
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
   }
 
   .interest-item:hover {
@@ -299,7 +297,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   }
 
   .interest-number {
-    background: linear-gradient(135deg, #007bff, #00d4ff);
+    background: var(--gradient-primary);
     color: white;
     width: 24px;
     height: 24px;
@@ -313,26 +311,26 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
   }
 
   .interest-text {
-    color: #cccccc;
+    color: var(--color-text-secondary);
     font-size: 1rem;
     font-weight: 500;
   }
 
   .content-text {
-    color: #cccccc;
+    color: var(--color-text-secondary);
     font-size: 1rem;
     margin: 0 0 20px 0;
   }
 
   .email-link {
-    color: #007bff;
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: color var(--transition-normal);
   }
 
   .email-link:hover {
-    color: #00d4ff;
+    color: var(--color-primary-light);
     text-decoration: underline;
   }
 
@@ -411,13 +409,14 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     text-align: center;
     margin-top: 60px;
     padding-top: 30px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--color-border-primary);
   }
 
   .neocities-link {
     display: inline-block;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--transition-normal);
     margin: 0 10px;
+    position: relative;
   }
 
   .neocities-link:hover {
@@ -426,10 +425,6 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 
   .neocities-link img {
     display: block;
-  }
-
-  .neocities-link {
-    position: relative;
   }
 
   .neocities-link::after {
@@ -441,12 +436,12 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 5px 10px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 0.8rem;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
     margin-bottom: 5px;
   }
 
@@ -460,7 +455,7 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
     border-top-color: rgba(0, 0, 0, 0.8);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
     margin-bottom: -5px;
   }
 

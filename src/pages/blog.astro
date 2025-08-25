@@ -1,6 +1,7 @@
 ---
 import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
+import SharedStyles from "../components/globals/shared-styles.astro";
 import Navbar from "../components/navbar/navbar.astro";
 import PostLink from "../layouts/postLink.astro";
 import { getCollection } from "astro:content";
@@ -16,14 +17,16 @@ const allPosts = await getCollection("blog");
   <body>
     <Navbar />
     <Background>
-      <div class="blog-container">
-        <div class="blog-header">
+      <Globals />
+      <SharedStyles />
+      <div class="page-container">
+        <div class="page-header">
           <h1 class="pageName">My Blog</h1>
-          <p class="blog-subtitle">Thoughts, poetry, and insights</p>
+          <p class="page-subtitle">Thoughts, poetry, and insights</p>
         </div>
         
-        <div class="blog-content">
-          <div class="posts-grid">
+        <div class="page-content">
+          <div class="grid grid-2">
             {
               allPosts.sort((a, b) => {
                   const dateA = new Date(a.data.pubDate);
@@ -74,82 +77,11 @@ const allPosts = await getCollection("blog");
 </html>
 
 <style lang="scss">
-  .blog-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-
-  .blog-header {
-    text-align: center;
-    margin-bottom: 60px;
-  }
-
-  .blog-subtitle {
-    font-size: 1.2rem;
-    color: #cccccc;
-    margin-top: 10px;
-    font-style: italic;
-  }
-
-  .blog-content {
-    margin-top: 40px;
-  }
-
-  .posts-grid {
-    display: grid;
-    gap: 40px;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  }
-
   .post-wrapper {
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-normal);
   }
 
   .post-wrapper:hover {
     transform: translateY(-5px);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 80px 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 2px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    margin-top: 40px;
-  }
-
-  .empty-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
-    color: rgba(255, 255, 255, 0.3);
-  }
-
-  .empty-state h3 {
-    color: #ffffff;
-    margin: 0 0 10px 0;
-    font-size: 1.5rem;
-  }
-
-  .empty-state p {
-    color: #cccccc;
-    margin: 0;
-    font-size: 1.1rem;
-  }
-
-  @media (max-width: 768px) {
-    .posts-grid {
-      grid-template-columns: 1fr;
-      gap: 30px;
-    }
-
-    .blog-header {
-      margin-bottom: 40px;
-    }
-
-    .blog-subtitle {
-      font-size: 1rem;
-    }
   }
 </style>

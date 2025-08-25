@@ -1,5 +1,6 @@
 ---
 import Globals from "../components/globals/globals.astro";
+import SharedStyles from "../components/globals/shared-styles.astro";
 import Navbar from "../components/navbar/navbar.astro";
 const { frontmatter } = Astro.props;
 ---
@@ -13,6 +14,7 @@ const { frontmatter } = Astro.props;
   </head>
   <body>
     <Globals />
+    <SharedStyles />
     <Navbar />
 
     <main class="blog-container">
@@ -219,26 +221,6 @@ const { frontmatter } = Astro.props;
 </html>
 
 <style lang="scss">
-  :root {
-    --bg-primary: #1c1934;
-    --bg-secondary: #2d2d2d;
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --text-muted: #888888;
-    --border-color: #404040;
-    --accent-color: #4a9eff;
-    --tag-bg: #333333;
-    --tag-text: #cccccc;
-  }
-
-  body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    margin: 0;
-    padding: 0;
-    font-family: "Open Sans", sans-serif;
-    font-weight: 400;
-  }
 
   /* Reading Progress Bar */
   .reading-progress-container {
@@ -256,7 +238,7 @@ const { frontmatter } = Astro.props;
   .reading-progress-bar {
     width: 100%;
     height: 0%;
-    background: linear-gradient(180deg, #4a90e2 0%, #9b59b6 50%, #e74c3c 100%);
+    background: var(--gradient-progress);
     transition: height 0.1s ease-out, opacity 0.3s ease;
     opacity: 0.8;
     border-radius: 0 3px 3px 0;
@@ -269,7 +251,7 @@ const { frontmatter } = Astro.props;
     width: 250px;
     font-family: "Lora", serif;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     line-height: 1.4;
     max-height: 75vh;
     overflow-y: auto;
@@ -287,8 +269,8 @@ const { frontmatter } = Astro.props;
   .section-item {
     margin-bottom: 4px;
     padding: 6px 8px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-normal);
     cursor: pointer;
     opacity: 0.6;
     position: relative;
@@ -304,19 +286,19 @@ const { frontmatter } = Astro.props;
 
   .section-item:hover {
     opacity: 0.8;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-bg-card);
   }
 
   .section-item.active {
     opacity: 1;
-    color: #ffffff;
+    color: var(--color-text-primary);
     font-weight: 600;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
   }
 
   .section-item.h1 { 
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
   }
   
   .section-item.h2 { 
@@ -340,7 +322,7 @@ const { frontmatter } = Astro.props;
   }
 
   .tree-prefix {
-    color: var(--accent-color);
+    color: var(--color-primary);
     font-weight: bold;
     font-family: "Courier New", monospace;
     white-space: pre;
@@ -356,11 +338,11 @@ const { frontmatter } = Astro.props;
 
   /* Blog Post */
   .blog-post {
-    background: var(--bg-secondary);
-    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
     padding: 40px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border-primary);
     position: relative;
   }
 
@@ -399,11 +381,11 @@ const { frontmatter } = Astro.props;
     font-family: "Lora", serif;
     font-size: 2.5rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--color-text-primary);
     margin: 0 0 20px 0;
     line-height: 1.2;
     text-align: left;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    text-shadow: var(--shadow-text);
     letter-spacing: 0.03em;
   }
 
@@ -413,7 +395,7 @@ const { frontmatter } = Astro.props;
     gap: 15px;
     align-items: center;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
   }
 
   .blog-date {
@@ -430,89 +412,13 @@ const { frontmatter } = Astro.props;
     gap: 8px;
   }
 
-  .tag {
-    background: var(--tag-bg);
-    color: var(--tag-text);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border: 1px solid var(--border-color);
-    position: relative;
-    animation: rainbow-glow 3s ease-in-out infinite;
-  }
+  /* Tag styles are now in shared-styles.astro */
 
-  .tag::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, 
-      #ff0000, #ff7f00, #ffff00, #00ff00, 
-      #0000ff, #4b0082, #9400d3, #ff0000);
-    background-size: 400% 400%;
-    border-radius: 22px;
-    z-index: -1;
-    animation: rainbow-border 3s ease-in-out infinite;
-    opacity: 0.5;
-  }
-
-  @keyframes rainbow-glow {
-    0%, 100% {
-      box-shadow: 
-        0 0 4px rgba(255, 0, 0, 0.35),
-        0 0 8px rgba(255, 127, 0, 0.25),
-        0 0 12px rgba(255, 255, 0, 0.15);
-    }
-    16.66% {
-      box-shadow: 
-        0 0 4px rgba(255, 127, 0, 0.35),
-        0 0 8px rgba(255, 255, 0, 0.25),
-        0 0 12px rgba(0, 255, 0, 0.15);
-    }
-    33.33% {
-      box-shadow: 
-        0 0 4px rgba(255, 255, 0, 0.35),
-        0 0 8px rgba(0, 255, 0, 0.25),
-        0 0 12px rgba(0, 0, 255, 0.15);
-    }
-    50% {
-      box-shadow: 
-        0 0 4px rgba(0, 255, 0, 0.35),
-        0 0 8px rgba(0, 0, 255, 0.25),
-        0 0 12px rgba(75, 0, 130, 0.15);
-    }
-    66.66% {
-      box-shadow: 
-        0 0 4px rgba(0, 0, 255, 0.35),
-        0 0 8px rgba(75, 0, 130, 0.25),
-        0 0 12px rgba(148, 0, 211, 0.15);
-    }
-    83.33% {
-      box-shadow: 
-        0 0 4px rgba(75, 0, 130, 0.35),
-        0 0 8px rgba(148, 0, 211, 0.25),
-        0 0 12px rgba(255, 0, 0, 0.15);
-    }
-  }
-
-  @keyframes rainbow-border {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
+  /* Rainbow animations are now in shared-styles.astro */
 
   /* Blog Content */
   .blog-content {
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     font-size: 1.1rem;
     line-height: 1.7;
   }
@@ -524,13 +430,13 @@ const { frontmatter } = Astro.props;
   .blog-content h5,
   .blog-content h6 {
     font-family: "Lora", serif;
-    color: #ffffff;
+    color: var(--color-text-primary);
     margin-top: 2rem;
     margin-bottom: 1rem;
     font-weight: 600;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    text-shadow: var(--shadow-text);
     letter-spacing: 0.03em;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
   }
 
   .blog-content h1 {
@@ -547,17 +453,17 @@ const { frontmatter } = Astro.props;
 
   .blog-content p {
     margin-bottom: 1.5rem;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
   }
 
   .blog-content a {
-    color: var(--accent-color);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
+    transition: color var(--transition-normal), text-shadow var(--transition-normal);
   }
 
   .blog-content a:hover {
-    color: #ffffff;
+    color: var(--color-text-primary);
     text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
   }
 
@@ -580,21 +486,21 @@ const { frontmatter } = Astro.props;
   }
 
   .blog-content code {
-    background: var(--bg-primary);
+    background: var(--color-bg-primary);
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-family: 'Courier New', monospace;
     font-size: 0.9em;
-    color: var(--accent-color);
+    color: var(--color-primary);
   }
 
   .blog-content pre {
-    background: var(--bg-primary);
+    background: var(--color-bg-primary);
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     overflow-x: auto;
     margin: 2rem 0;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-primary);
   }
 
   .blog-content pre code {
