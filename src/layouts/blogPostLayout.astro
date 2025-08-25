@@ -513,7 +513,8 @@ const { frontmatter } = Astro.props;
   @media (max-width: 1200px) {
     .reading-progress-container {
       left: 0;
-      top: 140px;
+      top: 120px;
+      margin-left: 0;
     }
 
     .sections-list {
@@ -521,7 +522,7 @@ const { frontmatter } = Astro.props;
     }
 
     .blog-container {
-      padding: 140px 15px 40px 15px;
+      padding: 120px 15px 40px 15px;
     }
 
     .blog-post {
@@ -541,11 +542,32 @@ const { frontmatter } = Astro.props;
 
   @media (max-width: 600px) {
     .reading-progress-container {
+      right: 0;
+      left: auto;
+      top: 140px;
+      margin-left: 0;
+    }
+
+    /* Hide scrollbar on mobile */
+    .sections-list {
+      -webkit-scrollbar: none;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .sections-list::-webkit-scrollbar {
       display: none;
     }
   }
 
   @media (max-width: 480px) {
+    .reading-progress-container {
+      right: 0;
+      left: auto;
+      top: 100px;
+      margin-left: 0;
+    }
+
     .blog-container {
       padding: 100px 15px 40px 15px;
     }
