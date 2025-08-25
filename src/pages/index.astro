@@ -3,6 +3,7 @@ import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
 import SharedStyles from "../components/globals/shared-styles.astro";
 import Navbar from "../components/navbar/navbar.astro";
+import SEOHead from "../components/seo/SEOHead.astro";
 import { Image } from "astro:assets";
 import bunnysuitImage from "../../public/index/bunnysuit.webp";
 ---
@@ -11,11 +12,11 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 <html lang="en">
   <head>
     <Globals />
-    <meta
-      name="description"
-      content="The landing and about page of Leon's personal website"
+    <SEOHead 
+      title="Personal Portfolio"
+      description="UCLA Student, Philosophy & Machine Learning Enthusiast. Personal portfolio showcasing research, writing, and projects in AI, philosophy, and mathematics."
+      keywords="Leon Lenk, UCLA, machine learning, philosophy, mathematics, research, portfolio, student, AI, artificial intelligence"
     />
-    <link rel="canonical" href="https://www.leonlenk.com/" />
   </head>
   <body>
     <Navbar />

@@ -1,0 +1,87 @@
+---
+const {
+  title,
+  description,
+  keywords = "Leon Lenk, UCLA, machine learning, philosophy, mathematics, research, portfolio, student",
+  image = "https://www.leonlenk.com/index/bunnysuit.webp",
+  url = Astro.url.href,
+  type = "website",
+  author = "Leon Lenk",
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const siteName = "Leon Lenk";
+const fullTitle = `${title} | ${siteName}`;
+---
+
+<!-- Primary Meta Tags -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{fullTitle}</title>
+<meta name="title" content={fullTitle} />
+<meta name="description" content={description} />
+<meta name="keywords" content={keywords} />
+<meta name="author" content={author} />
+<meta name="robots" content="index, follow" />
+
+<!-- Canonical URL -->
+<link rel="canonical" href={url} />
+
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={url} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={image} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={url} />
+<meta property="twitter:title" content={fullTitle} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={image} />
+
+<!-- Article specific meta tags -->
+{type === "article" && (
+  <>
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <meta property="article:author" content={author} />
+  </>
+)}
+
+<!-- Additional SEO -->
+<meta name="theme-color" content="#1c1934" />
+<meta name="msapplication-TileColor" content="#1c1934" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": type === "article" ? "Article" : "WebSite",
+  "name": fullTitle,
+  "description": description,
+  "url": url,
+  "image": image,
+  "author": {
+    "@type": "Person",
+    "name": author,
+    "url": "https://www.leonlenk.com/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": author,
+    "url": "https://www.leonlenk.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": url
+  }
+})} />
