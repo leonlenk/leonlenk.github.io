@@ -29,89 +29,131 @@ import Globals from "../globals/globals.astro";
 </div>
 
 <script>
-  const navContainer = document.getElementById("navContainer");
-  const hamburgerBtn = document.getElementById("hamburger-btn");
-  const navLinks = document.getElementById("nav-links");
-  let lastScrollY = 0;
-
-  // Function to toggle the mobile menu
-  function toggleMenu() {
-    if (navContainer && hamburgerBtn) {
+  // Performance-optimized navbar implementation
+  (function() {
+    'use strict';
+    
+    // Cache DOM elements
+    let navContainer = null;
+    let hamburgerBtn = null;
+    let navLinks = null;
+    let lastScrollY = 0;
+    let scrollThrottle = null;
+    let isInitialized = false;
+    
+    function initNavbar() {
+      if (isInitialized) return;
+      
+      navContainer = document.getElementById("navContainer");
+      hamburgerBtn = document.getElementById("hamburger-btn");
+      navLinks = document.getElementById("nav-links");
+      
+      if (!navContainer) return;
+      
+      // Add event listeners
+      if (hamburgerBtn) {
+        hamburgerBtn.addEventListener("click", toggleMenu, { passive: true });
+      }
+      
+      if (navLinks) {
+        navLinks.addEventListener("click", handleLinkClick, { passive: true });
+      }
+      
+      // Throttled scroll handler
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      
+      // Reset state on Astro page transitions
+      document.addEventListener("astro:after-swap", resetNavbar);
+      
+      isInitialized = true;
+    }
+    
+    function toggleMenu() {
+      if (!navContainer || !hamburgerBtn) return;
+      
       const isExpanded = hamburgerBtn.getAttribute("aria-expanded") === "true";
       navContainer.classList.toggle("is-open");
       hamburgerBtn.setAttribute("aria-expanded", !isExpanded);
     }
-  }
-
-  // Add click listener for the hamburger button
-  if (hamburgerBtn) {
-    hamburgerBtn.addEventListener("click", toggleMenu);
-  }
-
-  // Close menu on link click
-  if (navLinks) {
-    navLinks.addEventListener("click", (event) => {
-      if (
-        event.target.tagName === "A" &&
-        navContainer.classList.contains("is-open")
-      ) {
+    
+    function handleLinkClick(event) {
+      if (!navContainer || event.target.tagName !== "A") return;
+      
+      if (navContainer.classList.contains("is-open")) {
         toggleMenu();
       }
-    });
-  }
-
-  // --- Modified Scroll Logic ---
-  function handleScroll() {
-    if (!navContainer) return;
-
-    // **MODIFIED**: Do not hide the navbar if the mobile menu is open
-    if (navContainer.classList.contains("is-open")) {
-      return;
     }
-
-    const currentScrollY = window.scrollY;
-    const navHeight = navContainer.offsetHeight;
-    const scrollThreshold = navHeight;
-
-    if (currentScrollY > lastScrollY) {
-      if (currentScrollY > scrollThreshold) {
-        navContainer.classList.add("hide-nav");
-      }
-    } else {
-      navContainer.classList.remove("hide-nav");
-    }
-    lastScrollY = currentScrollY;
-  }
-
-  let ticking = false;
-  window.addEventListener("scroll", () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        handleScroll();
-        ticking = false;
+    
+    function handleScroll() {
+      if (scrollThrottle) return;
+      
+      scrollThrottle = requestAnimationFrame(() => {
+        if (!navContainer) return;
+        
+        // Don't hide navbar if mobile menu is open
+        if (navContainer.classList.contains("is-open")) {
+          scrollThrottle = null;
+          return;
+        }
+        
+        const currentScrollY = window.scrollY;
+        const navHeight = navContainer.offsetHeight;
+        const scrollThreshold = navHeight;
+        
+        // Show navbar at top of page
+        if (currentScrollY === 0) {
+          navContainer.classList.remove("hide-nav");
+          lastScrollY = currentScrollY;
+          scrollThrottle = null;
+          return;
+        }
+        
+        // Hide/show based on scroll direction
+        if (currentScrollY > lastScrollY) {
+          if (currentScrollY > scrollThreshold) {
+            navContainer.classList.add("hide-nav");
+          }
+        } else {
+          navContainer.classList.remove("hide-nav");
+        }
+        
+        lastScrollY = currentScrollY;
+        scrollThrottle = null;
       });
-      ticking = true;
     }
-  });
-
-  window.addEventListener("scroll", () => {
-    if (window.scrollY === 0 && navContainer) {
-      navContainer.classList.remove("hide-nav");
-    }
-  });
-
-  // Reset state on Astro page transitions
-  document.addEventListener("astro:after-swap", () => {
-    if (navContainer) {
+    
+    function resetNavbar() {
+      if (!navContainer) return;
+      
       lastScrollY = 0;
       navContainer.classList.remove("hide-nav");
-      // Ensure mobile menu is closed on page change
       navContainer.classList.remove("is-open");
+      
       if (hamburgerBtn) {
         hamburgerBtn.setAttribute("aria-expanded", "false");
       }
+      
+      if (scrollThrottle) {
+        cancelAnimationFrame(scrollThrottle);
+        scrollThrottle = null;
+      }
     }
-  });
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initNavbar);
+    } else {
+      initNavbar();
+    }
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (scrollThrottle) {
+        cancelAnimationFrame(scrollThrottle);
+      }
+    });
+    
+  })();
 </script>
 
 <style lang="scss">

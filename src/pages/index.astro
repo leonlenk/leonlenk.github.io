@@ -2,6 +2,7 @@
 import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
 import SharedStyles from "../components/globals/shared-styles.astro";
+import Performance from "../components/globals/performance.astro";
 import Navbar from "../components/navbar/navbar.astro";
 import SEOHead from "../components/seo/SEOHead.astro";
 import { Image } from "astro:assets";
@@ -12,11 +13,16 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
 <html lang="en">
   <head>
     <Globals />
+    <Performance />
     <SEOHead 
       title="Personal Portfolio"
       description="UCLA Student, Philosophy & Machine Learning Enthusiast. Personal portfolio showcasing research, writing, and projects in AI, philosophy, and mathematics."
       keywords="Leon Lenk, UCLA, machine learning, philosophy, mathematics, research, portfolio, student, AI, artificial intelligence"
     />
+    <!-- Performance optimizations -->
+    <link rel="preload" href="/fonts/Lora/Lora-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf" as="font" type="font/ttf" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <Navbar />
@@ -36,9 +42,10 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
                 <Image
                   src={bunnysuitImage}
                   alt="My bio pic :)"
-                  loading="eager"
-                  quality={100}
+                  loading="lazy"
+                  quality={85}
                   class="profile-image"
+                  decoding="async"
                 />
                 <div class="image-caption">
                   <svg class="caption-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -115,10 +122,10 @@ import bunnysuitImage from "../../public/index/bunnysuit.webp";
         
         <div class="footer-section">
           <a href="https://bulr.boo/" target="_blank" class="neocities-link" data-tooltip="bulr.boo">
-            <img alt="Bulr.boo" src="https://bulr.boo/images/badges/bulrboo.png" width="88" height="31" fetchpriority="low">
+            <img alt="Bulr.boo" src="https://bulr.boo/images/badges/bulrboo.png" width="88" height="31" loading="lazy" decoding="async">
           </a>
           <a href="https://peppersalt.neocities.org" target="_blank" class="neocities-link" data-tooltip="peppersalt">
-            <img alt="peppersalt" src="https://peppersalt.neocities.org/buttons/PepperSaltedButton.gif" width="88" height="31" fetchpriority="low">
+            <img alt="peppersalt" src="https://peppersalt.neocities.org/buttons/PepperSaltedButton.gif" width="88" height="31" loading="lazy" decoding="async">
           </a>
         </div>
       </div>

@@ -1,0 +1,125 @@
+---
+// Performance optimization component
+// This component adds various performance optimizations to improve Lighthouse scores
+---
+
+<!-- Resource hints for better performance -->
+<link rel="dns-prefetch" href="//bulr.boo">
+<link rel="dns-prefetch" href="//peppersalt.neocities.org">
+
+<!-- Preconnect to external domains -->
+<link rel="preconnect" href="https://bulr.boo" crossorigin>
+<link rel="preconnect" href="https://peppersalt.neocities.org" crossorigin>
+
+<!-- Performance optimization script -->
+<script>
+  // Performance optimization script
+  (function() {
+    'use strict';
+    
+    // Reduce layout thrashing by batching DOM reads/writes
+    const performanceObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'largest-contentful-paint') {
+          // Track LCP for performance monitoring
+          console.log('LCP:', entry.startTime);
+        }
+      }
+    });
+    
+    try {
+      performanceObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+    } catch (e) {
+      // Fallback for browsers that don't support PerformanceObserver
+    }
+    
+    // Optimize scroll performance
+    let ticking = false;
+    const scrollCallbacks = [];
+    
+    function requestScrollUpdate(callback) {
+      scrollCallbacks.push(callback);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const callbacks = scrollCallbacks.slice();
+          scrollCallbacks.length = 0;
+          callbacks.forEach(cb => cb());
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+    
+    // Expose for use in other components
+    window.requestScrollUpdate = requestScrollUpdate;
+    
+    // Optimize image loading
+    if ('loading' in HTMLImageElement.prototype) {
+      // Browser supports native lazy loading
+      const images = document.querySelectorAll('img[loading="lazy"]');
+      images.forEach(img => {
+        if (img.complete) {
+          img.classList.add('loaded');
+        } else {
+          img.addEventListener('load', () => {
+            img.classList.add('loaded');
+          });
+        }
+      });
+    } else {
+      // Fallback for browsers without native lazy loading
+      const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.classList.remove('lazy');
+            imageObserver.unobserve(img);
+          }
+        });
+      });
+      
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    }
+    
+    // Optimize font loading
+    if ('fonts' in document) {
+      document.fonts.ready.then(() => {
+        document.documentElement.classList.add('fonts-loaded');
+      });
+    }
+    
+  })();
+</script>
+
+<style>
+  /* Performance-focused CSS */
+  .fonts-loaded {
+    font-display: swap;
+  }
+  
+  img.loaded {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  img:not(.loaded) {
+    opacity: 0;
+  }
+  
+  /* Optimize animations */
+  * {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  /* Reduce paint operations */
+  .navContainer,
+  .starBackground,
+  .backgroundContainer {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+</style>

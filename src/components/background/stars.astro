@@ -1,11 +1,11 @@
 ---
 const {
-  numStars = 75,
+  numStars = 75, // Original number of stars
   starColor = "white",
-  minSize = 5,
-  maxSize = 20,
-  minDuration = 3,
-  maxDuration = 4.5,
+  minSize = 3, // Reduced from 5 for better performance
+  maxSize = 15, // Reduced from 20 for better performance
+  minDuration = 4, // Increased from 3 for better performance
+  maxDuration = 6, // Increased from 4.5 for better performance
 } = Astro.props;
 ---
 
@@ -22,113 +22,195 @@ const {
 </div>
 
 <script>
-  window.onload = function () {
-    const starBackground = document.getElementById("star-background");
-    if (!starBackground) return;
-
-    const numStars = parseInt(starBackground.dataset.numStars) || 150;
-    const minSize = parseInt(starBackground.dataset.minSize) || 1;
-    const maxSize = parseInt(starBackground.dataset.maxSize) || 7;
-    const minDuration = parseFloat(starBackground.dataset.minDuration) || 4;
-    const maxDuration = parseFloat(starBackground.dataset.maxDuration) || 8;
-
+  // Performance-optimized stars implementation
+  (function() {
+    'use strict';
+    
     let stars = [];
-    let screenWidth = window.outerWidth;
-    let screenHeight = window.outerHeight;
-    function getRandom(min, max, skew = 1) {
-      return Math.pow(Math.random(), skew) * (max - min) + min;
-    }
-
-    function createStars() {
-      screenWidth = window.outerWidth;
-      screenHeight = window.outerHeight;
-      starBackground.innerHTML = "";
-      stars = [];
-
+    let isActive = false;
+    let animationId = null;
+    let lastScrollY = 0;
+    let scrollThrottle = null;
+    let resizeThrottle = null;
+    
+    // Use Intersection Observer to only animate when visible
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '50px'
+    };
+    
+    function initStars() {
+      const starBackground = document.getElementById("star-background");
+      if (!starBackground) return;
+      
+      // Check if already initialized
+      if (starBackground.dataset.initialized === 'true') return;
+      
+             const numStars = parseInt(starBackground.dataset.numStars) || 75;
+      const minSize = parseInt(starBackground.dataset.minSize) || 3;
+      const maxSize = parseInt(starBackground.dataset.maxSize) || 15;
+      const minDuration = parseFloat(starBackground.dataset.minDuration) || 4;
+      const maxDuration = parseFloat(starBackground.dataset.maxDuration) || 6;
+      
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // Pre-create star elements for better performance
+      const fragment = document.createDocumentFragment();
+      
       for (let i = 0; i < numStars; i++) {
         const starElement = document.createElement("span");
         starElement.classList.add("star");
         starElement.textContent = "✶";
-
-        const size = getRandom(minSize, maxSize, 3);
-        const star = {
+        
+        const size = Math.random() * (maxSize - minSize) + minSize;
+        const duration = Math.random() * (maxDuration - minDuration) + minDuration;
+        const delay = Math.random() * duration;
+        
+        // Use CSS custom properties for better performance
+        starElement.style.setProperty('--star-size', `${size}px`);
+        starElement.style.setProperty('--star-x', `${Math.random() * screenWidth}px`);
+        starElement.style.setProperty('--star-y', `${Math.random() * screenHeight}px`);
+        starElement.style.setProperty('--star-duration', `${duration}s`);
+        starElement.style.setProperty('--star-delay', `${delay}s`);
+        starElement.style.setProperty('--star-z', `${Math.random() * 0.6 + 0.3}`);
+        
+        fragment.appendChild(starElement);
+        
+        stars.push({
           element: starElement,
-          x: getRandom(0, screenWidth),
-          y: getRandom(0, screenHeight),
-          z: (getRandom(0.3, 0.9) * size) / minSize,
-        };
-
-        const duration = getRandom(minDuration, maxDuration);
-        const delay = getRandom(0, duration);
-        starElement.style.fontSize = `${size}px`;
-        starElement.style.lineHeight = `${size}px`;
-        starElement.style.animation = `twinkle ${duration}s ease-in-out infinite`;
-        starElement.style.animationDelay = `${delay}s`;
-
-        starElement.style.setProperty("--translate-x", `${star.x}px`);
-        starElement.style.setProperty("--translate-y", `${star.y}px`);
-
-        starBackground.appendChild(starElement);
-        stars.push(star);
+          x: parseFloat(starElement.style.getPropertyValue('--star-x')),
+          y: parseFloat(starElement.style.getPropertyValue('--star-y')),
+          z: parseFloat(starElement.style.getPropertyValue('--star-z')),
+          size: size
+        });
+      }
+      
+      starBackground.appendChild(fragment);
+      starBackground.dataset.initialized = 'true';
+      
+      // Start animation only when visible
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isActive) {
+            startAnimation();
+          } else if (!entry.isIntersecting && isActive) {
+            stopAnimation();
+          }
+        });
+      }, observerOptions);
+      
+      observer.observe(starBackground);
+    }
+    
+    function startAnimation() {
+      if (isActive) return;
+      isActive = true;
+      updatePositions();
+    }
+    
+    function stopAnimation() {
+      if (!isActive) return;
+      isActive = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
       }
     }
-
-    let lastScrollY = window.scrollY;
+    
     function updatePositions() {
+      if (!isActive) return;
+      
       const deltaScroll = window.scrollY - lastScrollY;
       lastScrollY = window.scrollY;
-
+      
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // Batch DOM updates for better performance
+      const updates = [];
+      
       stars.forEach((star) => {
         star.y -= deltaScroll * star.z;
-
-        // --- Recycle stars that go out of view ---
-        // If star scrolls past the top edge, move it to the bottom
-        if (star.y < -maxSize) {
-          star.x = getRandom(0, screenWidth);
-          star.y += screenHeight + maxSize * 2; // Reposition to bottom
+        
+        // Recycle stars that go out of view
+        if (star.y < -star.size) {
+          star.x = Math.random() * screenWidth;
+          star.y += screenHeight + star.size * 2;
+        } else if (star.y > screenHeight + star.size) {
+          star.x = Math.random() * screenWidth;
+          star.y -= screenHeight + star.size * 2;
         }
-        // If star scrolls past the bottom edge, move it to the top
-        else if (star.y > screenHeight + maxSize) {
-          star.x = getRandom(0, screenWidth);
-          star.y -= screenHeight + maxSize * 2; // Reposition to top
-        }
-
-        // Apply the new position to the element
-        star.element.style.setProperty("--translate-y", `${star.y}px`);
-        star.element.style.setProperty("--translate-x", `${star.x}px`);
+        
+        updates.push({
+          element: star.element,
+          x: star.x,
+          y: star.y
+        });
       });
-
-      requestAnimationFrame(updatePositions);
+      
+      // Apply all updates in one batch
+      updates.forEach(update => {
+        update.element.style.setProperty('--translate-x', `${update.x}px`);
+        update.element.style.setProperty('--translate-y', `${update.y}px`);
+      });
+      
+      animationId = requestAnimationFrame(updatePositions);
     }
-
-    createStars();
-    requestAnimationFrame(updatePositions);
-
-    let resizeTimeout;
-    let lastWidth = window.outerWidth;
-    let lastHeight = window.outerHeight;
-
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimeout);
-
-      resizeTimeout = setTimeout(() => {
-        // Check for significant changes, e.g., device orientation change
-        const newWidth = window.outerWidth;
-        const newHeight = window.outerHeight;
-
-        // Regenerate only if width or height changes substantially, or aspect ratio flips
-        if (
-          Math.abs(newWidth - lastWidth) > 50 || // More than 50px width change
-          Math.abs(newHeight - lastHeight) > 50 // More than 50px height change
-        ) {
-          createStars();
+    
+    // Throttled scroll handler
+    function handleScroll() {
+      if (scrollThrottle) return;
+      
+      scrollThrottle = requestAnimationFrame(() => {
+        // Scroll handling is now done in updatePositions
+        scrollThrottle = null;
+      });
+    }
+    
+    // Throttled resize handler
+    function handleResize() {
+      if (resizeThrottle) return;
+      
+      resizeThrottle = setTimeout(() => {
+        const starBackground = document.getElementById("star-background");
+        if (starBackground) {
+          // Reset initialization to recreate stars
+          starBackground.dataset.initialized = 'false';
+          starBackground.innerHTML = '';
+          stars = [];
+          initStars();
         }
-
-        lastWidth = newWidth;
-        lastHeight = newHeight;
-      }, 200); // Debounce for performance
+        resizeThrottle = null;
+      }, 250);
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initStars);
+    } else {
+      initStars();
+    }
+    
+    // Event listeners with throttling
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopAnimation();
+      if (scrollThrottle) cancelAnimationFrame(scrollThrottle);
+      if (resizeThrottle) clearTimeout(resizeThrottle);
     });
-  };
+    
+    // Handle Astro page transitions
+    document.addEventListener('astro:after-swap', () => {
+      stopAnimation();
+      stars = [];
+      initStars();
+    });
+    
+  })();
 </script>
 
 <style lang="scss" is:global>
@@ -141,6 +223,7 @@ const {
     overflow: hidden;
     z-index: -1;
     pointer-events: none;
+    will-change: transform;
   }
 
   .star {
@@ -149,10 +232,14 @@ const {
     left: 0;
     color: var(--star-color, white);
     display: inline-block;
+    font-size: var(--star-size);
+    line-height: var(--star-size);
     text-shadow: 0 0 15px rgba(255, 255, 255, 1);
-    transform: translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0)
+    transform: translate3d(var(--translate-x, var(--star-x)), var(--translate-y, var(--star-y)), 0)
       scale(var(--animation-scale, 1));
     will-change: transform;
+    animation: twinkle var(--star-duration) ease-in-out infinite;
+    animation-delay: var(--star-delay);
   }
 
   @keyframes twinkle {
