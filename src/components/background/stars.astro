@@ -22,7 +22,8 @@ const {
 </div>
 
 <script>
-  window.onload = function () {
+  // Use DOMContentLoaded instead of window.onload for immediate star creation
+  document.addEventListener('DOMContentLoaded', function () {
     const starBackground = document.getElementById("star-background");
     if (!starBackground) return;
 
@@ -128,7 +129,7 @@ const {
         lastHeight = newHeight;
       }, 200); // Debounce for performance
     });
-  };
+  });
 </script>
 
 <style lang="scss" is:global>

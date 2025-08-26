@@ -86,6 +86,27 @@ import Reset from "./reset.astro";
     --z-tooltip: 1070;
   }
 
+  /* --- Prevent White Flash During Navigation --- */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure all elements inherit the background color */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  /* Prevent any white backgrounds from showing */
+  div, section, article, aside, header, footer, main {
+    background-color: transparent;
+  }
+
+  /* Ensure form elements don't have white backgrounds */
+  input, textarea, select, button {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+  }
+
   /* --- Lora Variable Font --- */
   @font-face {
     font-family: "Lora";
@@ -130,9 +151,38 @@ import Reset from "./reset.astro";
     font-weight: 400;
     color: var(--color-text-secondary);
     font-size: 1.1rem;
-    background-color: var(--color-bg-primary);
     margin: 0;
     padding: 0;
+    /* Ensure background color is applied immediately */
+    background-attachment: fixed;
+  }
+
+  /* --- View Transitions for Smooth Navigation --- */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Only apply fade-in animation when there's actual loading delay */
+  .loading-transition {
+    animation: fade-in 0.3s ease-out;
   }
 
   h1,
@@ -233,6 +283,62 @@ import Reset from "./reset.astro";
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
   }
 </style>
+
+<script>
+  // Prevent white flash during navigation while preserving gradient background
+  (function() {
+    let isFirstLoad = true;
+    let navigationStartTime = 0;
+    
+    // Handle Astro page transitions
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle Astro page transitions
+      document.addEventListener('astro:before-swap', function() {
+        navigationStartTime = performance.now();
+        // Only add fade effect if it's not the first load (indicating navigation)
+        if (!isFirstLoad) {
+          document.body.style.opacity = '0.95';
+          document.body.style.transition = 'opacity 0.1s ease-out';
+        }
+      });
+      
+      document.addEventListener('astro:after-swap', function() {
+        const navigationTime = performance.now() - navigationStartTime;
+        
+        // If navigation was fast (cached), don't add transitions
+        if (navigationTime < 100) {
+          document.body.style.opacity = '1';
+          document.body.style.transition = 'none';
+        } else {
+          // Only add transition for slower loads
+          setTimeout(() => {
+            document.body.style.opacity = '1';
+            document.body.style.transition = 'opacity 0.2s ease-in';
+          }, 50);
+        }
+        
+        isFirstLoad = false;
+      });
+      
+      // Handle regular navigation (fallback)
+      window.addEventListener('beforeunload', function() {
+        // Only add transition if it's not the first page load
+        if (!isFirstLoad) {
+          document.body.style.opacity = '0.95';
+        }
+      });
+    });
+    
+    // Ensure the background component is always visible
+    document.addEventListener('astro:after-swap', function() {
+      const backgroundElement = document.querySelector('.fixedBackground');
+      if (backgroundElement) {
+        backgroundElement.style.zIndex = '-1';
+        backgroundElement.style.display = 'block';
+      }
+    });
+  })();
+</script>
 
 <style lang="scss" is:global>
   .pageName {
