@@ -43,9 +43,7 @@ const allPosts = await getCollection("blog");
                     path={`/blog/${post.slug}/`}
                     title={post.data.title}
                     body={
-                      " " + post.body.substring(0, 200) + (post.body.length > 200
-                        ? "..."
-                        : "")
+                      post.body.substring(0, 200) + (post.body.length > 200 ? "..." : "")
                     }
                     footer={
                       new Date(post.data.pubDate).toLocaleDateString("en-US", {

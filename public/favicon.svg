@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="intenseGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B1F5DD" />
+      <stop offset="35%" stop-color="#9353F5" />
+      <stop offset="70%" stop-color="#636DDB" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+  </defs>
+
+  <!-- 6-pointed asterisk star, centered at 16,16, outer radius 15, inner radius 5 -->
+  <polygon
+    points="16,1 18.5,11.7 29,8.5 21,16 29,23.5 18.5,20.3 16,31 13.5,20.3 3,23.5 11,16 3,8.5 13.5,11.7"
+    fill="url(#intenseGradient)" />
+</svg>

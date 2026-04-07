@@ -15,7 +15,7 @@ const { path, title, body, footer } = Astro.props;
     </div>
     
     <div class="post-content">
-      <p class="post-excerpt">{body}</p>
+      <p class="post-excerpt" set:html={body} />
     </div>
     
     <div class="post-footer">
@@ -58,7 +58,7 @@ const { path, title, body, footer } = Astro.props;
     border-radius: 16px;
     padding: 30px;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(4px);
     height: 100%;
     display: flex;
     flex-direction: column;
