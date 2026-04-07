@@ -1,13 +1,10 @@
 ---
-import styles from "./background.module.scss";
 import Stars from "./stars.astro";
-import Globals from "../globals/globals.astro";
 
 const { numStars, starColor, minSize, maxSize, minDuration, maxDuration } =
   Astro.props;
 ---
 
-<Globals />
 <div class="fixedBackground"></div>
 <div class="backgroundContainer">
   <Stars

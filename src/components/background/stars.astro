@@ -30,7 +30,8 @@ const {
     let isActive = false;
     let animationId = null;
     let lastScrollY = 0;
-    let scrollThrottle = null;
+    let idleFrames = 0;
+    const IDLE_THRESHOLD = 4;
     let resizeThrottle = null;
     
     // Use Intersection Observer to only animate when visible
@@ -106,6 +107,7 @@ const {
     function startAnimation() {
       if (isActive) return;
       isActive = true;
+      idleFrames = 0;
       updatePositions();
     }
     
@@ -120,19 +122,30 @@ const {
     
     function updatePositions() {
       if (!isActive) return;
-      
+
       const deltaScroll = window.scrollY - lastScrollY;
       lastScrollY = window.scrollY;
-      
+
+      if (deltaScroll === 0) {
+        idleFrames++;
+        if (idleFrames >= IDLE_THRESHOLD) {
+          stopAnimation();
+          return;
+        }
+        animationId = requestAnimationFrame(updatePositions);
+        return;
+      }
+
+      idleFrames = 0;
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
-      
+
       // Batch DOM updates for better performance
       const updates = [];
-      
+
       stars.forEach((star) => {
         star.y -= deltaScroll * star.z;
-        
+
         // Recycle stars that go out of view
         if (star.y < -star.size) {
           star.x = Math.random() * screenWidth;
@@ -141,31 +154,25 @@ const {
           star.x = Math.random() * screenWidth;
           star.y -= screenHeight + star.size * 2;
         }
-        
+
         updates.push({
           element: star.element,
           x: star.x,
           y: star.y
         });
       });
-      
+
       // Apply all updates in one batch
       updates.forEach(update => {
         update.element.style.setProperty('--translate-x', `${update.x}px`);
         update.element.style.setProperty('--translate-y', `${update.y}px`);
       });
-      
+
       animationId = requestAnimationFrame(updatePositions);
     }
     
-    // Throttled scroll handler
     function handleScroll() {
-      if (scrollThrottle) return;
-      
-      scrollThrottle = requestAnimationFrame(() => {
-        // Scroll handling is now done in updatePositions
-        scrollThrottle = null;
-      });
+      if (!isActive) startAnimation();
     }
     
     // Throttled resize handler
@@ -199,7 +206,6 @@ const {
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       stopAnimation();
-      if (scrollThrottle) cancelAnimationFrame(scrollThrottle);
       if (resizeThrottle) clearTimeout(resizeThrottle);
     });
     

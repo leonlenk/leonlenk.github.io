@@ -3,11 +3,9 @@
 // This component adds various performance optimizations to improve Lighthouse scores
 ---
 
-<!-- Resource hints for better performance -->
+<!-- Resource hints for external badge images -->
 <link rel="dns-prefetch" href="//bulr.boo">
 <link rel="dns-prefetch" href="//peppersalt.neocities.org">
-
-<!-- Preconnect to external domains -->
 <link rel="preconnect" href="https://bulr.boo" crossorigin>
 <link rel="preconnect" href="https://peppersalt.neocities.org" crossorigin>
 
@@ -18,21 +16,6 @@
     'use strict';
     
     // Reduce layout thrashing by batching DOM reads/writes
-    const performanceObserver = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.entryType === 'largest-contentful-paint') {
-          // Track LCP for performance monitoring
-          console.log('LCP:', entry.startTime);
-        }
-      }
-    });
-    
-    try {
-      performanceObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-    } catch (e) {
-      // Fallback for browsers that don't support PerformanceObserver
-    }
-    
     // Optimize scroll performance
     let ticking = false;
     const scrollCallbacks = [];

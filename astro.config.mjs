@@ -1,22 +1,16 @@
 // astro.config.mjs
 import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.leonlenk.com",
+  integrations: [sitemap()],
   build: {
     assets: "assets",
   },
   vite: {
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ['astro'],
-          },
-        },
-      },
-      // Enable tree shaking and minification
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -26,6 +20,5 @@ export default defineConfig({
       },
     },
   },
-  // Performance optimizations
   output: 'static',
 });

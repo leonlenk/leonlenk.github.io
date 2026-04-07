@@ -2,13 +2,19 @@
 import Background from "../components/background/background.astro";
 import Globals from "../components/globals/globals.astro";
 import Navbar from "../components/navbar/navbar.astro";
+import SEOHead from "../components/seo/SEOHead.astro";
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <Globals />
-    <meta name="description" content="The Abyss" />
+    <SEOHead
+      title="The Abyss"
+      description="Scroll into the void."
+    />
+    <link rel="preload" href="/fonts/Lora/Lora-VariableFont_wght.ttf" as="font" type="font/truetype" crossorigin>
+    <link rel="preload" href="/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf" as="font" type="font/truetype" crossorigin>
   </head>
   <body>
     <Navbar />
