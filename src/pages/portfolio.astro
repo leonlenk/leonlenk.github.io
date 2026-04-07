@@ -111,7 +111,7 @@ import SEOHead from "../components/seo/SEOHead.astro";
   }
 
   .publication-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-border-accent);
   }
@@ -155,11 +155,12 @@ import SEOHead from "../components/seo/SEOHead.astro";
   .publication-title a {
     color: var(--color-text-primary);
     text-decoration: none;
+    transition: color var(--transition-normal), text-shadow var(--transition-normal);
   }
 
-  .publication-title a:hover {
-    color: var(--color-text-primary);
-    text-shadow: none;
+  .publication-card:hover .publication-title a {
+    color: var(--color-highlight-light);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
   }
 
   .publication-authors {

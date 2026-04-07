@@ -1,6 +1,6 @@
 ---
 title: "Boltzmann Brains"
-pubDate: 2026-25-08
+pubDate: 2026-08-25
 author: "Leon"
 tags: ["Poetry", "Limerick"]
 ---
