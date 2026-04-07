@@ -51,7 +51,7 @@
   }
 
   .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-border-accent);
   }
@@ -141,14 +141,14 @@
   }
 
   .btn:hover {
-    background: rgba(0, 123, 255, 0.1);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
     border-color: var(--color-primary);
     transform: translateY(-1px);
   }
 
   .btn-primary {
     background: var(--gradient-primary);
-    color: white;
+    color: var(--color-text-primary);
     border: none;
   }
 
@@ -188,7 +188,7 @@
   }
 
   .link-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-border-accent);
   }
@@ -197,7 +197,7 @@
     flex-shrink: 0;
     width: 50px;
     height: 50px;
-    background: rgba(0, 123, 255, 0.1);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
@@ -206,8 +206,7 @@
   }
 
   .link-card:hover .link-icon-wrapper {
-    background: rgba(0, 123, 255, 0.2);
-    transform: scale(1.1);
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   }
 
   .link-icon {
@@ -218,7 +217,7 @@
   }
 
   .link-card:hover .link-icon {
-    color: var(--color-primary-light);
+    color: var(--color-highlight-light);
   }
 
   .link-content {
@@ -253,38 +252,20 @@
   }
 
   .link-card:hover .arrow-icon {
-    color: var(--color-primary-light);
+    color: var(--color-highlight-light);
     transform: translateX(4px);
   }
 
   /* --- Tag Components --- */
   .tag {
-    background: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-highlight) 12%, transparent);
+    color: var(--color-highlight-light);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 500;
-    border: 1px solid var(--color-border-primary);
+    border: 1px solid color-mix(in srgb, var(--color-highlight) 35%, transparent);
     position: relative;
-    animation: rainbow-glow 3s ease-in-out infinite;
-  }
-
-  .tag::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, 
-      #ff0000, #ff7f00, #ffff00, #00ff00, 
-      #0000ff, #4b0082, #9400d3, #ff0000);
-    background-size: 400% 400%;
-    border-radius: 22px;
-    z-index: -1;
-    animation: rainbow-border 3s ease-in-out infinite;
-    opacity: 0.5;
   }
 
   /* --- Empty State Components --- */
@@ -301,7 +282,7 @@
     width: 80px;
     height: 80px;
     margin: 0 auto 20px;
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text-muted);
   }
 
   .empty-state h3 {
@@ -314,68 +295,6 @@
     color: var(--color-text-secondary);
     margin: 0;
     font-size: 1.1rem;
-  }
-
-  /* --- Animations --- */
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  @keyframes rainbow-glow {
-    0%, 100% {
-      box-shadow: 
-        0 0 4px rgba(255, 0, 0, 0.35),
-        0 0 8px rgba(255, 127, 0, 0.25),
-        0 0 12px rgba(255, 255, 0, 0.15);
-    }
-    16.66% {
-      box-shadow: 
-        0 0 4px rgba(255, 127, 0, 0.35),
-        0 0 8px rgba(255, 255, 0, 0.25),
-        0 0 12px rgba(0, 255, 0, 0.15);
-    }
-    33.33% {
-      box-shadow: 
-        0 0 4px rgba(255, 255, 0, 0.35),
-        0 0 8px rgba(0, 255, 0, 0.25),
-        0 0 12px rgba(0, 0, 255, 0.15);
-    }
-    50% {
-      box-shadow: 
-        0 0 4px rgba(0, 255, 0, 0.35),
-        0 0 8px rgba(0, 0, 255, 0.25),
-        0 0 12px rgba(75, 0, 130, 0.15);
-    }
-    66.66% {
-      box-shadow: 
-        0 0 4px rgba(0, 0, 255, 0.35),
-        0 0 8px rgba(75, 0, 130, 0.25),
-        0 0 12px rgba(148, 0, 211, 0.15);
-    }
-    83.33% {
-      box-shadow: 
-        0 0 4px rgba(75, 0, 130, 0.35),
-        0 0 8px rgba(148, 0, 211, 0.25),
-        0 0 12px rgba(255, 0, 0, 0.15);
-    }
-  }
-
-  @keyframes rainbow-border {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.6;
-      transform: scale(1.05);
-    }
   }
 
   /* --- Responsive Utilities --- */

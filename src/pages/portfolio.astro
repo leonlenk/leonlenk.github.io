@@ -138,7 +138,7 @@ import SEOHead from "../components/seo/SEOHead.astro";
   }
 
   .publication-year {
-    background: rgba(0, 123, 255, 0.2);
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent);
     color: var(--color-primary);
     padding: 4px 12px;
     border-radius: 20px;
@@ -155,11 +155,11 @@ import SEOHead from "../components/seo/SEOHead.astro";
   .publication-title a {
     color: var(--color-text-primary);
     text-decoration: none;
-    transition: color var(--transition-normal);
   }
 
   .publication-title a:hover {
-    color: var(--color-primary);
+    color: var(--color-text-primary);
+    text-shadow: none;
   }
 
   .publication-authors {
@@ -204,7 +204,7 @@ import SEOHead from "../components/seo/SEOHead.astro";
     display: inline-block;
     width: 60px;
     height: 60px;
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--color-text-muted);
     animation: pulse 2s infinite;
   }
 

@@ -73,20 +73,15 @@ const { path, title, body, footer } = Astro.props;
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+    background: var(--gradient-shimmer);
     background-size: 200% 100%;
     animation: shimmer 3s ease-in-out infinite;
   }
 
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
   .post-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 123, 255, 0.15);
-    border-color: rgba(0, 123, 255, 0.3);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-border-accent);
   }
 
   .post-header {
@@ -103,14 +98,14 @@ const { path, title, body, footer } = Astro.props;
   }
 
   .post-link:hover .post-title {
-    color: #007bff;
+    color: var(--color-highlight-light);
   }
 
   .post-meta {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #007bff;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
     font-weight: 500;
   }
@@ -158,7 +153,7 @@ const { path, title, body, footer } = Astro.props;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #007bff;
+    color: var(--color-text-secondary);
     font-weight: 500;
     font-size: 0.9rem;
     margin-top: auto;
@@ -172,7 +167,7 @@ const { path, title, body, footer } = Astro.props;
   }
 
   .post-link:hover .read-more {
-    color: #00d4ff;
+    color: var(--color-highlight-light);
   }
 
   .post-link:hover .arrow-icon {

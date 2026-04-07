@@ -7,49 +7,44 @@ import Reset from "./reset.astro";
 <style is:global>
   /* --- CSS Custom Properties (Color Palette) --- */
   :root {
-    /* Primary Colors */
-    --color-primary: #007bff;
-    --color-primary-light: #00d4ff;
-    --color-primary-dark: #0056b3;
-    
-    /* Background Colors */
-    --color-bg-primary: #1c1934;
-    --color-bg-secondary: #2d2d2d;
-    --color-bg-card: rgba(255, 255, 255, 0.05);
-    --color-bg-overlay: rgba(255, 255, 255, 0.02);
-    
-    /* Text Colors */
-    --color-text-primary: #ffffff;
+    /* Interactive */
+    --color-primary:         #9353F5;
+    --color-highlight:       #636DDB;
+    --color-highlight-light: #B481DB;
+    --color-accent:          #B1F5DD;
+
+    /* Text */
+    --color-text-primary:   #ffffff;
     --color-text-secondary: #cccccc;
-    --color-text-muted: #999999;
-    --color-text-accent: #add8e6;
-    
-    /* Border Colors */
-    --color-border-primary: rgba(255, 255, 255, 0.1);
+    --color-text-muted:     #999999;
+    --color-text-accent:    #d1ade6;
+
+    /* Backgrounds */
+    --color-bg-primary:   #1c1934;
+    --color-bg-secondary: #2d2d2d;
+    --color-bg-card:      rgba(255, 255, 255, 0.05);
+    --color-bg-overlay:   rgba(255, 255, 255, 0.02);
+
+    /* Borders */
+    --color-border-primary:   rgba(255, 255, 255, 0.1);
     --color-border-secondary: rgba(255, 255, 255, 0.05);
-    --color-border-accent: rgba(0, 123, 255, 0.3);
-    
-    /* Accent Colors */
-    --color-accent-blue: #007bff;
-    --color-accent-cyan: #00d4ff;
-    --color-accent-purple: #9b59b6;
-    --color-accent-red: #e74c3c;
-    
-    /* Status Colors */
+    --color-border-accent:    rgba(105, 219, 176, 0.25);
+
+    /* Status */
     --color-success: #28a745;
     --color-warning: #ffc107;
-    --color-error: #dc3545;
-    
+    --color-error:   #dc3545;
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-    --gradient-shimmer: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
-    --gradient-progress: linear-gradient(180deg, #4a90e2 0%, #9b59b6 50%, #e74c3c 100%);
-    
+    --gradient-primary:  linear-gradient(135deg, var(--color-primary), var(--color-highlight));
+    --gradient-shimmer:  linear-gradient(90deg, var(--color-highlight), var(--color-highlight-light), var(--color-highlight));
+    --gradient-progress: linear-gradient(180deg, var(--color-accent) 0%, var(--color-highlight) 50%, #e74c3c 100%);
+
     /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 15px 35px rgba(0, 123, 255, 0.15);
-    --shadow-text: 0 0 10px rgba(255, 255, 255, 0.4);
+    --shadow-sm:          0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md:          0 4px 20px rgba(0, 0, 0, 0.1);
+    --shadow-lg:          0 10px 30px rgba(105, 219, 176, 0.1);
+    --shadow-text:        0 0 10px rgba(255, 255, 255, 0.4);
     --shadow-text-strong: 0 0 15px rgba(255, 255, 255, 0.6);
     
     /* Spacing */
@@ -227,6 +222,23 @@ import Reset from "./reset.astro";
   nav li a:hover {
     color: var(--color-text-primary);
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+  }
+
+  /* --- Global Keyframes --- */
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.05);
+    }
   }
 </style>
 
