@@ -20,39 +20,107 @@ Before trusting editor diagnostics after an Astro upgrade, run `pnpm sync` —
 stale `.astro/types.d.ts` produces a flood of bogus `JSX.IntrinsicElements`
 errors.
 
+## The design in one paragraph
+
+The site is themed on shard theory. A dark nebula sits behind everything;
+navigation is a Voronoi field of crystal **shards**, one per top-level
+section. Colour lives **only in the seams** (glowing gradient edges); shard
+interiors are dark glass. Each shard owns one slice of a single
+teal→indigo→violet→plum→wine→ember spectrum ("Dusk Prism"). Display face is
+Syne (uppercase, tracked), body is Lora. The intro animation (particles →
+nucleation → crystallised seams → labels) plays once per session. These
+choices were made deliberately with Leon; don't reopen them without asking.
+
 ## Layout
 
 ```
 src/
-  content.config.ts   collection definitions (glob loader + zod schemas)
-  content/blog/       markdown posts
-  layouts/Base.astro  the single <html> shell — every page renders through it
-  pages/              routes
-  styles/global.css   reset + @font-face declarations only
-public/fonts/         variable fonts (Lora, Open Sans)
+  data/shards.ts        THE registry: id, label, tagline, deep/edge stops.
+                        Also emits the CSS custom properties (shardCss()).
+  data/ghosts.ts        decorative "ghost" labels shown on the largest filler shards
+  content.config.ts     `posts` (glob, markdown) and `papers` (JSON) collections
+  content/posts/<shard>/*.md   posts; frontmatter `shard:` must match the folder
+  content/papers.json   research papers (rendered on /research/)
+  lib/geometry.ts       pure Voronoi / inset / clip-path helpers (client + build)
+  lib/color.ts          hex/hsl helpers, per-post variant colours
+  lib/card-shapes.ts    varied convex card/panel silhouettes + safe padding
+  lib/posts.ts          slug/href/date helpers shared by the routes
+  lib/field-layout.ts   home field layout: sites, filler shards, power cells, tunables
+  scripts/nebula.ts     shared nebula bitmap renderer (singleton + subscribe)
+  scripts/shard-field.ts  home page: layered painter, intro, cursor light, expand
+  scripts/chime.ts      Web Audio crystal chimes: one tone per shard on a rising
+                        C-major-ninth arpeggio, in spectrum order (teal low → ember high)
+  components/
+    Nebula.astro        fixed background canvas, transition:persist
+    Chrome.astro        wordmark + GitHub/Scholar/LinkedIn/email glyphs
+    ShardField.astro    home page DOM (field canvas, light canvas, one <a> per shard)
+    SeamPanel.astro     the dark-glass-with-glowing-seam building block
+    ShardCard.astro     a post card (SeamPanel + variant colour)
+    PaperCard.astro     a paper entry
+  layouts/Base.astro    the single <html> shell; `shard` prop stamps data-shard
+  pages/index.astro     home (shard field)
+  pages/[shard]/index.astro   shard page: header, papers (research), post grid
+  pages/[shard]/[post].astro  reading view
+  styles/global.css     reset, @font-face, design tokens, base type
+  styles/prose.css      reading typography, .chip
+public/fonts/           Syne and Lora variable TTFs (Open Sans was removed)
 ```
 
-Pages should not hand-roll `<html>`/`<head>`; pass `title`/`description` to
-`Base.astro` and use its `head` slot for anything page-specific.
+Pages should not hand-roll `<html>`/`<head>`; pass `title`/`description`
+(and `shard` where the page belongs to one) to `Base.astro` and use its
+`head` slot for anything page-specific.
+
+## Adding things
+
+- **A shard:** add an entry to `src/data/shards.ts` (pick `deep`/`edge`
+  stops that sit between its spectral neighbours) and create
+  `src/content/posts/<id>/`. Routes, tokens, the home field and the schema
+  all derive from the registry. The field places shards left→right by the hue
+  of `edge[0]`.
+- **A post:** markdown in `src/content/posts/<shard>/`. Required frontmatter:
+  `title`, `pubDate`, `shard`. Optional: `description`, `updatedDate`, `tags`,
+  `draft`. The URL is `/<shard>/<filename>/`.
+- **A paper:** append to `src/content/papers.json` (`type` is journal /
+  conference / preprint; `highlight` is the author to bold).
 
 ## Content collections
 
-Use the **modern** API, not the legacy one. Entries are keyed by `post.id`;
-`post.slug` and `entry.render()` no longer exist.
+Use the **modern** API, not the legacy one. Entries are keyed by `post.id`
+(`writing/koala_poem`); `post.slug` and `entry.render()` no longer exist.
 
 ```ts
 import { getCollection, render } from "astro:content";
 
-const posts = await getCollection("blog");
+const posts = await getCollection("posts");
 const { Content } = await render(post);
 ```
+
+## Seam technique (why the markup looks the way it does)
+
+`filter: drop-shadow()` is clipped by the same element's `clip-path`, so a
+glowing clipped shape needs three layers: an outer element carrying the
+drop-shadow glow, an edge layer with the gradient clipped to the polygon, and
+a fill layer inset by 1.5px with the same clip-path. `SeamPanel.astro` does
+this; reuse it rather than re-deriving it. Don't use `backdrop-filter` inside
+a filtered ancestor — it silently breaks.
+
+The canvas equivalent lives in `shard-field.ts` (`paintInterior`, `paintBleed`,
+`paintSeam`, assembled by `buildLayers`): refracted nebula copy, dark tint,
+specular, inward bleed inside the clip, then the seam stroke with `shadowBlur`
+(multiplied by DPR — canvas shadows ignore the CTM). Blur is paid once per
+layout into offscreen layers; per-frame paths (intro, expand, cursor light)
+never use `shadowBlur`. Idle pages run zero rAF loops — keep it that way.
+
+Unlabeled "filler" shards are visual only: power-diagram cells with small
+weights, tuned in `lib/field-layout.ts`. They never appear in `shards.ts`.
 
 ## Dependencies
 
 **Always run dependency changes by Leon before making them.** Upgrading to newer
 frameworks or tooling is welcome, but propose it first — list what changes, what
 breaks, and the migration cost — and wait for a decision. Never add or bump a
-package unannounced.
+package unannounced. The current design is deliberately zero-dependency on the
+client (Canvas 2D, hand-rolled Voronoi, Astro's own ClientRouter).
 
 **Before adding any new package, verify it has at least 1,000 weekly npm
 downloads.** This is a supply-chain guard against typosquats and malicious
@@ -72,6 +140,17 @@ better-established alternative.
 - `sass` is installed so `<style lang="scss">` works, and `terser` backs the
   minifier setting in `astro.config.mjs`. Both are load-bearing config, not cruft.
 - The lockfile (`pnpm-lock.yaml`) is committed. Keep it that way.
+- Side builds for local checks go in `dist-<name>/` (`pnpm astro build --outDir dist-check`);
+  ESLint, tsc, Prettier and git all ignore `dist-*`. Delete them when done.
+- Headless Chromium screenshots of the home page need real time, not
+  `--virtual-time-budget` (rAF is starved under virtual time and the CSS
+  label transitions never finish). Shard pages are fine either way.
+- `astro dev` and `astro preview` run as daemons in Astro 7 and only one
+  preview may run at a time: stop them with `pnpm astro dev stop` /
+  `pnpm astro preview stop`, not `pkill`.
+- Chimes: browsers block audio until the first click or keypress, so hover
+  chimes are silent on a fresh load until the visitor interacts once. The
+  mute toggle in the top bar persists in `localStorage` (`shards:muted`).
 
 ## Version pins — do not bump blindly
 
@@ -83,8 +162,3 @@ better-established alternative.
   against ESLint 10. Expected — not something to "fix".
 - `@astrojs/markdown-remark` is an explicit dependency because Astro 7 changed
   the default markdown processor; it keeps remark/rehype plugins available.
-- **`zod` is a direct dependency on purpose**, kept in step with the range Astro
-  itself depends on (`^4.5.4`) so pnpm dedupes to one instance. Schemas import
-  `z` from `"zod"`, not from `"astro:content"` — that re-export is deprecated in
-  Astro 7. Two different resolved zod copies would cause spurious schema type
-  errors, so if you bump zod, check `pnpm why zod` still shows a single version.

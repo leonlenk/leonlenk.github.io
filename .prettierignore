@@ -1,4 +1,5 @@
 pnpm-lock.yaml
 dist
+dist-*
 .astro
 src/content

@@ -1,0 +1,196 @@
+---
+/**
+ * One academic paper as a single-column seam panel. Only the title is a
+ * link (it leaves the site), so the panel itself stays a plain block.
+ */
+import type { CollectionEntry } from "astro:content";
+import { cardShape } from "../lib/card-shapes";
+import { hashString, mulberry32, toClipPathPercent } from "../lib/geometry";
+import SeamPanel from "./SeamPanel.astro";
+
+interface Props {
+  paper: CollectionEntry<"papers">;
+  index: number;
+}
+
+const { paper, index } = Astro.props;
+const { id, title, authors, venue, year, url, type, highlight } = paper.data;
+
+const typeLabel: Record<typeof type, string> = {
+  journal: "Journal",
+  conference: "Conference",
+  preprint: "Preprint",
+};
+
+// Rows are wide on desktop (about 5:1) and nearly square on a phone, where
+// the same percent cuts would bite five times deeper; so two silhouettes
+// from one seed — shallower under 640px — each with pads for its aspect.
+const seed = hashString(id);
+const wide = cardShape(mulberry32(seed), {
+  aspect: 4,
+  depth: 0.6,
+  slant: 0.7,
+  wide: true,
+});
+const narrow = cardShape(mulberry32(seed), {
+  aspect: 1,
+  depth: 0.35,
+  slant: 0.7,
+  maxSlant: 4,
+  wide: true,
+});
+const polygon = toClipPathPercent(wide.polygon);
+const polygonNarrow = toClipPathPercent(narrow.polygon);
+const pads = `--pad-x:${wide.padX};--pad-y:${wide.padY};--pad-x-n:${narrow.padX};--pad-y-n:${narrow.padY}`;
+---
+
+<SeamPanel
+  polygon={polygon}
+  polygonNarrow={polygonNarrow}
+  as="article"
+  class="paper"
+  style={pads}
+  data-type={type}
+  data-index={index}
+>
+  <div class="paper-body">
+    <div class="paper-top">
+      <span class="label paper-type">{typeLabel[type]}</span>
+      <time class="label paper-year" datetime={String(year)}>
+        {year}
+      </time>
+    </div>
+    <h2 class="paper-title">
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        {title}
+        <svg
+          class="ext"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"></path>
+        </svg>
+        <span class="visually-hidden">(opens in a new tab)</span>
+      </a>
+    </h2>
+    <ul class="authors" aria-label="Authors">
+      {authors.map((author) => (
+        <li class:list={{ "author-me": author === highlight }}>{author}</li>
+      ))}
+    </ul>
+    <p class="venue">{venue}</p>
+  </div>
+</SeamPanel>
+
+<style>
+  .paper-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: max(clamp(18px, 4vw, 28px), calc(var(--pad-y) * 1%))
+      max(clamp(20px, 5vw, 36px), calc(var(--pad-x) * 1%));
+  }
+
+  @media (max-width: 639.98px) {
+    .paper-body {
+      padding: max(18px, calc(var(--pad-y-n, var(--pad-y)) * 1%))
+        max(20px, calc(var(--pad-x-n, var(--pad-x)) * 1%));
+    }
+  }
+
+  .paper-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-1);
+  }
+
+  .paper-type {
+    color: var(--shard-mid);
+  }
+
+  .paper-year {
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .paper-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--step-1);
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: #fff;
+    text-wrap: pretty;
+  }
+
+  .paper-title a {
+    text-decoration: none;
+    text-decoration-color: var(--shard-mid);
+    text-underline-offset: 0.18em;
+  }
+
+  .paper-title a:hover,
+  .paper-title a:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+
+  .ext {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    margin-left: 0.3em;
+    vertical-align: 0.05em;
+    fill: var(--shard-mid);
+    transition: fill 180ms var(--ease-out);
+  }
+
+  .paper-title a:hover .ext,
+  .paper-title a:focus-visible .ext {
+    fill: #fff;
+  }
+
+  .authors {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .authors li {
+    display: inline;
+  }
+
+  .authors li + li::before {
+    content: ", ";
+  }
+
+  .author-me {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .venue {
+    font-size: var(--step--1);
+    font-style: italic;
+    color: var(--ink-3);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

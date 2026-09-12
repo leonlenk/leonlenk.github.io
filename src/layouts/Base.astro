@@ -1,28 +1,57 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
+import Nebula from "../components/Nebula.astro";
+import Chrome from "../components/Chrome.astro";
+import { shardCss, type ShardId } from "../data/shards";
 
 interface Props {
   title: string;
   description?: string;
+  /**
+   * When given, stamps `data-shard` on <html> so the whole page inherits
+   * that shard's colour aliases (--shard-edge-0, --shard-mid, …).
+   */
+  shard?: ShardId;
 }
 
-const { title, description } = Astro.props;
+const { title, description, shard } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-shard={shard}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050510" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="preload"
+      href="/fonts/Syne/Syne-VariableFont_wght.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/Lora/Lora-VariableFont_wght.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    {/* Shard palette, inlined so the tokens exist before first paint. */}
+    <style is:inline set:html={shardCss()}></style>
+    <ClientRouter />
     <slot name="head" />
   </head>
   <body>
+    <Nebula />
+    <Chrome />
     <slot />
   </body>
 </html>

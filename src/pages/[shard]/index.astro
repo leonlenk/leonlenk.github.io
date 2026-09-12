@@ -1,0 +1,297 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import SeamPanel from "../../components/SeamPanel.astro";
+import ShardCard from "../../components/ShardCard.astro";
+import PaperCard from "../../components/PaperCard.astro";
+import { shards } from "../../data/shards";
+import { cardShape } from "../../lib/card-shapes";
+import { hashString, mulberry32, toClipPathPercent } from "../../lib/geometry";
+import { postHref } from "../../lib/posts";
+
+export function getStaticPaths() {
+  return shards.map((shard) => ({
+    params: { shard: shard.id },
+    props: { shard },
+  }));
+}
+
+const { shard } = Astro.props;
+
+const posts = (
+  await getCollection(
+    "posts",
+    ({ data }) => data.shard === shard.id && !data.draft,
+  )
+).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Only the research shard carries the papers list.
+const papers =
+  shard.id === "research"
+    ? (await getCollection("papers")).sort((a, b) => b.data.year - a.data.year)
+    : [];
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const count = [
+  ...(shard.id === "research" ? [plural(papers.length, "paper")] : []),
+  plural(posts.length, "post"),
+].join(" · ");
+
+// Header: shallow cuts and one slanted edge, stable per shard. Two
+// silhouettes from one seed — the phone one shallower, since the panel goes
+// from about 3:1 to under 2:1 there — each with pads for its aspect.
+const headerSeed = hashString(shard.id);
+const header = cardShape(mulberry32(headerSeed), {
+  aspect: 3,
+  depth: 0.5,
+  slant: 1,
+  wide: true,
+});
+const headerNarrow = cardShape(mulberry32(headerSeed), {
+  aspect: 1.7,
+  depth: 0.35,
+  slant: 1,
+  maxSlant: 4,
+  wide: true,
+});
+const headerPads = `--pad-x:${header.padX};--pad-y:${header.padY};--pad-x-n:${headerNarrow.padX};--pad-y-n:${headerNarrow.padY}`;
+
+const empty = cardShape(mulberry32(hashString(`${shard.id}/empty`)), {
+  aspect: 3,
+  depth: 0.4,
+});
+const emptyPolygon = toClipPathPercent(empty.polygon);
+
+// Syne 800 caps with 0.08em tracking measure at most 1.35em per character.
+// Narrow phones cannot fit a long one-word label at the mobile size, and a
+// single word cannot wrap, so the h1 also gets a width-derived cap (see the
+// mobile rule below). Only binds when the label would otherwise overflow.
+const h1Em = 1.35 * shard.label.length;
+---
+
+<Base title={shard.label} description={shard.tagline} shard={shard.id}>
+  <main class="shard-page" data-shard={shard.id}>
+    <SeamPanel
+      as="header"
+      polygon={toClipPathPercent(header.polygon)}
+      polygonNarrow={toClipPathPercent(headerNarrow.polygon)}
+      class="shard-header"
+      style={headerPads}
+    >
+      <div class="header-body">
+        <div class="header-top">
+          <a href="/" class="label back">
+            ← Shards
+          </a>
+          <span class="label count">{count}</span>
+        </div>
+        <h1 style={`--h1-em:${h1Em}`}>{shard.label}</h1>
+        <p class="tagline">{shard.tagline}</p>
+      </div>
+    </SeamPanel>
+
+    {papers.length > 0 && (
+      <section class="papers" aria-labelledby="papers-heading">
+        <div class="section-head">
+          <h2 class="label" id="papers-heading">
+            Papers
+          </h2>
+          <span class="rule" aria-hidden="true" />
+        </div>
+        <ul class="paper-list">
+          {papers.map((paper, i) => (
+            <li>
+              <PaperCard paper={paper} index={i} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="posts" aria-labelledby="posts-heading">
+      <div class="section-head">
+        <h2 class="label" id="posts-heading">
+          Posts
+        </h2>
+        <span class="rule" aria-hidden="true"></span>
+      </div>
+      {posts.length > 0 ? (
+        <ul class="post-grid">
+          {posts.map((post, i) => (
+            <li>
+              <ShardCard post={post} index={i} href={postHref(post)} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <SeamPanel
+          polygon={emptyPolygon}
+          class="empty"
+          style={`--pad-x:${empty.padX};--pad-y:${empty.padY}`}
+          quiet
+        >
+          <p>Nothing has crystallised here yet.</p>
+        </SeamPanel>
+      )}
+    </section>
+  </main>
+</Base>
+
+<style>
+  /* Top padding = the fixed chrome bar (56px, 52px on phones) plus air. */
+  .shard-page {
+    max-width: 1120px;
+    margin-inline: auto;
+    padding: calc(56px + var(--space-6)) var(--gutter) var(--space-9);
+  }
+
+  /* --- header ---------------------------------------------------------- */
+
+  .shard-header {
+    margin-bottom: var(--space-7);
+  }
+
+  .header-body {
+    padding: max(clamp(28px, 5vw, 56px), calc(var(--pad-y) * 1%))
+      max(clamp(28px, 5vw, 56px), calc(var(--pad-x) * 1%));
+  }
+
+  .header-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .back {
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .back:hover,
+  .back:focus-visible {
+    color: #fff;
+  }
+
+  .count {
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shard-header h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.2rem, 6vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 28px var(--shard-mid);
+  }
+
+  .tagline {
+    margin-top: var(--space-4);
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ink-2);
+  }
+
+  /* --- sections -------------------------------------------------------- */
+
+  .papers {
+    margin-bottom: var(--space-8);
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+
+  .section-head h2 {
+    margin: 0;
+    line-height: 1;
+    color: var(--ink-2);
+  }
+
+  .rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      var(--shard-edge-0),
+      var(--shard-edge-1),
+      transparent
+    );
+    box-shadow: 0 0 10px var(--shard-mid);
+  }
+
+  .paper-list,
+  .post-grid {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .paper-list {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: var(--space-5);
+  }
+
+  .post-grid > li {
+    display: grid;
+  }
+
+  .empty p {
+    padding: max(clamp(28px, 6vw, 48px), calc(var(--pad-y) * 1%))
+      max(clamp(28px, 6vw, 48px), calc(var(--pad-x) * 1%));
+    font-family: var(--font-body);
+    font-style: italic;
+    text-align: center;
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 639.98px) {
+    .shard-page {
+      padding-top: calc(52px + var(--space-5));
+    }
+
+    .header-body {
+      padding: max(22px, calc(var(--pad-y-n, var(--pad-y)) * 1%))
+        max(22px, calc(var(--pad-x-n, var(--pad-x)) * 1%));
+    }
+
+    .header-top {
+      margin-bottom: var(--space-5);
+    }
+
+    /* Available width = viewport − gutters − the header's side padding. */
+    .shard-header h1 {
+      font-size: min(
+        clamp(2rem, 11vw, 2.6rem),
+        calc(
+          (
+              100vw - 2 * var(--gutter) - 2 *
+                max(
+                  22px,
+                  (100vw - 2 * var(--gutter)) * var(--pad-x-n, var(--pad-x)) /
+                    100
+                )
+            ) /
+            var(--h1-em)
+        )
+      );
+    }
+  }
+</style>

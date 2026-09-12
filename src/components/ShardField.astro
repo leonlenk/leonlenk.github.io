@@ -1,0 +1,237 @@
+---
+/**
+ * The home page: a field of crystal shards — one per entry in the registry
+ * plus unlabelled fillers — painted on a canvas over the persisted nebula,
+ * with a cursor light on a second canvas above it. Labels are real links
+ * with exact polygon hit areas (clip-path), positioned by the script in
+ * src/scripts/shard-field.ts, which also runs the once-per-session intro
+ * and the click → expand → navigate transition.
+ *
+ * `data-state` is "intro" while the crystallisation plays, "settled" at rest
+ * and "expanding" between a click and the navigation. `.is-live` is added by
+ * the script once labels may animate, so a return visit never fades them in.
+ */
+import { shards } from "../data/shards";
+---
+
+<main class="field" data-state="intro">
+  <canvas class="field-canvas" aria-hidden="true"></canvas>
+  <canvas class="field-light" aria-hidden="true"></canvas>
+  <nav class="field-shards" aria-label="Shards">
+    {shards.map((shard) => (
+      <a class="shard" href={`/${shard.id}/`} data-shard={shard.id}>
+        <span class="shard-label">{shard.label}</span>
+        <span class="shard-tagline">{shard.tagline}</span>
+      </a>
+    ))}
+  </nav>
+  <div class="field-ghosts" aria-hidden="true"></div>
+  <p class="field-hint label" aria-hidden="true">
+    click to skip
+  </p>
+</main>
+
+<style>
+  .field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /* Two stacked canvases: the static field, and the cursor light above it
+     so pointer movement never repaints the field. The light screens onto
+     the field so it adds to the seams instead of covering them. */
+  .field-canvas,
+  .field-light {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .field-light {
+    mix-blend-mode: screen;
+  }
+
+  .field-shards {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .shard {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .shard:focus-visible {
+    outline: none;
+  }
+
+  .shard-label,
+  .shard-tagline {
+    position: absolute;
+    top: var(--cy, 50%);
+    left: var(--cx, 50%);
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .shard-label {
+    transform: translate(-50%, calc(-50% + 8px));
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(13px, 1.25vw + 6px, 20px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.94);
+    text-shadow: 0 0 18px var(--shard-mid);
+  }
+
+  .field[data-state="settled"] .shard-label {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .field.is-live .shard-label {
+    transition:
+      opacity 600ms var(--ease-out),
+      transform 600ms var(--ease-out);
+  }
+
+  .shard:focus-visible .shard-label {
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: 8px;
+  }
+
+  .shard-tagline {
+    transform: translate(-50%, calc(-50% + 1.75em + 4px));
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  @media (pointer: fine) {
+    .field[data-state="settled"] .shard:hover .shard-tagline,
+    .field[data-state="settled"] .shard:focus-visible .shard-tagline {
+      opacity: 1;
+      transform: translate(-50%, calc(-50% + 1.75em));
+    }
+  }
+
+  /* Expanding: everything else fades at once; the chosen label lingers. */
+  .field[data-state="expanding"] .shard:not(.is-active) .shard-label {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .field[data-state="expanding"] .shard.is-active .shard-label {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity 120ms linear 400ms;
+  }
+
+  /* Ghost text: faint decorative labels the script places on the larger
+     filler crystals (src/data/ghosts.ts). Never interactive. The cursor
+     light lifts them through --ghost-boost, scaling the colour's alpha.
+     The spans are created at runtime, so they carry no scope attribute:
+     their rules are :global under the scoped container. */
+  .field-ghosts {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .field-ghosts :global(.ghost) {
+    position: absolute;
+    top: var(--cy, 50%);
+    left: var(--cx, 50%);
+    transform: translate(-50%, calc(-50% + 8px));
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+  }
+
+  .field-ghosts :global(.ghost-word) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(10px, 0.75vw + 5px, 13px);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.2;
+    color: rgba(230, 227, 239, calc(0.2 * var(--ghost-boost, 1)));
+  }
+
+  .field-ghosts :global(.ghost-phrase) {
+    max-width: var(--ghost-max, 200px);
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: clamp(11px, 0.8vw + 6px, 14px);
+    line-height: 1.3;
+    text-wrap: balance;
+    color: rgba(230, 227, 239, calc(0.24 * var(--ghost-boost, 1)));
+  }
+
+  .field[data-state="settled"] :global(.ghost) {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .field.is-live :global(.ghost) {
+    transition:
+      opacity 600ms var(--ease-out),
+      transform 600ms var(--ease-out);
+  }
+
+  .field[data-state="expanding"] :global(.ghost) {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .field-hint {
+    position: absolute;
+    bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ink-3);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out);
+  }
+
+  /* Only while the intro is actually running (the head gate sets the class
+     before first paint), and only after it has had a moment to breathe. */
+  :global(html.intro-running) .field[data-state="intro"] .field-hint {
+    opacity: 1;
+    transition-delay: 900ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shard-label,
+    .shard-tagline,
+    :global(.ghost),
+    .field-hint {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import "../scripts/shard-field";
+</script>

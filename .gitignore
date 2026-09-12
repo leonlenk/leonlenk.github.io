@@ -1,8 +1,9 @@
 # Dependencies
 node_modules/
 
-# Astro build output and cache
+# Astro build output and cache (dist-* are side builds for local checks)
 dist/
+dist-*/
 .astro/
 
 # Environment

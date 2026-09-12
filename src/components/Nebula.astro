@@ -1,0 +1,111 @@
+---
+/**
+ * The sky. A fixed canvas behind everything, painted once from the shared
+ * nebula bitmap (src/scripts/nebula.ts) with the ten brighter stars baked
+ * in. The slow drift is a compositor-only CSS transform animation on the
+ * element — there is no animation loop, so an idle page costs nothing.
+ *
+ * The canvas is 4% larger than the viewport (2% overscan on every side) so
+ * the drift, at most 1.35% of the viewport at scale ≥ 1.015, never exposes
+ * an edge. Persisted across ClientRouter navigations so the animation phase
+ * and the bitmap survive route changes.
+ */
+---
+
+<canvas class="nebula" aria-hidden="true" transition:persist="nebula"></canvas>
+
+<style>
+  .nebula {
+    position: fixed;
+    top: -2%;
+    left: -2%;
+    z-index: -1;
+    width: 104%;
+    height: 104%;
+    pointer-events: none;
+    background: var(--nebula-base);
+    transform-origin: 50% 50%;
+    will-change: transform;
+    animation: nebula-drift 50s ease-in-out infinite alternate;
+  }
+
+  /* Translate is in percent of the (overscanned) element; scale never drops
+     below 1.015 so the 2% overscan always covers the offset. */
+  @keyframes nebula-drift {
+    0% {
+      transform: translate(-1.2%, 0.7%) scale(1.015);
+    }
+    50% {
+      transform: translate(0.5%, -1.1%) scale(1.03);
+    }
+    100% {
+      transform: translate(1.3%, 0.6%) scale(1.02);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nebula {
+      animation: none;
+      will-change: auto;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  import {
+    NEBULA_SEED,
+    getSharedNebula,
+    mulberry32,
+    subscribeNebula,
+    type SharedNebula,
+  } from "../scripts/nebula";
+
+  const canvas = document.querySelector<HTMLCanvasElement>("canvas.nebula");
+  const ctx = canvas?.getContext("2d", { alpha: false });
+
+  if (canvas && ctx) {
+    /** Element size relative to the viewport; mirrors the CSS. */
+    const OVERSCAN = 1.04;
+
+    // The ten brighter stars, formerly twinkling live. Same seed and draw
+    // order as before so they keep their positions; drawn once at the
+    // midpoint of their old brightness range.
+    const rand = mulberry32(NEBULA_SEED ^ 0x7e1a);
+    const bright = Array.from({ length: 10 }, () => {
+      const x = 0.05 + rand() * 0.9;
+      const y = 0.05 + rand() * 0.9;
+      const radius = 0.7 + rand() * 0.8;
+      const min = 0.04 + rand() * 0.06;
+      const max = 0.35 + rand() * 0.4;
+      rand(); // period (unused now)
+      rand(); // phase (unused now)
+      return { x, y, radius, alpha: (min + max) / 2 };
+    });
+
+    function paint(nebula: SharedNebula): void {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const W = Math.max(1, Math.ceil(window.innerWidth * OVERSCAN * dpr));
+      const H = Math.max(1, Math.ceil(window.innerHeight * OVERSCAN * dpr));
+      canvas!.width = W;
+      canvas!.height = H;
+      ctx!.drawImage(nebula.canvas, 0, 0, W, H);
+      for (const star of bright) {
+        const x = star.x * W;
+        const y = star.y * H;
+        const r = star.radius * dpr;
+        ctx!.fillStyle = `rgba(230,227,239,${(star.alpha * 0.18).toFixed(3)})`;
+        ctx!.beginPath();
+        ctx!.arc(x, y, r * 3, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.fillStyle = `rgba(230,227,239,${star.alpha.toFixed(3)})`;
+        ctx!.beginPath();
+        ctx!.arc(x, y, r, 0, Math.PI * 2);
+        ctx!.fill();
+      }
+    }
+
+    paint(getSharedNebula());
+    subscribeNebula(paint);
+  }
+</script>

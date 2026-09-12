@@ -1,0 +1,148 @@
+---
+/**
+ * A post card: the whole card is one link inside a shard-cut seam panel.
+ * Each card gets its own variant of the shard's edge pair (keyed on its
+ * position in the list) and its own silhouette (keyed on the post id), so
+ * siblings differ but stay inside the shard's slice of the spectrum.
+ */
+import { getShard } from "../data/shards";
+import { mixHex, variantPair } from "../lib/color";
+import { cardShape } from "../lib/card-shapes";
+import { hashString, mulberry32, toClipPathPercent } from "../lib/geometry";
+import { formatDate, isoDate, type Post } from "../lib/posts";
+import SeamPanel from "./SeamPanel.astro";
+import "../styles/prose.css";
+
+interface Props {
+  post: Post;
+  /** Position in the list; selects the colour variant. */
+  index: number;
+  href: string;
+}
+
+const { post, index, href } = Astro.props;
+const shard = getShard(post.data.shard);
+const [v0, v1] = variantPair(shard.edge, index);
+const mid = mixHex(v0, v1);
+// Cards run about 300–360px wide and rarely taller than they are wide;
+// 1.2 is the squarest a card gets, which is the worst case for the pads.
+const shape = cardShape(mulberry32(hashString(post.id)), { aspect: 1.2 });
+const polygon = toClipPathPercent(shape.polygon);
+const { title, description, pubDate, tags } = post.data;
+---
+
+<SeamPanel
+  polygon={polygon}
+  href={href}
+  class="card"
+  style={`--seam-0:${v0};--seam-1:${v1};--seam-mid:${mid};--pad-x:${shape.padX};--pad-y:${shape.padY}`}
+>
+  <div class="card-body">
+    <time class="label card-date" datetime={isoDate(pubDate)}>
+      {formatDate(pubDate)}
+    </time>
+    <h2 class="card-title">{title}</h2>
+    {description && <p class="card-description">{description}</p>}
+    {tags.length > 0 && (
+      <ul class="card-tags" aria-label="Tags">
+        {tags.map((tag) => (
+          <li class="label chip">{tag}</li>
+        ))}
+      </ul>
+    )}
+  </div>
+</SeamPanel>
+
+<script>
+  import { chimeForShard, unlockAudio } from "../scripts/chime";
+
+  /* A plain left click on a card strikes the shard's note and lets the
+     navigation proceed; the ClientRouter swap is quick enough that the tail
+     of the chime is heard on the next page. Modified clicks (new tab, etc.)
+     stay silent. Delegated from the grid, wired once per page. */
+  function onClick(ev: MouseEvent): void {
+    if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey)
+      return;
+    const target = ev.target instanceof Element ? ev.target : null;
+    if (!target?.closest("a.card")) return;
+    const shard =
+      document.querySelector<HTMLElement>("main[data-shard]")?.dataset.shard;
+    if (!shard) return;
+    unlockAudio();
+    chimeForShard(shard, { velocity: 0.6 });
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    const grid = document.querySelector<HTMLElement>(".post-grid");
+    if (grid && !grid.dataset.chime) {
+      grid.dataset.chime = "true";
+      grid.addEventListener("click", onClick);
+    }
+  });
+</script>
+
+<style>
+  .card {
+    min-height: 190px;
+    height: 100%;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 190px;
+    height: 100%;
+    /* The design padding, or the clearance the silhouette's cuts demand,
+       whichever is larger (see card-shapes.ts). */
+    padding: max(clamp(22px, 8%, 36px), calc(var(--pad-y) * 1%))
+      max(clamp(22px, 8%, 36px), calc(var(--pad-x) * 1%));
+  }
+
+  .card-date {
+    color: var(--ink-3);
+  }
+
+  .card-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--step-1);
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: #fff;
+    text-wrap: pretty;
+  }
+
+  .card-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--step-0);
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding: 0;
+    padding-top: var(--space-2);
+    list-style: none;
+  }
+
+  @media (max-width: 639.98px) {
+    .card,
+    .card-body {
+      min-height: 150px;
+    }
+
+    .card-body {
+      padding: max(20px, calc(var(--pad-y) * 1%))
+        max(20px, calc(var(--pad-x) * 1%));
+    }
+  }
+</style>

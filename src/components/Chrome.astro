@@ -1,0 +1,359 @@
+---
+/**
+ * Persistent site chrome: a fixed frosted-glass bar with the wordmark at
+ * the left and the "elsewhere" glyph links at the right, so scrolling
+ * content passes under glass instead of colliding with the links. On the
+ * home page nothing scrolls and the bar would sit over the shard field, so
+ * there it is fully transparent and lets pointer events through to the
+ * shards; only the links themselves stay interactive.
+ *
+ * The last item in the nav is the chime mute toggle, a button styled like
+ * the glyph links; its two glyphs swap on `html[data-muted]`, which the
+ * chime module mirrors from the stored preference.
+ *
+ * Glyphs are hand-authored single paths on a 24-unit grid, filled with
+ * currentColor — no icon package.
+ */
+
+interface Elsewhere {
+  href: string;
+  label: string;
+  external: boolean;
+  path: string;
+}
+
+const elsewhere: Elsewhere[] = [
+  {
+    href: "https://github.com/leonlenk",
+    label: "GitHub",
+    external: true,
+    path: "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12",
+  },
+  {
+    href: "https://scholar.google.com/citations?user=1HDLD-YAAAAJ&hl=en",
+    label: "Google Scholar",
+    external: true,
+    // Mortarboard: cap, band, tassel.
+    path: "M12 4 1 10l11 6 11-6-11-6Zm-7 8.8v3.7c0 1.9 3.1 3.5 7 3.5s7-1.6 7-3.5v-3.7l-7 3.8-7-3.8Zm16.2-2v5.7h1.2v-5.7Z",
+  },
+  {
+    href: "https://www.linkedin.com/in/leon-lenk/",
+    label: "LinkedIn",
+    external: true,
+    // "in" lettermark: dot, stem, n.
+    path: "M5.5 3.7a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6ZM4 9h3v11H4ZM9.5 9h3v1.6c.5-.9 1.7-1.8 3.5-1.8 3.7 0 4 2.4 4 5.5V20h-3v-5.1c0-1.2 0-2.8-1.7-2.8s-2.8 1.3-2.8 2.7V20h-3V9Z",
+  },
+  {
+    href: "mailto:me@leonlenk.com",
+    label: "Email",
+    external: false,
+    // Envelope: flap, then body, with the gap between them as the fold.
+    path: "M2 6.5A1.5 1.5 0 0 1 3.5 5h17A1.5 1.5 0 0 1 22 6.5v.6l-10 6-10-6ZM2 9.4l10 6 10-6v8.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5Z",
+  },
+];
+---
+
+<div class="chrome">
+  <a href="/" class="wordmark">
+    Leon Lenk
+  </a>
+  <nav class="elsewhere" aria-label="Elsewhere">
+    {elsewhere.map(({ href, label, external, path }) => (
+      <a
+        href={href}
+        aria-label={label}
+        title={label}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d={path} />
+        </svg>
+      </a>
+    ))}
+    <button
+      type="button"
+      class="mute"
+      aria-pressed="false"
+      aria-label="Mute chimes"
+      title="Mute chimes"
+    >
+      {/* Speaker with two sound waves. */}
+      <svg class="on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 9h4l5-4v14l-5-4H3ZM14.6 10.3a2.4 2.4 0 0 1 0 3.4l-1.1-1.1a.9.9 0 0 0 0-1.2ZM17.2 7.7a6 6 0 0 1 0 8.6l-1.1-1.1a4.5 4.5 0 0 0 0-6.4Z" />
+      </svg>
+      {/* Speaker behind a slash. */}
+      <svg class="off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 9h4l5-4v14l-5-4H3ZM16.2 8.8l1.4-1.4 2.2 2.2 2.2-2.2 1.4 1.4-2.2 2.2 2.2 2.2-1.4 1.4-2.2-2.2-2.2 2.2-1.4-1.4 2.2-2.2Z" />
+      </svg>
+    </button>
+  </nav>
+</div>
+
+<script>
+  import {
+    MUTED_CHANGE_EVENT,
+    isMuted,
+    toggleMuted,
+    unlockAudio,
+  } from "../scripts/chime";
+
+  /* Reflect the preference on whichever button the current page has. The
+     accessible name stays constant, as a toggle's should; state is carried
+     by aria-pressed, and the tooltip says what a click will do. */
+  function sync(): void {
+    const button = document.querySelector<HTMLButtonElement>("button.mute");
+    if (!button) return;
+    const muted = isMuted();
+    button.setAttribute("aria-pressed", String(muted));
+    button.setAttribute("aria-label", "Mute chimes");
+    button.title = muted ? "Unmute chimes" : "Mute chimes";
+  }
+
+  function onClick(): void {
+    unlockAudio();
+    toggleMuted();
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    const button = document.querySelector<HTMLButtonElement>("button.mute");
+    if (button && !button.dataset.wired) {
+      button.dataset.wired = "true";
+      button.addEventListener("click", onClick);
+    }
+    sync();
+  });
+  document.addEventListener(MUTED_CHANGE_EVENT, sync);
+
+  /* Hide the bar while scrolling down, bring it back on the way up or near
+     the top. `lastY` only advances when a decision is made, so a slow
+     scroll still accumulates past the threshold instead of never hiding.
+     Coalesced to one check per frame. Never on the home page, which does
+     not scroll and whose field sits under the bar. */
+  const HIDE_AFTER = 72;
+  const THRESHOLD = 6;
+  let bar: HTMLElement | null = null;
+  let lastY = 0;
+  let scrollRaf = 0;
+
+  function applyScroll(): void {
+    scrollRaf = 0;
+    if (!bar) return;
+    const y = window.scrollY;
+    if (y <= HIDE_AFTER) {
+      bar.classList.remove("chrome--hidden");
+      lastY = y;
+    } else if (y > lastY + THRESHOLD) {
+      bar.classList.add("chrome--hidden");
+      lastY = y;
+    } else if (y < lastY - THRESHOLD) {
+      bar.classList.remove("chrome--hidden");
+      lastY = y;
+    }
+  }
+
+  function onScroll(): void {
+    if (!scrollRaf) scrollRaf = requestAnimationFrame(applyScroll);
+  }
+
+  function stopHiding(): void {
+    window.removeEventListener("scroll", onScroll);
+    if (scrollRaf) cancelAnimationFrame(scrollRaf);
+    scrollRaf = 0;
+    bar = null;
+  }
+
+  function startHiding(): void {
+    stopHiding();
+    bar = document.querySelector<HTMLElement>(".chrome");
+    if (!bar) return;
+    bar.classList.remove("chrome--hidden");
+    lastY = window.scrollY;
+    if (document.querySelector("body > main.field")) return;
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  document.addEventListener("astro:page-load", startHiding);
+  document.addEventListener("astro:before-swap", stopHiding);
+
+  /* Browsers only start audio inside a user gesture. The document persists
+     across ClientRouter navigations, so the first press anywhere on the
+     site unlocks chimes for the whole visit, including hover chimes on the
+     home field. */
+  document.addEventListener("pointerdown", () => void unlockAudio(), {
+    once: true,
+    passive: true,
+  });
+</script>
+
+<style>
+  .chrome {
+    --bar-height: 56px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--bar-height);
+    padding: 0 var(--gutter);
+    background: rgba(5, 5, 16, 0.62);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    backdrop-filter: blur(14px) saturate(120%);
+    will-change: transform;
+    transition:
+      opacity 600ms var(--ease-out),
+      transform 220ms var(--ease-out);
+  }
+
+  /* Slid away while scrolling down (script above). Under reduced motion
+     the global rule collapses every transition, so this is instant. */
+  .chrome--hidden {
+    transform: translateY(-100%);
+  }
+
+  :global(body:has(> main.field)) .chrome--hidden {
+    transform: none;
+  }
+
+  /* Hairline seam along the bottom: tinted on shard pages, neutral where
+     <html> carries no data-shard. */
+  .chrome::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      var(--shard-edge-0, var(--line)),
+      transparent 70%
+    );
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Home: no glass over the shard field, and clicks fall through to the
+     shards beneath; only the links catch them. */
+  :global(body:has(> main.field)) .chrome {
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  :global(body:has(> main.field)) .chrome::after {
+    display: none;
+  }
+
+  /* Hidden while the home intro runs; the field script drops the class. */
+  :global(html.intro-running) .chrome {
+    opacity: 0;
+  }
+
+  .chrome a,
+  .chrome .mute {
+    pointer-events: auto;
+    text-decoration: none;
+  }
+
+  .wordmark {
+    position: relative;
+    padding-bottom: 0.45em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  /* The seam. Trimmed on the right by one tracking unit so it ends under
+     the last letter rather than the trailing letter-space. */
+  .wordmark::after {
+    content: "";
+    position: absolute;
+    right: 0.16em;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: var(--shard-mid, var(--ink-3));
+  }
+
+  .wordmark:hover {
+    color: var(--ink);
+  }
+
+  .elsewhere {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .elsewhere a,
+  .elsewhere .mute {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--ink-3);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .elsewhere .mute {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .elsewhere a:hover,
+  .elsewhere a:focus-visible,
+  .elsewhere .mute:hover,
+  .elsewhere .mute:focus-visible {
+    color: var(--ink);
+  }
+
+  .elsewhere svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  /* One glyph at a time, chosen by the muted flag on <html>. */
+  .mute .off,
+  :global(html[data-muted]) .mute .on {
+    display: none;
+  }
+
+  :global(html[data-muted]) .mute .off {
+    display: block;
+  }
+
+  @media (max-width: 639.98px) {
+    .chrome {
+      --bar-height: 52px;
+      padding: 0 var(--space-4);
+    }
+
+    .elsewhere {
+      gap: var(--space-2);
+    }
+
+    .elsewhere a,
+    .elsewhere .mute {
+      width: 28px;
+      height: 28px;
+    }
+
+    .elsewhere svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+</style>

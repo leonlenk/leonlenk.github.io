@@ -1,0 +1,166 @@
+/* Reading styles for rendered markdown (`.prose`) and the small tag chip
+   (`.chip`) shared by post cards and post headers. Colour comes from the
+   shard aliases set on <html data-shard>, so this file has no palette of
+   its own. */
+
+/* --- Chip ------------------------------------------------------------- */
+
+.chip {
+  display: inline-block;
+  padding: 0.3em 0.6em 0.25em;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* --- Prose ------------------------------------------------------------ */
+
+.prose {
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 0.5vw + 0.95rem, 1.15rem);
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.prose p + p {
+  margin-top: 1.2em;
+}
+
+.prose h2,
+.prose h3 {
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.prose h2 {
+  font-size: var(--step-2);
+}
+
+.prose h3 {
+  font-size: var(--step-1);
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin-top: 1.6em;
+  margin-bottom: 0.5em;
+  color: #fff;
+}
+
+.prose :is(h2, h3, h4, h5, h6) + * {
+  margin-top: 0;
+}
+
+.prose a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--shard-mid);
+  text-underline-offset: 0.18em;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    text-shadow var(--dur-fast) var(--ease-out),
+    text-decoration-color var(--dur-fast) var(--ease-out);
+}
+
+.prose a:hover {
+  color: #fff;
+  text-decoration-color: var(--shard-edge-0);
+  text-shadow: 0 0 12px var(--shard-mid);
+}
+
+.prose blockquote {
+  margin: 1.4em 0;
+  padding: 0.2em 0 0.2em 1.2em;
+  border-left: 2px solid;
+  border-image: linear-gradient(var(--shard-edge-0), var(--shard-edge-1)) 1;
+  font-style: italic;
+  color: var(--ink-2);
+}
+
+.prose blockquote p + p {
+  margin-top: 0.8em;
+}
+
+.prose code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+}
+
+.prose pre {
+  margin: 1.4em 0;
+  padding: 1em 1.2em;
+  border: 1px solid color-mix(in srgb, var(--shard-mid) 45%, transparent);
+  background: rgba(5, 5, 16, 0.7);
+  overflow-x: auto;
+  line-height: 1.55;
+}
+
+.prose pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.prose hr {
+  height: 1px;
+  margin: 2.4em 0;
+  border: 0;
+  background: linear-gradient(90deg, var(--shard-edge-0), var(--shard-edge-1));
+  box-shadow: 0 0 12px var(--shard-mid);
+}
+
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.4em 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+  padding-left: 1.2em;
+}
+
+.prose li + li {
+  margin-top: 0.3em;
+}
+
+.prose table {
+  display: block;
+  max-width: 100%;
+  margin: 1.4em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.prose th,
+.prose td {
+  padding: 0.5em 0.8em;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.prose th {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.prose strong {
+  color: #fff;
+}

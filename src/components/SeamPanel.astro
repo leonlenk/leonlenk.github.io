@@ -1,0 +1,358 @@
+---
+/**
+ * A shard-cut panel: dark glass inside a luminous 1.5px gradient seam.
+ *
+ * The silhouette is a percent-space `polygon()` so it scales with the box.
+ * Stacked, absolutely positioned layers build the look, bottom to top:
+ * two pre-blurred glow layers, the gradient edge, a faint white core over
+ * it, the cursor light, the dark fill inset by the seam width, and a faint
+ * ambient lift over the fill. Each is clipped by the same polygon — except
+ * the glow wrappers, which blur an already-clipped child so the light
+ * spreads outward past the silhouette (a filter is cut off by its own
+ * element's `clip-path`, never by a child's).
+ *
+ * Light follows the pointer, not the hover: the script below sets `--lx`
+ * and `--ly` (pointer position relative to each panel) and the light and
+ * ambient layers are radial gradients centred there. The fill covers the
+ * light layer's interior, so only the ring and the chamfers catch it.
+ * Hovering a link panel merely lifts it and lightens the fill.
+ *
+ * Performance: the blurs are static, so the compositor keeps them; nothing
+ * ever animates a filter, and the glow layers never change on hover. The
+ * pointer only repaints the two gradient layers of panels within reach.
+ * There is deliberately no `drop-shadow` and no `backdrop-filter`.
+ *
+ * Pass `href` to render the whole panel as a link. Add `quiet` for a
+ * subdued variant.
+ */
+import type { HTMLTag } from "astro/types";
+
+interface Props {
+  /** `polygon(x% y%, …)` from `toClipPathPercent`. */
+  polygon: string;
+  /** Optional shallower silhouette used under 640px, where wide panels
+      turn nearly square and the same cuts would bite much deeper. */
+  polygonNarrow?: string;
+  /** Element to render; ignored when `href` is set (always an `<a>`). */
+  as?: HTMLTag;
+  href?: string;
+  class?: string;
+  style?: string;
+  quiet?: boolean;
+  [key: string]: unknown;
+}
+
+const {
+  polygon,
+  polygonNarrow,
+  as = "div",
+  href,
+  class: className,
+  style,
+  quiet = false,
+  ...rest
+} = Astro.props;
+
+const Tag = (href ? "a" : as) as HTMLTag;
+const inlineStyle = [
+  `--poly:${polygon}`,
+  polygonNarrow && `--poly-narrow:${polygonNarrow}`,
+  style,
+]
+  .filter(Boolean)
+  .join(";");
+---
+
+<Tag
+  class:list={["seam", { quiet }, className]}
+  href={href}
+  style={inlineStyle}
+  {...rest}
+>
+  <span class="seam-glow wide" aria-hidden="true">
+    <span class="seam-glow-shape"></span>
+  </span>
+  <span class="seam-glow" aria-hidden="true">
+    <span class="seam-glow-shape"></span>
+  </span>
+  <span class="seam-edge" aria-hidden="true"></span>
+  <span class="seam-core" aria-hidden="true"></span>
+  <span class="seam-light" aria-hidden="true"></span>
+  <span class="seam-fill" aria-hidden="true"></span>
+  <span class="seam-ambient" aria-hidden="true"></span>
+  <div class="seam-content">
+    <slot />
+  </div>
+</Tag>
+
+<script>
+  /**
+   * Cursor light. One module for the whole page (Astro hoists it once no
+   * matter how many panels render). On every pointer move — coalesced to
+   * one update per animation frame — each panel within reach gets `--lx`
+   * and `--ly` set to the pointer position relative to its own box; panels
+   * out of reach or off screen are reset once and then left alone. Rects
+   * are cached and only re-measured after a scroll or resize, never per
+   * move. Coarse pointers (touch) get nothing: there is no cursor to light.
+   */
+  const REACH = 600;
+  const OFF = "-999px";
+
+  interface Entry {
+    el: HTMLElement;
+    rect: DOMRect;
+    lit: boolean;
+  }
+
+  let entries: Entry[] = [];
+  let raf = 0;
+  let px = 0;
+  let py = 0;
+  let tracking = false;
+  let stale = true;
+
+  function unlight(e: Entry): void {
+    if (!e.lit) return;
+    e.el.style.setProperty("--lx", OFF);
+    e.el.style.setProperty("--ly", OFF);
+    e.lit = false;
+  }
+
+  function update(): void {
+    raf = 0;
+    if (stale) {
+      for (const e of entries) e.rect = e.el.getBoundingClientRect();
+      stale = false;
+    }
+    if (!tracking) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    for (const e of entries) {
+      const r = e.rect;
+      if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) {
+        unlight(e);
+        continue;
+      }
+      // Distance from the pointer to the nearest point of the box.
+      const dx = Math.max(r.left - px, 0, px - r.right);
+      const dy = Math.max(r.top - py, 0, py - r.bottom);
+      if (dx * dx + dy * dy > REACH * REACH) {
+        unlight(e);
+        continue;
+      }
+      e.el.style.setProperty("--lx", `${(px - r.left).toFixed(1)}px`);
+      e.el.style.setProperty("--ly", `${(py - r.top).toFixed(1)}px`);
+      e.lit = true;
+    }
+  }
+
+  function schedule(): void {
+    if (!raf) raf = requestAnimationFrame(update);
+  }
+
+  function onMove(ev: PointerEvent): void {
+    px = ev.clientX;
+    py = ev.clientY;
+    tracking = true;
+    schedule();
+  }
+
+  function onLeave(): void {
+    tracking = false;
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+    for (const e of entries) unlight(e);
+  }
+
+  /* `pointerleave` does not bubble; a `pointerout` with no relatedTarget is
+     the pointer leaving the window, which catches the cases it misses. */
+  function onOut(ev: PointerEvent): void {
+    if (ev.relatedTarget === null) onLeave();
+  }
+
+  function onLayout(): void {
+    stale = true;
+    schedule();
+  }
+
+  const passive = { passive: true } as const;
+
+  function stop(): void {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerleave", onLeave);
+    document.removeEventListener("pointerout", onOut);
+    window.removeEventListener("scroll", onLayout);
+    window.removeEventListener("resize", onLayout);
+    onLeave();
+    entries = [];
+  }
+
+  function start(): void {
+    stop();
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    entries = Array.from(
+      document.querySelectorAll<HTMLElement>(".seam"),
+      (el) => ({ el, rect: el.getBoundingClientRect(), lit: false }),
+    );
+    if (entries.length === 0) return;
+    stale = false;
+    document.addEventListener("pointermove", onMove, passive);
+    document.addEventListener("pointerleave", onLeave, passive);
+    document.addEventListener("pointerout", onOut, passive);
+    window.addEventListener("scroll", onLayout, passive);
+    window.addEventListener("resize", onLayout, passive);
+  }
+
+  document.addEventListener("astro:page-load", start);
+  document.addEventListener("astro:before-swap", stop);
+</script>
+
+<style>
+  .seam {
+    --seam-0: var(--shard-edge-0);
+    --seam-1: var(--shard-edge-1);
+    --seam-mid: var(--shard-mid);
+    /* The active silhouette; the inline --poly/--poly-narrow feed it. */
+    --shape: var(--poly);
+    position: relative;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 180ms var(--ease-out);
+  }
+
+  .seam-glow,
+  .seam-edge,
+  .seam-core,
+  .seam-light,
+  .seam-fill,
+  .seam-ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* --- glow ------------------------------------------------------------ */
+
+  /* Not clipped itself: the blur must be free to spill past the polygon.
+     A blurred shape carries only half its colour at the silhouette, so the
+     rest opacities sit high to match the light the old drop-shadows gave. */
+  .seam-glow {
+    filter: blur(10px);
+    opacity: 0.55;
+    will-change: opacity;
+  }
+
+  .seam-glow.wide {
+    filter: blur(28px);
+    opacity: 0.1;
+  }
+
+  .seam-glow-shape {
+    position: absolute;
+    inset: 0;
+    clip-path: var(--shape);
+    background: linear-gradient(105deg, var(--seam-0), var(--seam-1));
+  }
+
+  /* --- seam, light and fill -------------------------------------------- */
+
+  .seam-edge,
+  .seam-core,
+  .seam-light,
+  .seam-fill,
+  .seam-ambient {
+    clip-path: var(--shape);
+  }
+
+  .seam-edge {
+    background: linear-gradient(105deg, var(--seam-0), var(--seam-1));
+  }
+
+  /* Hot white core over the gradient; the fill covers all but the ring. */
+  .seam-core {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  /* Cursor light on the ring: sits under the fill, so only the 1.5px seam
+     and the chamfered edge show it. Off screen until the script lights it. */
+  .seam-light {
+    background: radial-gradient(
+      480px circle at var(--lx, -999px) var(--ly, -999px),
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0.22) 40%,
+      transparent 70%
+    );
+  }
+
+  .seam-fill {
+    inset: 1.5px;
+    background-image: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05),
+      transparent 45%,
+      rgba(0, 0, 0, 0.25)
+    );
+    background-color: rgba(5, 5, 16, 0.86);
+    transition: background-color 180ms var(--ease-out);
+  }
+
+  /* Faint lift of the glass itself around the cursor, over the fill. */
+  .seam-ambient {
+    background: radial-gradient(
+      480px circle at var(--lx, -999px) var(--ly, -999px),
+      rgba(255, 255, 255, 0.04),
+      transparent 60%
+    );
+  }
+
+  .seam-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* --- link state: a quiet lift, no extra glow ------------------------- */
+
+  a.seam:hover,
+  a.seam:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  a.seam:hover .seam-fill,
+  a.seam:focus-visible .seam-fill {
+    background-color: rgba(8, 8, 22, 0.8);
+  }
+
+  /* --- quiet variant --------------------------------------------------- */
+
+  .seam.quiet .seam-glow {
+    opacity: 0.275;
+  }
+
+  .seam.quiet .seam-glow.wide {
+    opacity: 0.05;
+  }
+
+  .seam.quiet .seam-edge {
+    opacity: 0.5;
+  }
+
+  .seam.quiet .seam-core {
+    opacity: 0.4;
+  }
+
+  @media (max-width: 639.98px) {
+    .seam {
+      --shape: var(--poly-narrow, var(--poly));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    a.seam:hover,
+    a.seam:focus-visible {
+      transform: none;
+    }
+  }
+</style>

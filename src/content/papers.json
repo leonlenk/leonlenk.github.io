@@ -1,0 +1,59 @@
+[
+  {
+    "id": "wavelength-multiplexed-diffractive-storage",
+    "type": "journal",
+    "year": 2026,
+    "title": "Wavelength-multiplexed diffractive optical information storage and image projection",
+    "authors": [
+      "Che-Yung Shen",
+      "Yuhang Li",
+      "Cagatay Isil",
+      "Jingxi Li",
+      "Leon Lenk",
+      "Tianyi Gan",
+      "Guangdong Ma",
+      "Fazil Onuralp Ardic",
+      "Mona Jarrahi",
+      "Aydogan Ozcan"
+    ],
+    "venue": "Advanced Photonics, 8(4), 046011",
+    "url": "https://www.spiedigitallibrary.org/journals/advanced-photonics/volume-8/issue-04/046011/Wavelength-multiplexed-diffractive-optical-information-storage-and-image-projection/10.1117/1.AP.8.4.046011.full"
+  },
+  {
+    "id": "her2-scoring-lensfree-holography",
+    "type": "journal",
+    "year": 2026,
+    "title": "Automated HER2 Scoring with Uncertainty Quantification Using Lensfree Holography and Deep Learning",
+    "authors": [
+      "Che-Yung Shen",
+      "Xilin Yang",
+      "Yuzhu Li",
+      "Leon Lenk",
+      "Zixiang Ji",
+      "Aydogan Ozcan"
+    ],
+    "venue": "BME Frontiers, 7, 0278",
+    "url": "https://spj.science.org/doi/10.34133/bmef.0278"
+  },
+  {
+    "id": "deep-learning-steganographic-detection",
+    "type": "conference",
+    "year": 2024,
+    "title": "Deep Learning for Steganographic Image Detection",
+    "authors": [
+      "Leon Lenk",
+      "Asher Christian",
+      "Savannah Alanis",
+      "Renuka Bhusari",
+      "Zachary DeSoto",
+      "Daniel Guo",
+      "Iryna Iziumska",
+      "Jishan Kharbanda",
+      "Jonathan Pai",
+      "William Shih",
+      "Cathleen Qiao"
+    ],
+    "venue": "2024 IEEE MIT Undergraduate Research Technology Conference (URTC)",
+    "url": "https://ieeexplore.ieee.org/abstract/document/10937610/"
+  }
+]
