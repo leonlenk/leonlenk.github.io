@@ -1,4 +1,3 @@
-// astro.config.mjs
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 
@@ -7,11 +6,13 @@ export default defineConfig({
   site: "https://www.leonlenk.com",
   integrations: [sitemap()],
   build: {
+    // Non-default asset dir so GitHub Pages never treats it as a Jekyll
+    // underscore path.
     assets: "assets",
   },
   vite: {
     build: {
-      minify: 'terser',
+      minify: "terser",
       terserOptions: {
         compress: {
           drop_console: true,
@@ -20,5 +21,4 @@ export default defineConfig({
       },
     },
   },
-  output: 'static',
 });
