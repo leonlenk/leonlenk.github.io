@@ -83,3 +83,8 @@ better-established alternative.
   against ESLint 10. Expected — not something to "fix".
 - `@astrojs/markdown-remark` is an explicit dependency because Astro 7 changed
   the default markdown processor; it keeps remark/rehype plugins available.
+- **`zod` is a direct dependency on purpose**, kept in step with the range Astro
+  itself depends on (`^4.5.4`) so pnpm dedupes to one instance. Schemas import
+  `z` from `"zod"`, not from `"astro:content"` — that re-export is deprecated in
+  Astro 7. Two different resolved zod copies would cause spurious schema type
+  errors, so if you bump zod, check `pnpm why zod` still shows a single version.

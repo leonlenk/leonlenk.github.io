@@ -1,5 +1,9 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
+// Imported straight from zod, not re-exported from "astro:content" — that
+// re-export is deprecated as of Astro 7. Astro resolves zod/v4 internally,
+// which is the same module instance as this root import.
+import { z } from "zod";
 
 // Modern (non-legacy) content collections. Consume with:
 //   const posts = await getCollection("blog");
