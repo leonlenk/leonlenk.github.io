@@ -13,6 +13,8 @@
 
 import {
   anisotropy,
+  centroid,
+  clipLine,
   hashString,
   insetPolygon,
   jitteredGridSites,
@@ -334,31 +336,39 @@ export function layoutField(
 
 /* ---------- ghost text ---------- */
 
-/** Ghosts: faint decorative labels on the largest fillers (see
+/** Ghosts: faint decorative labels on a dispersed pool of fillers (see
  * src/data/ghosts.ts). A filler qualifies when it is at least this wide and
  * its area is at least GHOST_AREA_FACTOR × the median labelled-cell area;
  * the widest, largest ones may carry a phrase instead of a word. */
-export const GHOST_MAX_WIDE = 5;
-export const GHOST_MAX_NARROW = 2;
-export const GHOST_MIN_WIDTH = 96;
-export const GHOST_AREA_FACTOR = 0.55 * 0.25;
+// These cap eligible hosts; the renderer only activates a few at a time.
+export const GHOST_MAX_WIDE = 10;
+export const GHOST_MAX_NARROW = 6;
+export const GHOST_MIN_WIDTH = 58;
+export const GHOST_AREA_FACTOR = 0.06;
 export const GHOST_PHRASE_MIN_WIDTH = 180;
 export const GHOST_PHRASE_AREA_FACTOR = 1.6;
 /** Fit estimate: average glyph advance as a fraction of the font size
  * (words also carry their 0.22em tracking), against this share of the
  * cell's minimum width. Phrases may wrap onto this many balanced lines. */
-export const GHOST_CHAR_ADVANCE = 0.62;
+export const GHOST_CHAR_ADVANCE = 0.8;
 export const GHOST_WORD_TRACKING = 0.22;
 export const GHOST_FIT = 0.8;
 export const GHOST_PHRASE_LINES = 2;
+export const GHOST_EDGE_PADDING = 10;
 
 export interface GhostAssignment {
   /** Index into `FieldLayout.cells`. */
   cell: number;
   text: string;
   kind: "word" | "phrase";
-  /** 0.8 × the cell's minimum width: the label's max-width, CSS px. */
+  /** Small or narrow fragments keep the unfinished typing treatment. */
+  immature: boolean;
+  /** Explicit line breaks and their fully reserved text rectangle. */
+  lines: string[];
   maxWidth: number;
+  boxHeight: number;
+  /** Center of the region where the entire padded rectangle fits. */
+  center: Pt;
 }
 
 /** The ghost font sizes ShardField.astro uses, mirrored for the fit test:
@@ -379,9 +389,50 @@ function shuffled<T>(list: readonly T[], rng: () => number): T[] {
   return out;
 }
 
+/** Raw glyph advance, excluding CSS tracking. Runtime supplies font metrics. */
+export type GhostTextMeasure = (
+  text: string,
+  kind: GhostAssignment["kind"],
+  size: number,
+) => number;
+
+/** Erode a convex cell by an axis-aligned text rectangle plus edge padding.
+ * The resulting polygon is exactly the set of safe rectangle centers. */
+export function ghostRectangleCenter(
+  poly: Poly,
+  width: number,
+  height: number,
+): Pt | null {
+  if (poly.length < 3) return null;
+  const c = centroid(poly);
+  let safe = poly.slice();
+  for (let i = 0; i < poly.length && safe.length >= 3; i++) {
+    const p = poly[i];
+    const q = poly[(i + 1) % poly.length];
+    const length = Math.hypot(q.x - p.x, q.y - p.y);
+    if (length < 1e-6) continue;
+    let nx = (q.y - p.y) / length;
+    let ny = (p.x - q.x) / length;
+    if ((c.x - p.x) * nx + (c.y - p.y) * ny < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    const inset =
+      (Math.abs(nx) * width) / 2 +
+      (Math.abs(ny) * height) / 2 +
+      GHOST_EDGE_PADDING;
+    safe = clipLine(
+      safe,
+      (point) => inset - ((point.x - p.x) * nx + (point.y - p.y) * ny),
+    );
+  }
+  return safe.length >= 3 && Math.abs(polygonArea(safe)) > 0.1
+    ? centroid(safe)
+    : null;
+}
+
 /**
- * Pick which fillers carry ghost text and what they say. `seed` should be
- * the day number so the ghosts change daily but hold still within a visit;
+ * Pick which fillers carry ghost text and what they say from a fresh seed;
  * no entry is used twice in one layout, and a label that would not fit its
  * cell is skipped (phrase → word → nothing).
  */
@@ -391,6 +442,8 @@ export function assignGhosts(
   seed: number,
   words: readonly string[],
   phrases: readonly string[],
+  measure: GhostTextMeasure = (text, _kind, size) =>
+    text.length * GHOST_CHAR_ADVANCE * size,
 ): GhostAssignment[] {
   const area = (i: number): number =>
     Math.abs(polygonArea(layout.cells[i].inner));
@@ -406,18 +459,60 @@ export function assignGhosts(
       : (labelledAreas[mid - 1] + labelledAreas[mid]) / 2;
   const threshold = GHOST_AREA_FACTOR * median;
 
-  const candidates = layout.cells
+  const height = Math.max(
+    1,
+    ...layout.cells.flatMap((c) => c.poly.map((p) => p.y)),
+  );
+  const remaining = layout.cells
     .map((c, i) => ({
       i,
       width: polygonWidth(c.inner),
       area: area(i),
       filler: c.labelled < 0,
+      center: centroid(c.inner),
     }))
     .filter(
       (c) => c.filler && c.width >= GHOST_MIN_WIDTH && c.area >= threshold,
     )
-    .sort((a, b) => b.area - a.area)
-    .slice(0, layout.wide ? GHOST_MAX_WIDE : GHOST_MAX_NARROW);
+    .sort((a, b) => b.area - a.area);
+
+  // Farthest-point ordering gives the first active slots different regions,
+  // then fills the rotation pool between them. Geometry alone selects hosts:
+  // changing the text seed must not change which cells can carry a label.
+  const candidates: typeof remaining = [];
+  const maximum = layout.wide ? GHOST_MAX_WIDE : GHOST_MAX_NARROW;
+  while (remaining.length && candidates.length < maximum) {
+    let best = 0;
+    let bestDistance = -1;
+    for (let i = 0; i < remaining.length; i++) {
+      const point = remaining[i].center;
+      const distance = candidates.length
+        ? Math.min(
+            ...candidates.map(
+              (c) =>
+                ((point.x - c.center.x) / w) ** 2 +
+                ((point.y - c.center.y) / height) ** 2,
+            ),
+          )
+        : remaining[i].area;
+      if (distance > bestDistance) {
+        bestDistance = distance;
+        best = i;
+      }
+    }
+    candidates.push(...remaining.splice(best, 1));
+  }
+
+  // Formed goals belong to the larger filler crystals, including long,
+  // narrow ones that cannot carry a phrase. Typography does not set maturity.
+  const broadEnough = candidates
+    .filter((candidate) => candidate.width >= 90)
+    .sort((a, b) => b.area - a.area);
+  const matureCells = new Set(
+    broadEnough
+      .slice(0, Math.ceil(broadEnough.length / 3))
+      .map((candidate) => candidate.i),
+  );
 
   const rng = mulberry32(seed);
   const wordPool = shuffled(words, rng);
@@ -425,39 +520,92 @@ export function assignGhosts(
   const usedWords = new Set<number>();
   const usedPhrases = new Set<number>();
   const sizes = ghostFontSizes(w);
-  const wordAdvance = (GHOST_CHAR_ADVANCE + GHOST_WORD_TRACKING) * sizes.word;
-  const phraseAdvance = GHOST_CHAR_ADVANCE * sizes.phrase;
+  const textWidth = (text: string, kind: GhostAssignment["kind"]): number =>
+    Math.ceil(
+      measure(kind === "word" ? text.toUpperCase() : text, kind, sizes[kind]) +
+        (kind === "word" ? text.length * GHOST_WORD_TRACKING * sizes.word : 0) +
+        2,
+    );
 
   const out: GhostAssignment[] = [];
   for (const c of candidates) {
-    const limit = GHOST_FIT * c.width;
-    let text: string | null = null;
-    let kind: GhostAssignment["kind"] = "word";
+    // Sharpened tips can extend beyond the viewport. Such space cannot host text.
+    let visible = layout.cells[c.i].inner;
+    visible = clipLine(visible, (p) => -p.x);
+    visible = clipLine(visible, (p) => p.x - w);
+    visible = clipLine(visible, (p) => -p.y);
+    visible = clipLine(visible, (p) => p.y - height);
+    const fit = (
+      text: string,
+      kind: GhostAssignment["kind"],
+    ): GhostAssignment | null => {
+      // Unformed goals sometimes sound like a question. Include its glyph
+      // before measuring so punctuation gets the same full edge clearance.
+      const question =
+        !matureCells.has(c.i) &&
+        mulberry32(seed ^ hashString(text) ^ c.i)() < 0.3;
+      const displayText = question ? `${text}?` : text;
+      const variants = [[displayText]];
+      if (kind === "phrase") {
+        const words = displayText.split(" ");
+        for (let cut = 1; cut < words.length; cut++)
+          variants.push([
+            words.slice(0, cut).join(" "),
+            words.slice(cut).join(" "),
+          ]);
+        // Prefer balanced two-line phrases when the full line is too wide.
+        variants.sort(
+          (a, b) =>
+            Math.max(...a.map((line) => textWidth(line, kind))) -
+            Math.max(...b.map((line) => textWidth(line, kind))),
+        );
+      }
+      for (const lines of variants) {
+        const maxWidth = Math.max(
+          ...lines.map((line) => textWidth(line, kind)),
+        );
+        const boxHeight =
+          sizes[kind] * (kind === "word" ? 1.2 : 1.3) * lines.length;
+        const center = ghostRectangleCenter(visible, maxWidth, boxHeight);
+        if (center)
+          return {
+            cell: c.i,
+            text,
+            kind,
+            immature: !matureCells.has(c.i),
+            lines,
+            maxWidth,
+            boxHeight,
+            center,
+          };
+      }
+      return null;
+    };
+    let assignment: GhostAssignment | null = null;
     if (
       c.width >= GHOST_PHRASE_MIN_WIDTH &&
       c.area >= GHOST_PHRASE_AREA_FACTOR * threshold
     ) {
-      const k = phrasePool.findIndex(
-        (p, idx) =>
-          !usedPhrases.has(idx) &&
-          p.length * phraseAdvance <= limit * GHOST_PHRASE_LINES,
-      );
-      if (k >= 0) {
-        usedPhrases.add(k);
-        text = phrasePool[k];
-        kind = "phrase";
+      for (let i = 0; i < phrasePool.length; i++) {
+        if (usedPhrases.has(i)) continue;
+        assignment = fit(phrasePool[i], "phrase");
+        if (assignment) {
+          usedPhrases.add(i);
+          break;
+        }
       }
     }
-    if (!text) {
-      const k = wordPool.findIndex(
-        (wd, idx) => !usedWords.has(idx) && wd.length * wordAdvance <= limit,
-      );
-      if (k >= 0) {
-        usedWords.add(k);
-        text = wordPool[k];
+    if (!assignment) {
+      for (let i = 0; i < wordPool.length; i++) {
+        if (usedWords.has(i)) continue;
+        assignment = fit(wordPool[i], "word");
+        if (assignment) {
+          usedWords.add(i);
+          break;
+        }
       }
     }
-    if (text) out.push({ cell: c.i, text, kind, maxWidth: limit });
+    if (assignment) out.push(assignment);
   }
   return out;
 }

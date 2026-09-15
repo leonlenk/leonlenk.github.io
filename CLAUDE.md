@@ -1,7 +1,8 @@
 # leonlenk.github.io
 
 Personal site. **Astro 7** (static output) → GitHub Pages via
-`.github/workflows/deploy.yaml` on every push to `main`. Package manager is
+`.github/workflows/deploy.yaml` after checks, tests, and a build on `main`.
+Pull requests run the same checks without deploying. Package manager is
 **pnpm**. Requires Node ≥22.12.
 
 ## Commands
@@ -13,6 +14,7 @@ Personal site. **Astro 7** (static output) → GitHub Pages via
 | `pnpm preview` | Serve the built `dist/` locally             |
 | `pnpm sync`    | Regenerate `.astro/` content types          |
 | `pnpm check`   | `astro check` — type errors in `.astro`     |
+| `pnpm test`    | Node regression tests for browser lifecycle |
 | `pnpm lint`    | ESLint (flat config, `eslint-plugin-astro`) |
 | `pnpm format`  | Prettier over the repo                      |
 
@@ -47,13 +49,20 @@ src/
   lib/posts.ts          slug/href/date helpers shared by the routes
   lib/field-layout.ts   home field layout: sites, filler shards, power cells, tunables
   scripts/nebula.ts     shared nebula bitmap renderer (singleton + subscribe)
-  scripts/shard-field.ts  home page: layered painter, intro, cursor light, expand
+  scripts/shard-field.ts  home page: layered painter, prism interiors, intro,
+                          cursor light, expand
+  scripts/field-ghosts.ts    ghost fitting, typing, rotation and lifecycle
+  scripts/field-particles.ts intro particles and glow sprite cache
+  scripts/field-growth.ts   seeded crystal growth geometry
+  scripts/field-types.ts    shared renderer data contracts
   scripts/chime.ts      Web Audio crystal chimes: one tone per shard on a rising
                         C-major-ninth arpeggio, in spectrum order (teal low → ember high)
   components/
     Nebula.astro        fixed background canvas, transition:persist
     Chrome.astro        wordmark + GitHub/Scholar/LinkedIn/email glyphs
-    ShardField.astro    home page DOM (field canvas, light canvas, one <a> per shard)
+    ShardField.astro    home page DOM (field canvas, light canvas, one <a> per shard,
+                        the epigraph at the foot)
+    ShardInterior.astro fixed CSS/SVG crystal faces on section and article pages
     SeamPanel.astro     the dark-glass-with-glowing-seam building block
     ShardCard.astro     a post card (SeamPanel + variant colour)
     PaperCard.astro     a paper entry
@@ -63,7 +72,8 @@ src/
   pages/[shard]/[post].astro  reading view
   styles/global.css     reset, @font-face, design tokens, base type
   styles/prose.css      reading typography, .chip
-public/fonts/           Syne and Lora variable TTFs (Open Sans was removed)
+public/fonts/           Syne and Lora variable WOFF2s for browsers; original TTFs
+                        retained for social-image generation
 ```
 
 Pages should not hand-roll `<html>`/`<head>`; pass `title`/`description`
@@ -109,7 +119,8 @@ The canvas equivalent lives in `shard-field.ts` (`paintInterior`, `paintBleed`,
 specular, inward bleed inside the clip, then the seam stroke with `shadowBlur`
 (multiplied by DPR — canvas shadows ignore the CTM). Blur is paid once per
 layout into offscreen layers; per-frame paths (intro, expand, cursor light)
-never use `shadowBlur`. Idle pages run zero rAF loops — keep it that way.
+never use `shadowBlur`. Settled pages run no continuous rAF loops. Ghost typing uses bounded timers;
+occasional gleams and mineral breathing use CSS animations.
 
 Unlabeled "filler" shards are visual only: power-diagram cells with small
 weights, tuned in `lib/field-layout.ts`. They never appear in `shards.ts`.
@@ -148,8 +159,9 @@ better-established alternative.
 - `astro dev` and `astro preview` run as daemons in Astro 7 and only one
   preview may run at a time: stop them with `pnpm astro dev stop` /
   `pnpm astro preview stop`, not `pkill`.
-- Chimes: browsers block audio until the first click or keypress, so hover
-  chimes are silent on a fresh load until the visitor interacts once. The
+- Chimes play only on click (a shard on the home field, a card on a shard
+  page), never on hover or focus. Browsers block audio until the first click
+  or keypress, so the intro's cluster chime is silent on a fresh load. The
   mute toggle in the top bar persists in `localStorage` (`shards:muted`).
 
 ## Version pins — do not bump blindly
@@ -162,3 +174,34 @@ better-established alternative.
   against ESLint 10. Expected — not something to "fix".
 - `@astrojs/markdown-remark` is an explicit dependency because Astro 7 changed
   the default markdown processor; it keeps remark/rehype plugins available.
+
+## Sharing and fallback navigation
+
+- `src/pages/rss.xml.ts` generates `/rss.xml` from all published posts, newest
+  first. Drafts are excluded. The chrome links to it and Base advertises it.
+- `src/pages/social/[...slug].png.ts` generates 1200×630 PNG previews for home,
+  sections, and published posts. `src/lib/social-image.ts` uses seeded Voronoi
+  geometry, registry palettes, checked-in fonts, and the existing Sharp package.
+  No image service or manually maintained preview assets are needed.
+- `src/lib/sharing.ts` shares image paths, description defaults, and XML escaping.
+  Base emits Open Graph and Twitter metadata for every page.
+- Homepage links render as a readable list until `data-field-enhanced` is set
+  after successful initialization. A small inline head gate hides the fallback
+  and the entire scene during startup to prevent a flash. The renderer clears
+  the gate after the first intro frame, or after all settled layers are ready
+  on return visits. Initialization failures clear it immediately; a four-second
+  timeout reveals the fallback if the module never loads.
+  Without JavaScript the fallback is visible immediately. Keep this fail-safe
+  when changing startup behavior.
+
+## Font assets
+
+Browser font faces and preloads use the checked-in WOFF2 files. Keep their
+TTF originals: `social-image.ts` loads them directly through Sharp/Pango.
+To regenerate WOFF2s with FontTools and Brotli available in your tooling environment:
+
+```sh
+python -m fontTools.ttLib.woff2 compress public/fonts/Syne/Syne-VariableFont_wght.ttf
+python -m fontTools.ttLib.woff2 compress public/fonts/Lora/Lora-VariableFont_wght.ttf
+python -m fontTools.ttLib.woff2 compress public/fonts/Lora/Lora-Italic-VariableFont_wght.ttf
+```

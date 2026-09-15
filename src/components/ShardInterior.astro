@@ -1,0 +1,208 @@
+---
+import { sectionFacets } from "../lib/section-facets";
+import type { ShardId } from "../data/shards";
+import MineralTexture from "./MineralTexture.astro";
+import { hashString, mulberry32 } from "../lib/geometry";
+
+interface Props {
+  article: string;
+  minerals?: boolean;
+  section?: ShardId;
+}
+
+// Each article occupies a different face of its parent crystal. Keep the
+// junctions at the perimeter so the central reading face is uninterrupted.
+const seed = hashString(Astro.props.article);
+const { minerals = true, section } = Astro.props;
+const composition = section ? sectionFacets[section] : undefined;
+const rng = mulberry32(seed);
+const left = { x: 10 + rng() * 6, y: 24 + rng() * 18 };
+const right = { x: 85 + rng() * 5, y: 55 + rng() * 20 };
+const top = 22 + rng() * 12;
+const bottom = 66 + rng() * 13;
+const lines = (lx: number, rx: number) => [
+  `M ${top} -5 L ${lx} ${left.y} L -5 ${left.y + 16}`,
+  `M ${lx} ${left.y} L ${lx - 9} 105`,
+  `M ${right.x + 9} -5 L ${rx} ${right.y} L 105 ${right.y - 19}`,
+  `M ${rx} ${right.y} L ${bottom} 105`,
+];
+---
+
+<div
+  class="interior"
+  aria-hidden="true"
+  style={
+    composition
+      ? `--interior-light:${composition.light};--interior-angle:${composition.shadeAngle};--interior-plane:${composition.plane}`
+      : undefined
+  }
+>
+  {composition && <div class="interior-plane"></div>}
+  {minerals && (
+    <svg
+      class="mineral-field facets-wide"
+      viewBox="0 0 1440 900"
+      preserveAspectRatio="none"
+      focusable="false"
+    >
+      <MineralTexture
+        seed={seed}
+        polygon={[
+          { x: 0, y: 0 },
+          { x: top * 14.4, y: 0 },
+          { x: left.x * 14.4, y: left.y * 9 },
+          { x: 0, y: (left.y + 16) * 9 },
+        ]}
+      />
+      <MineralTexture
+        seed={seed + 1}
+        polygon={[
+          { x: 1440, y: right.y * 9 - 130 },
+          { x: right.x * 14.4, y: right.y * 9 },
+          { x: bottom * 14.4, y: 900 },
+          { x: 1440, y: 900 },
+        ]}
+      />
+    </svg>
+  )}
+  {minerals && (
+    <svg
+      class="mineral-field facets-narrow"
+      viewBox="0 0 390 844"
+      preserveAspectRatio="none"
+      focusable="false"
+    >
+      <MineralTexture
+        seed={seed + 2}
+        polygon={[
+          { x: 0, y: 180 },
+          { x: 26, y: 340 },
+          { x: 12, y: 700 },
+          { x: 0, y: 844 },
+        ]}
+      />
+      <MineralTexture
+        seed={seed + 3}
+        polygon={[
+          { x: 390, y: 480 },
+          { x: 390, y: 844 },
+          { x: 340, y: 844 },
+          { x: 377, y: 650 },
+        ]}
+      />
+    </svg>
+  )}
+  <svg
+    class="facet-lines"
+    viewBox="0 0 100 100"
+    preserveAspectRatio="none"
+    focusable="false"
+  >
+    <g class="facets-wide">
+      {(composition?.lines ?? lines(left.x, right.x)).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+    <g class="facets-narrow">
+      {(composition?.narrow ?? lines(3, 97)).map((d) => (
+        <path d={d} />
+      ))}
+    </g>
+  </svg>
+</div>
+
+<style>
+  .interior {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        var(--interior-angle, 115deg),
+        rgba(255, 255, 255, 0.025),
+        transparent 32%
+      ),
+      radial-gradient(
+        ellipse at var(--interior-light, 0% 30%),
+        color-mix(in srgb, var(--shard-edge-0) 7%, transparent),
+        transparent 52%
+      ),
+      radial-gradient(
+        ellipse at 100% 80%,
+        color-mix(in srgb, var(--shard-edge-1) 4%, transparent),
+        transparent 48%
+      ),
+      #040408;
+  }
+
+  .interior-plane {
+    position: absolute;
+    inset: 0;
+    clip-path: var(--interior-plane);
+    background: linear-gradient(
+      var(--interior-angle),
+      rgba(255, 255, 255, 0.022),
+      transparent 60%
+    );
+  }
+
+  svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Light is confined to the edges; the broad central face is quiet. */
+    mask-image: linear-gradient(
+      90deg,
+      #000,
+      rgba(0, 0, 0, 0.45) 20%,
+      transparent 38%,
+      transparent 62%,
+      rgba(0, 0, 0, 0.45) 80%,
+      #000
+    );
+  }
+
+  .facet-lines path {
+    fill: none;
+    stroke: color-mix(
+      in srgb,
+      var(--article-accent, var(--shard-mid)) 32%,
+      #777583
+    );
+    stroke-opacity: 0.36;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .facet-lines path:nth-child(n + 3) {
+    stroke: color-mix(in srgb, var(--shard-edge-1) 32%, #777583);
+  }
+
+  .facets-narrow {
+    display: none;
+  }
+
+  .mineral-field {
+    position: absolute;
+    inset: 0;
+  }
+
+  @media (max-width: 639.98px) {
+    .facets-wide {
+      display: none;
+    }
+    .facets-narrow {
+      display: initial;
+    }
+    svg {
+      mask-image: linear-gradient(
+        90deg,
+        #000,
+        transparent 12%,
+        transparent 88%,
+        #000
+      );
+    }
+  }
+</style>

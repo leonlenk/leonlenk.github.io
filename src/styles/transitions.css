@@ -1,0 +1,84 @@
+/* A single continuous crossfade preserves the page's composition. Tiny
+ * opposing scale changes suggest entering a face without stretching text
+ * or revealing the gaps between separately animated snapshot layers. */
+html[data-crystal-navigation]::view-transition-old(root),
+html[data-crystal-navigation]::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 0.68, 0, 1);
+  animation-fill-mode: both;
+}
+
+html[data-crystal-navigation]::view-transition-old(root) {
+  animation-name: crystal-page-out;
+}
+html[data-crystal-navigation]::view-transition-new(root) {
+  animation-name: crystal-page-in;
+}
+
+html[data-crystal-navigation="leave"]::view-transition-old(root) {
+  animation-name: crystal-page-out-back;
+}
+html[data-crystal-navigation="leave"]::view-transition-new(root) {
+  animation-name: crystal-page-in-back;
+}
+
+html[data-crystal-navigation]::view-transition-group(crystal-chrome) {
+  z-index: 4;
+  animation: none;
+}
+html[data-crystal-navigation]::view-transition-old(crystal-chrome) {
+  display: none;
+}
+html[data-crystal-navigation]::view-transition-new(crystal-chrome) {
+  animation: none;
+}
+
+@keyframes crystal-page-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+}
+@keyframes crystal-page-in {
+  from {
+    opacity: 0;
+    transform: scale(0.988);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes crystal-page-out-back {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.988);
+  }
+}
+@keyframes crystal-page-in-back {
+  from {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html::view-transition-old(root),
+  html::view-transition-new(root),
+  html::view-transition-group(crystal-chrome) {
+    animation: none !important;
+  }
+}

@@ -1,6 +1,8 @@
 ---
 import { getCollection, render } from "astro:content";
+import { postDescription } from "../../lib/sharing";
 import Base from "../../layouts/Base.astro";
+import ReadingTools from "../../components/ReadingTools.astro";
 import { getShard } from "../../data/shards";
 import { formatDate, isoDate, postSlug, type Post } from "../../lib/posts";
 import "../../styles/prose.css";
@@ -18,19 +20,25 @@ interface Props {
 }
 
 const { post } = Astro.props;
+if (post.id === "self/about") return Astro.redirect("/self/", 301);
 const shard = getShard(post.data.shard);
-const { title, description, pubDate, updatedDate, tags } = post.data;
+const { title, pubDate, updatedDate, tags } = post.data;
 const { Content } = await render(post);
 ---
 
-<Base title={title} description={description} shard={post.data.shard}>
+<Base
+  title={title}
+  description={postDescription(post)}
+  shard={post.data.shard}
+  article={post.id}
+>
   <main class="post-page" data-shard={shard.id}>
     <article class="post">
       <header class="post-header">
         <a href={`/${shard.id}/`} class="label back" rel="up">
           ← {shard.label}
         </a>
-        <h1>{title}</h1>
+        <h1 data-crystal-title>{title}</h1>
         <div class="label meta">
           <time datetime={isoDate(pubDate)}>{formatDate(pubDate)}</time>
           {updatedDate && (
@@ -73,15 +81,18 @@ const { Content } = await render(post);
       </footer>
     </article>
   </main>
+  <ReadingTools />
 </Base>
 
 <style>
   /* Top padding = the fixed chrome bar (56px, 52px on phones) plus air. */
   .post-page {
-    padding: calc(56px + var(--space-6)) var(--gutter) var(--space-9);
+    padding: calc(56px + clamp(48px, 7vh, 88px)) var(--gutter) var(--space-9);
+    --shard-mid: var(--article-accent);
   }
 
   .post {
+    position: relative;
     max-width: 68ch;
     margin-inline: auto;
   }
@@ -107,7 +118,7 @@ const { Content } = await render(post);
   }
 
   .post-header h1 {
-    margin-top: var(--space-2);
+    margin-top: var(--space-5);
     font-family: var(--font-body);
     font-weight: 600;
     font-size: clamp(1.9rem, 4.5vw, 3rem);
@@ -122,7 +133,7 @@ const { Content } = await render(post);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2) var(--space-3);
-    color: var(--ink-3);
+    color: var(--ink-muted);
   }
 
   .updated {
@@ -146,15 +157,15 @@ const { Content } = await render(post);
   /* --- seam rule ------------------------------------------------------- */
 
   .seam-rule {
+    width: var(--article-rule);
     height: 1px;
-    margin: var(--space-6) 0;
+    margin: var(--space-7) 0;
     border: 0;
     background: linear-gradient(
       90deg,
-      var(--shard-edge-0),
-      var(--shard-edge-1)
+      var(--article-accent),
+      color-mix(in srgb, var(--article-accent) 20%, transparent)
     );
-    box-shadow: 0 0 12px var(--shard-mid);
   }
 
   /* --- footer ---------------------------------------------------------- */
@@ -180,7 +191,7 @@ const { Content } = await render(post);
 
   @media (max-width: 639.98px) {
     .post-page {
-      padding-top: calc(52px + var(--space-5));
+      padding-top: calc(52px + var(--space-7));
     }
   }
 </style>

@@ -9,7 +9,7 @@
 
 @font-face {
   font-family: "Syne";
-  src: url("/fonts/Syne/Syne-VariableFont_wght.ttf") format("truetype");
+  src: url("/fonts/Syne/Syne-VariableFont_wght.woff2") format("woff2");
   font-weight: 400 800;
   font-style: normal;
   font-display: swap;
@@ -17,7 +17,7 @@
 
 @font-face {
   font-family: "Lora";
-  src: url("/fonts/Lora/Lora-VariableFont_wght.ttf") format("truetype");
+  src: url("/fonts/Lora/Lora-VariableFont_wght.woff2") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
@@ -25,7 +25,7 @@
 
 @font-face {
   font-family: "Lora";
-  src: url("/fonts/Lora/Lora-Italic-VariableFont_wght.ttf") format("truetype");
+  src: url("/fonts/Lora/Lora-Italic-VariableFont_wght.woff2") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: swap;
@@ -40,16 +40,17 @@
   color-scheme: dark;
 
   /* Nebula */
-  --nebula-base: #050510;
-  --nebula-cloud-1: #141238;
-  --nebula-cloud-2: #0a2230;
-  --nebula-cloud-3: #2a1030;
+  --nebula-base: #030308;
+  --nebula-cloud-1: #100e2a;
+  --nebula-cloud-2: #071a24;
+  --nebula-cloud-3: #200b24;
   --nebula-vignette: #000000;
 
   /* Neutrals */
   --ink: #e6e3ef;
   --ink-2: #a19cb8;
-  --ink-3: #66627e;
+  --ink-3: #66627e; /* Decorative ghost text and faint accents only. */
+  --ink-muted: #aaa5bf; /* Readable dates, labels, and other secondary information. */
   --line: rgba(170, 160, 210, 0.14);
 
   /* Type */

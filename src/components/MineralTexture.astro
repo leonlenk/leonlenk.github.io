@@ -1,0 +1,90 @@
+---
+import { generateInclusions } from "../lib/crystal-inclusions";
+import { mulberry32, type Poly } from "../lib/geometry";
+
+interface Props {
+  polygon: Poly;
+  seed: number;
+}
+const { polygon, seed } = Astro.props;
+const minerals = generateInclusions(polygon, seed, { density: 0.7 });
+const timing = mulberry32(seed ^ 0x51e7a9);
+---
+
+<g class="minerals">
+  {minerals.flecks.map((fleck) => {
+    const phase = timing();
+    const cycle = 7 + timing() * 6;
+    const brightness = Math.min(1, fleck.opacity * 1.1);
+    const points = fleck.poly.map((p) => `${p.x},${p.y}`).join(" ");
+    return (
+      <g
+        class:list={["grain-pocket", { "has-glow": fleck.glow > 0 }]}
+        style={`--grain-cycle:${cycle}s;--grain-delay:${-phase * cycle}s`}
+      >
+        {fleck.glow > 0 && (
+          <polygon
+            class="mineral-halo"
+            points={points}
+            opacity={fleck.glow * 0.6}
+          />
+        )}
+        <polygon
+          class="mineral-grain"
+          points={points}
+          opacity={brightness}
+          style={`--grain-opacity:${brightness}`}
+          data-grain-angle={Math.atan2(
+            fleck.poly[1].y - fleck.poly[0].y,
+            fleck.poly[1].x - fleck.poly[0].x,
+          )}
+          data-grain-phase={phase}
+        />
+      </g>
+    );
+  })}
+</g>
+
+<style>
+  polygon {
+    fill: color-mix(in srgb, var(--article-accent) 30%, #eee8f5);
+    stroke: none;
+  }
+
+  .grain-pocket {
+    animation: mineral-breathe var(--grain-cycle) ease-in-out var(--grain-delay)
+      infinite;
+  }
+
+  .mineral-halo {
+    /* A static blur; only the small enclosing group's opacity breathes. */
+    filter: blur(2.4px);
+  }
+
+  .mineral-grain {
+    opacity: calc(var(--grain-opacity) + var(--grain-glint, 0) * 0.3);
+    filter: brightness(calc(1 + var(--grain-glint, 0) * 2.2));
+    transition:
+      opacity 100ms ease-out,
+      filter 100ms ease-out;
+  }
+
+  @keyframes mineral-breathe {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    47% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mineral-grain {
+      transition: none;
+    }
+    .grain-pocket {
+      animation: none;
+    }
+  }
+</style>

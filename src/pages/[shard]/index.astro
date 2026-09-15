@@ -1,13 +1,16 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, getEntry, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
+import ReadingTools from "../../components/ReadingTools.astro";
 import SeamPanel from "../../components/SeamPanel.astro";
 import ShardCard from "../../components/ShardCard.astro";
 import PaperCard from "../../components/PaperCard.astro";
 import { shards } from "../../data/shards";
 import { cardShape } from "../../lib/card-shapes";
 import { hashString, mulberry32, toClipPathPercent } from "../../lib/geometry";
-import { postHref } from "../../lib/posts";
+import { formatDate, isoDate, postHref } from "../../lib/posts";
+import { postDescription } from "../../lib/sharing";
+import "../../styles/prose.css";
 
 export function getStaticPaths() {
   return shards.map((shard) => ({
@@ -17,6 +20,15 @@ export function getStaticPaths() {
 }
 
 const { shard } = Astro.props;
+const selfPost =
+  shard.id === "self" ? await getEntry("posts", "self/about") : undefined;
+if (shard.id === "self" && !selfPost) {
+  throw new Error("Self requires src/content/posts/self/about.md");
+}
+const selfContent = selfPost ? await render(selfPost) : undefined;
+const SelfContent = selfContent?.Content;
+const title = selfPost?.data.title ?? shard.label;
+const description = selfPost ? postDescription(selfPost) : shard.tagline;
 
 const posts = (
   await getCollection(
@@ -37,58 +49,56 @@ const count = [
   plural(posts.length, "post"),
 ].join(" · ");
 
-// Header: shallow cuts and one slanted edge, stable per shard. Two
-// silhouettes from one seed — the phone one shallower, since the panel goes
-// from about 3:1 to under 2:1 there — each with pads for its aspect.
-const headerSeed = hashString(shard.id);
-const header = cardShape(mulberry32(headerSeed), {
-  aspect: 3,
-  depth: 0.5,
-  slant: 1,
-  wide: true,
-});
-const headerNarrow = cardShape(mulberry32(headerSeed), {
-  aspect: 1.7,
-  depth: 0.35,
-  slant: 1,
-  maxSlant: 4,
-  wide: true,
-});
-const headerPads = `--pad-x:${header.padX};--pad-y:${header.padY};--pad-x-n:${headerNarrow.padX};--pad-y-n:${headerNarrow.padY}`;
-
 const empty = cardShape(mulberry32(hashString(`${shard.id}/empty`)), {
   aspect: 3,
   depth: 0.4,
 });
 const emptyPolygon = toClipPathPercent(empty.polygon);
 
-// Syne 800 caps with 0.08em tracking measure at most 1.35em per character.
-// Narrow phones cannot fit a long one-word label at the mobile size, and a
-// single word cannot wrap, so the h1 also gets a width-derived cap (see the
-// mobile rule below). Only binds when the label would otherwise overflow.
-const h1Em = 1.35 * shard.label.length;
+// Leave room for a long section name without shrinking the shorter titles.
+const h1Em = 1.08 * title.length;
 ---
 
-<Base title={shard.label} description={shard.tagline} shard={shard.id}>
-  <main class="shard-page" data-shard={shard.id}>
-    <SeamPanel
-      as="header"
-      polygon={toClipPathPercent(header.polygon)}
-      polygonNarrow={toClipPathPercent(headerNarrow.polygon)}
-      class="shard-header"
-      style={headerPads}
-    >
-      <div class="header-body">
-        <div class="header-top">
-          <a href="/" class="label back">
-            ← Shards
-          </a>
-          <span class="label count">{count}</span>
-        </div>
-        <h1 style={`--h1-em:${h1Em}`}>{shard.label}</h1>
-        <p class="tagline">{shard.tagline}</p>
+<Base title={title} description={description} shard={shard.id}>
+  <main
+    class:list={["shard-page", { "self-page": shard.id === "self" }]}
+    data-shard={shard.id}
+  >
+    <header class="shard-header">
+      <div class="header-top">
+        <a href="/" class="label back">
+          ← Shards
+        </a>
+        {shard.id !== "self" && <span class="label count">{count}</span>}
       </div>
-    </SeamPanel>
+      <h1 style={`--h1-em:${h1Em}`}>{title}</h1>
+      <p class="tagline">{description}</p>
+      {selfPost && (
+        <div class="label meta">
+          <time datetime={isoDate(selfPost.data.pubDate)}>
+            {formatDate(selfPost.data.pubDate)}
+          </time>
+          {selfPost.data.updatedDate && (
+            <span>
+              · updated{" "}
+              <time datetime={isoDate(selfPost.data.updatedDate)}>
+                {formatDate(selfPost.data.updatedDate)}
+              </time>
+            </span>
+          )}
+          {selfPost.data.tags.length > 0 && (
+            <ul class="tags" aria-label="Tags">
+              {selfPost.data.tags.map((tag) => (
+                <li class="chip">{tag}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <svg class="header-facet" viewBox="0 0 180 24" aria-hidden="true">
+        <polyline points="0,23 138,23 178,1" />
+      </svg>
+    </header>
 
     {papers.length > 0 && (
       <section class="papers" aria-labelledby="papers-heading">
@@ -108,33 +118,40 @@ const h1Em = 1.35 * shard.label.length;
       </section>
     )}
 
-    <section class="posts" aria-labelledby="posts-heading">
-      <div class="section-head">
-        <h2 class="label" id="posts-heading">
-          Posts
-        </h2>
-        <span class="rule" aria-hidden="true"></span>
-      </div>
-      {posts.length > 0 ? (
-        <ul class="post-grid">
-          {posts.map((post, i) => (
-            <li>
-              <ShardCard post={post} index={i} href={postHref(post)} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <SeamPanel
-          polygon={emptyPolygon}
-          class="empty"
-          style={`--pad-x:${empty.padX};--pad-y:${empty.padY}`}
-          quiet
-        >
-          <p>Nothing has crystallised here yet.</p>
-        </SeamPanel>
-      )}
-    </section>
+    {SelfContent ? (
+      <article class="prose" aria-label={title}>
+        <SelfContent />
+      </article>
+    ) : (
+      <section class="posts" aria-labelledby="posts-heading">
+        <div class="section-head">
+          <h2 class="label" id="posts-heading">
+            Posts
+          </h2>
+          <span class="rule" aria-hidden="true"></span>
+        </div>
+        {posts.length > 0 ? (
+          <ul class="post-grid">
+            {posts.map((post, i) => (
+              <li>
+                <ShardCard post={post} index={i} href={postHref(post)} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <SeamPanel
+            polygon={emptyPolygon}
+            class="empty"
+            style={`--pad-x:${empty.padX};--pad-y:${empty.padY}`}
+            quiet
+          >
+            <p>Nothing has crystallised here yet.</p>
+          </SeamPanel>
+        )}
+      </section>
+    )}
   </main>
+  <ReadingTools />
 </Base>
 
 <style>
@@ -145,15 +162,26 @@ const h1Em = 1.35 * shard.label.length;
     padding: calc(56px + var(--space-6)) var(--gutter) var(--space-9);
   }
 
+  .self-page {
+    max-width: calc(68ch + 2 * var(--gutter));
+  }
+
   /* --- header ---------------------------------------------------------- */
 
   .shard-header {
+    padding-block: var(--space-4) var(--space-3);
     margin-bottom: var(--space-7);
   }
 
-  .header-body {
-    padding: max(clamp(28px, 5vw, 56px), calc(var(--pad-y) * 1%))
-      max(clamp(28px, 5vw, 56px), calc(var(--pad-x) * 1%));
+  .header-facet {
+    width: 180px;
+    height: 24px;
+    margin-top: var(--space-5);
+    overflow: visible;
+    fill: none;
+    stroke: var(--shard-edge-0);
+    stroke-width: 1;
+    opacity: 0.55;
   }
 
   .header-top {
@@ -162,7 +190,7 @@ const h1Em = 1.35 * shard.label.length;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-2) var(--space-4);
-    margin-bottom: var(--space-6);
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
   }
 
   .back {
@@ -177,7 +205,7 @@ const h1Em = 1.35 * shard.label.length;
   }
 
   .count {
-    color: var(--ink-3);
+    color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
 
@@ -189,15 +217,33 @@ const h1Em = 1.35 * shard.label.length;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #fff;
-    text-shadow: 0 0 28px var(--shard-mid);
   }
 
   .tagline {
+    max-width: 42ch;
     margin-top: var(--space-4);
     font-family: var(--font-body);
     font-style: italic;
     font-size: var(--step-1);
     color: var(--ink-2);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+    color: var(--ink-muted);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   /* --- sections -------------------------------------------------------- */
@@ -228,7 +274,7 @@ const h1Em = 1.35 * shard.label.length;
       var(--shard-edge-1),
       transparent
     );
-    box-shadow: 0 0 10px var(--shard-mid);
+    opacity: 0.5;
   }
 
   .paper-list,
@@ -259,7 +305,7 @@ const h1Em = 1.35 * shard.label.length;
     font-family: var(--font-body);
     font-style: italic;
     text-align: center;
-    color: var(--ink-3);
+    color: var(--ink-muted);
   }
 
   @media (max-width: 639.98px) {
@@ -267,30 +313,23 @@ const h1Em = 1.35 * shard.label.length;
       padding-top: calc(52px + var(--space-5));
     }
 
-    .header-body {
-      padding: max(22px, calc(var(--pad-y-n, var(--pad-y)) * 1%))
-        max(22px, calc(var(--pad-x-n, var(--pad-x)) * 1%));
+    .shard-header {
+      padding-top: var(--space-3);
     }
 
     .header-top {
-      margin-bottom: var(--space-5);
+      margin-bottom: var(--space-6);
     }
 
-    /* Available width = viewport − gutters − the header's side padding. */
+    .header-facet {
+      width: 140px;
+      height: auto;
+    }
+
     .shard-header h1 {
       font-size: min(
         clamp(2rem, 11vw, 2.6rem),
-        calc(
-          (
-              100vw - 2 * var(--gutter) - 2 *
-                max(
-                  22px,
-                  (100vw - 2 * var(--gutter)) * var(--pad-x-n, var(--pad-x)) /
-                    100
-                )
-            ) /
-            var(--h1-em)
-        )
+        calc((100vw - 2 * var(--gutter)) / var(--h1-em))
       );
     }
   }

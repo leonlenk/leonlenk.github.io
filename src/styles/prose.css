@@ -9,7 +9,7 @@
   display: inline-block;
   padding: 0.3em 0.6em 0.25em;
   border: 1px solid var(--line);
-  color: var(--ink-3);
+  color: var(--ink-muted);
   line-height: 1;
   white-space: nowrap;
 }
@@ -66,14 +66,12 @@
   text-underline-offset: 0.18em;
   transition:
     color var(--dur-fast) var(--ease-out),
-    text-shadow var(--dur-fast) var(--ease-out),
     text-decoration-color var(--dur-fast) var(--ease-out);
 }
 
 .prose a:hover {
   color: #fff;
   text-decoration-color: var(--shard-edge-0);
-  text-shadow: 0 0 12px var(--shard-mid);
 }
 
 .prose blockquote {
@@ -117,7 +115,7 @@
   margin: 2.4em 0;
   border: 0;
   background: linear-gradient(90deg, var(--shard-edge-0), var(--shard-edge-1));
-  box-shadow: 0 0 12px var(--shard-mid);
+  opacity: 0.5;
 }
 
 .prose img {
@@ -163,4 +161,53 @@
 
 .prose strong {
   color: #fff;
+}
+
+/* A quiet, centered footer for the original webring badges. */
+.prose .webring {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  padding-top: 1.75rem;
+  text-align: center;
+}
+
+.prose .webring::before {
+  content: "";
+  display: block;
+  width: 5rem;
+  height: 1px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--shard-edge-0),
+    transparent
+  );
+  opacity: 0.55;
+}
+
+.prose .webring > p {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  text-wrap: balance;
+}
+
+/* Original badges retain their native size and animation. */
+.prose .webring-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.prose .webring-links a {
+  display: inline-flex;
+  padding-block: 0.4rem;
+}
+
+.prose .webring-links img {
+  width: 88px;
+  height: 31px;
+  margin: 0;
 }

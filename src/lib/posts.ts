@@ -21,6 +21,7 @@ export function postSlug(post: Post): string {
 
 /** Canonical URL path for a post, with the trailing slash the build format uses. */
 export function postHref(post: Post): string {
+  if (post.id === "self/about") return "/self/";
   return `/${post.data.shard}/${postSlug(post)}/`;
 }
 

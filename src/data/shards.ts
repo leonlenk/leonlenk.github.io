@@ -63,7 +63,7 @@ export const shards = [
   {
     id: "self",
     label: "Self",
-    tagline: "Notes toward a person.",
+    tagline: "Being known",
     deep: ["#4a2a7e", "#6e2d6f"],
     edge: ["#986edd", "#d26cd3"],
     order: 5,

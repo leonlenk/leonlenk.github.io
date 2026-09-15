@@ -7,9 +7,9 @@
  * there it is fully transparent and lets pointer events through to the
  * shards; only the links themselves stay interactive.
  *
- * The last item in the nav is the chime mute toggle, a button styled like
+ * The last item in the nav is the sound toggle, a button styled like
  * the glyph links; its two glyphs swap on `html[data-muted]`, which the
- * chime module mirrors from the stored preference.
+ * chime module mirrors from the sound state.
  *
  * Glyphs are hand-authored single paths on a 24-unit grid, filled with
  * currentColor — no icon package.
@@ -71,12 +71,22 @@ const elsewhere: Elsewhere[] = [
         </svg>
       </a>
     ))}
+    <a
+      href="/rss.xml"
+      aria-label="RSS feed"
+      title="Subscribe via RSS"
+      data-astro-reload
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 16a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM2 9v4a9 9 0 0 1 9 9h4A13 13 0 0 0 2 9ZM2 2v4a16 16 0 0 1 16 16h4A20 20 0 0 0 2 2Z" />
+      </svg>
+    </a>
     <button
       type="button"
       class="mute"
-      aria-pressed="false"
-      aria-label="Mute chimes"
-      title="Mute chimes"
+      aria-pressed="true"
+      aria-label="Sound"
+      title="Turn sound off"
     >
       {/* Speaker with two sound waves. */}
       <svg class="on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -93,6 +103,7 @@ const elsewhere: Elsewhere[] = [
 <script>
   import {
     MUTED_CHANGE_EVENT,
+    audioAvailable,
     isMuted,
     toggleMuted,
     unlockAudio,
@@ -105,13 +116,13 @@ const elsewhere: Elsewhere[] = [
     const button = document.querySelector<HTMLButtonElement>("button.mute");
     if (!button) return;
     const muted = isMuted();
-    button.setAttribute("aria-pressed", String(muted));
-    button.setAttribute("aria-label", "Mute chimes");
-    button.title = muted ? "Unmute chimes" : "Mute chimes";
+    document.documentElement.toggleAttribute("data-muted", muted);
+    button.setAttribute("aria-pressed", String(!muted));
+    button.setAttribute("aria-label", "Sound");
+    button.title = muted ? "Turn sound on" : "Turn sound off";
   }
 
   function onClick(): void {
-    unlockAudio();
     toggleMuted();
   }
 
@@ -122,6 +133,7 @@ const elsewhere: Elsewhere[] = [
       button.addEventListener("click", onClick);
     }
     sync();
+    if (!isMuted()) unlockAudio();
   });
   document.addEventListener(MUTED_CHANGE_EVENT, sync);
 
@@ -176,14 +188,15 @@ const elsewhere: Elsewhere[] = [
   document.addEventListener("astro:page-load", startHiding);
   document.addEventListener("astro:before-swap", stopHiding);
 
-  /* Browsers only start audio inside a user gesture. The document persists
-     across ClientRouter navigations, so the first press anywhere on the
-     site unlocks chimes for the whole visit, including hover chimes on the
-     home field. */
-  document.addEventListener("pointerdown", () => void unlockAudio(), {
-    once: true,
-    passive: true,
-  });
+  // Retry blocked autoplay on clicks (including touch) and keyboard input.
+  // The sound button handles its own gesture so it cannot start then mute.
+  function onAudioGesture(event: Event): void {
+    if (event.target instanceof Element && event.target.closest("button.mute"))
+      return;
+    if (!isMuted() && !audioAvailable()) unlockAudio();
+  }
+  document.addEventListener("click", onAudioGesture);
+  document.addEventListener("keydown", onAudioGesture);
 </script>
 
 <style>
@@ -300,7 +313,7 @@ const elsewhere: Elsewhere[] = [
     place-items: center;
     width: 32px;
     height: 32px;
-    color: var(--ink-3);
+    color: var(--ink-muted);
     transition: color var(--dur-fast) var(--ease-out);
   }
 

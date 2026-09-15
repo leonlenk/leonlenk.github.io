@@ -14,7 +14,8 @@
     "sync": "astro sync",
     "check": "astro check",
     "format": "pnpm exec prettier . --write",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.0",

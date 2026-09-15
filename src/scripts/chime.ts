@@ -1,71 +1,56 @@
 // Crystal chimes, synthesised with Web Audio. No samples, no dependencies.
 //
-// Each shard owns one note of a pentatonic scale; playing it produces a
-// bell-like, glassy tone in the spirit of a struck amethyst cluster: a short
-// bright transient, a handful of inharmonic partials that decay at different
-// rates (the "shimmer"), a touch of random detune so no two strikes are
-// identical, and a small synthetic reverb tail.
+// Each shard draws from the ambient soundscape's G–A–B–D palette: a soft
+// bell with harmonic partials, a rounded attack, gentle detuning, and a
+// lingering reverb tail.
 //
 // Browsers refuse to start audio before a user gesture. Call `unlockAudio()`
 // from any pointerdown/keydown handler; until then `chime*` calls are
 // silently dropped. With Astro's ClientRouter the document persists across
 // navigations, so one unlock lasts the whole visit.
 
-import { shards } from "../data/shards";
-import { hexToRgb, rgbToHsl } from "../lib/color";
-
 export interface ChimeOptions {
+  /** 0–1, scales upper harmonics and the strike transient. Default 1. */
+  brightness?: number;
   /** 0–1, scales loudness and brightness. Default 0.6. */
   velocity?: number;
-  /** Random pitch spread in cents, ± this value. Default 12. */
+  /** Random pitch spread in cents, ± this value. Default 4. */
   spread?: number;
   /** Multiplier on the decay times. Default 1. */
   length?: number;
 }
 
-const STORAGE_KEY = "shards:muted";
 export const MUTED_CHANGE_EVENT = "chime:muted-change";
 
 /* ---------- pitch ---------- */
 
-// The shards spell one rising arpeggio (C major ninth, then on up through the
-// chord tones) in SPECTRUM order — teal lowest, ember highest — so sweeping
-// the pointer left to right across the field plays the chord, and the intro
-// cluster (played in the same order) is a rising arpeggio.
-const BASE_HZ = 523.25; // C5
-const ARPEGGIO = [1, 5 / 4, 3 / 2, 15 / 8, 9 / 4, 5 / 2, 3, 15 / 4, 9 / 2, 5];
+// Six distinct notes, D4–E4–G4–A4–B4–C5, tuned around the ambient G harmony.
+// Explicit pitches avoid octave folding that made several shards identical.
+const BASE_HZ = 391.995; // G4
+const SHARD_RATIOS = [3 / 4, 5 / 6, 1, 9 / 8, 5 / 4, 4 / 3];
 
 export function noteForIndex(index: number): number {
-  const octave = Math.floor(index / ARPEGGIO.length);
-  return BASE_HZ * ARPEGGIO[index % ARPEGGIO.length] * 2 ** octave;
+  return BASE_HZ * (SHARD_RATIOS[index] ?? 1);
 }
 
-/** Same rule the field uses to place shards left → right. */
-function spectrumHue(hex: string): number {
-  const [h] = rgbToHsl(hexToRgb(hex));
-  return h < 150 ? h + 360 : h;
-}
-
-const spectrumOrder: readonly string[] = [...shards]
-  .sort((a, b) => spectrumHue(a.edge[0]) - spectrumHue(b.edge[0]))
-  .map((s) => s.id);
+// Fixed assignments break up the rising visual order and survive reloads.
+const shardNoteIndices: Readonly<Record<string, number>> = {
+  writing: 3, // A4
+  research: 0, // D4
+  self: 4, // B4
+  philosophy: 2, // G4
+  books: 5, // C5
+  food: 1, // E4
+};
 
 export function noteForShard(id: string): number {
-  const index = spectrumOrder.indexOf(id);
-  return noteForIndex(index < 0 ? 0 : index);
+  return noteForIndex(shardNoteIndices[id] ?? 0);
 }
 
-/* ---------- mute preference ---------- */
+/* ---------- shared sound state ---------- */
 
-function readMuted(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-let muted = readMuted();
+// Sound starts enabled; ClientRouter navigation preserves the toggle state.
+let muted = false;
 
 export function isMuted(): boolean {
   return muted;
@@ -73,10 +58,11 @@ export function isMuted(): boolean {
 
 export function setMuted(next: boolean): void {
   muted = next;
-  try {
-    localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-  } catch {
-    /* private mode; the in-memory flag still applies */
+  if (next) {
+    stopAmbient();
+    for (const voice of active) voice.stop();
+  } else {
+    void enableAmbient();
   }
   document.documentElement.toggleAttribute("data-muted", next);
   document.dispatchEvent(
@@ -158,7 +144,7 @@ function makeImpulse(
 export function unlockAudio(): boolean {
   const g = ensureGraph();
   if (!g) return false;
-  if (g.ctx.state === "suspended") void g.ctx.resume();
+  if (!muted) void enableAmbient();
   return true;
 }
 
@@ -166,16 +152,223 @@ export function audioAvailable(): boolean {
   return !!graph && graph.ctx.state === "running";
 }
 
+/* ---------- optional ambient soundscape ---------- */
+
+let ambientTimer: number | undefined;
+let ambientBus: GainNode | null = null;
+const ambientVoices = new Set<OscillatorNode>();
+
+// Each stage lasts several overlapping phrases. The sequence advances only
+// while playing, preserving its place across navigation and hidden tabs.
+const AMBIENT_STAGES = [
+  {
+    phrases: 1,
+    root: 1 / 2,
+    layers: [1, 3 / 2],
+    level: 0.025,
+    texture: 0,
+    notes: [2, 5 / 2, 3],
+  },
+  {
+    phrases: 3,
+    root: 1 / 4,
+    layers: [1, 3 / 2, 2],
+    level: 0.035,
+    texture: 0.12,
+    notes: [1, 3 / 2, 2],
+  },
+  {
+    phrases: 3,
+    root: 1 / 4,
+    layers: [1, 3 / 2, 2, 5 / 2],
+    level: 0.03,
+    texture: 0.3,
+    notes: [2, 5 / 2, 3, 9 / 4],
+  },
+  {
+    phrases: 2,
+    root: 1 / 2,
+    layers: [1, 3 / 2],
+    level: 0.026,
+    texture: 0.06,
+    notes: [1, 3 / 2, 2],
+  },
+] as const;
+let ambientStage = 0;
+let stagePhrase = 0;
+
+function ambientVoice(
+  hz: number,
+  duration: number,
+  level: number,
+  texture = 0,
+  attack = 2,
+  delay = 0,
+): void {
+  if (!graph || !ambientBus) return;
+  const { ctx } = graph;
+  const start = ctx.currentTime + delay;
+  const envelope = ctx.createGain();
+  envelope.gain.setValueAtTime(0, start);
+  // Let the initial rise bloom into a sustained crest before releasing.
+  envelope.gain.linearRampToValueAtTime(level * 0.65, start + attack);
+  envelope.gain.linearRampToValueAtTime(level, start + attack + 4);
+  envelope.gain.setValueAtTime(level, start + attack + 7);
+  envelope.gain.linearRampToValueAtTime(0, start + duration);
+  const pan = ctx.createStereoPanner();
+  pan.pan.value = (Math.random() - 0.5) * 1.1;
+  envelope.connect(pan);
+  pan.connect(ambientBus);
+
+  // Transfer weight to the main tone as the envelope rises: quiet tails
+  // retain movement, while the crest has much less beating. The two
+  // fundamental weights always sum to 2 to preserve the swell's level.
+  const partials = [
+    { ratio: 1, detune: -1.25, gain: 1.39, crestGain: 1.88 },
+    { ratio: 1, detune: 1.75, gain: 0.61, crestGain: 0.12 },
+    ...(texture > 0
+      ? [
+          { ratio: 2, detune: -2.6, gain: texture, crestGain: texture * 0.4 },
+          {
+            ratio: 3,
+            detune: 2.2,
+            gain: texture * 0.3,
+            crestGain: texture * 0.12,
+          },
+        ]
+      : []),
+  ];
+  let remaining = partials.length;
+  for (const partial of partials) {
+    const osc = ctx.createOscillator();
+    osc.frequency.value = hz * partial.ratio;
+    osc.detune.value = partial.detune;
+    const weight = ctx.createGain();
+    weight.gain.setValueAtTime(partial.gain, start);
+    weight.gain.linearRampToValueAtTime(
+      partial.gain + (partial.crestGain - partial.gain) * 0.65,
+      start + attack,
+    );
+    weight.gain.linearRampToValueAtTime(partial.crestGain, start + attack + 4);
+    weight.gain.setValueAtTime(partial.crestGain, start + attack + 7);
+    weight.gain.linearRampToValueAtTime(partial.gain, start + duration);
+    osc.connect(weight);
+    weight.connect(envelope);
+    ambientVoices.add(osc);
+    osc.onended = () => {
+      ambientVoices.delete(osc);
+      osc.disconnect();
+      weight.disconnect();
+      if (--remaining === 0) {
+        envelope.disconnect();
+        pan.disconnect();
+      }
+    };
+    osc.start(start);
+    osc.stop(start + duration);
+  }
+}
+
+function ambientPhrase(): void {
+  if (muted || document.hidden) return;
+  const stage = AMBIENT_STAGES[ambientStage];
+  const root = BASE_HZ * stage.root;
+  stage.layers.forEach((ratio, i) => {
+    ambientVoice(
+      root * ratio,
+      26 + i * 2,
+      stage.level / (1 + i * 0.7),
+      stage.texture,
+      stagePhrase === 0 && ambientStage === 0 ? 3.5 : 7 + i,
+    );
+  });
+  ambientVoice(
+    root * stage.notes[Math.floor(Math.random() * stage.notes.length)],
+    18 + Math.random() * 6,
+    0.009,
+    stage.texture * 0.5,
+    5,
+  );
+  // Soft G4, B4, and D5 entrances gradually fill out the opening. Their
+  // tails overlap the deeper section without extending the intro.
+  if (ambientStage === 0) {
+    [1, 5 / 4, 3 / 2].forEach((ratio, i) => {
+      ambientVoice(BASE_HZ * ratio, 19, 0.006, 0, 2.5, 3 + i * 3);
+    });
+  }
+  // Midway through the low section, float a higher G–A–B–D line above
+  // the bass. Carry it into the fuller stage with staggered entrances.
+  if ((ambientStage === 1 && stagePhrase >= 1) || ambientStage === 2) {
+    const upperNotes = [1, 9 / 8, 5 / 4, 3 / 2];
+    const note = upperNotes[Math.floor(Math.random() * upperNotes.length)];
+    ambientVoice(BASE_HZ * note, 23, 0.012, 0.04, 4, 6);
+    if (ambientStage === 2) ambientVoice(BASE_HZ, 22, 0.007, 0, 5, 10);
+  }
+  const nextPhraseMs =
+    ambientStage === 0
+      ? 12000 + Math.random() * 2000
+      : 14000 + Math.random() * 4000;
+  stagePhrase += 1;
+  if (stagePhrase >= stage.phrases) {
+    stagePhrase = 0;
+    ambientStage = (ambientStage + 1) % AMBIENT_STAGES.length;
+  }
+  ambientTimer = window.setTimeout(ambientPhrase, nextPhraseMs);
+}
+
+function stopAmbient(): void {
+  window.clearTimeout(ambientTimer);
+  ambientTimer = undefined;
+  const bus = ambientBus;
+  ambientBus = null;
+  if (!graph || !bus) return;
+  const now = graph.ctx.currentTime;
+  // This bus has a constant gain until stopping, so no hold API is needed.
+  // cancelAndHoldAtTime is unavailable in some Web Audio implementations.
+  bus.gain.cancelScheduledValues(now);
+  bus.gain.setValueAtTime(bus.gain.value, now);
+  bus.gain.linearRampToValueAtTime(0, now + 1.5);
+  for (const osc of ambientVoices) osc.stop(now + 1.6);
+  ambientVoices.clear();
+  window.setTimeout(() => bus.disconnect(), 1800);
+}
+
+function startAmbient(): void {
+  if (!graph || ambientBus || document.hidden) return;
+  ambientBus = graph.ctx.createGain();
+  ambientBus.gain.value = 0.7;
+  ambientBus.connect(graph.master);
+  ambientBus.connect(graph.wet);
+  ambientPhrase();
+}
+
+async function enableAmbient(): Promise<void> {
+  try {
+    const g = ensureGraph();
+    if (!g) throw new Error("Web Audio unavailable");
+    await g.ctx.resume();
+    if (!muted) {
+      startAmbient();
+      document.dispatchEvent(new Event(MUTED_CHANGE_EVENT));
+    }
+  } catch {
+    // Autoplay may be blocked. Keep sound enabled and retry on a gesture.
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopAmbient();
+  else if (!muted) void enableAmbient();
+});
+
 /* ---------- voices ---------- */
 
-// Inharmonic partials of a struck glass: ratio, relative amplitude, decay (s).
+// Soft harmonic overtones blend with the ambient sine voices.
 const PARTIALS: ReadonlyArray<readonly [number, number, number]> = [
-  [1.0, 1.0, 1.7],
-  [2.0, 0.42, 1.15],
-  [2.98, 0.3, 0.85],
-  [4.17, 0.18, 0.55],
-  [5.61, 0.11, 0.38],
-  [7.3, 0.06, 0.25],
+  [1, 1, 2.6],
+  [2, 0.2, 1.8],
+  [3, 0.07, 1.2],
+  [4, 0.025, 0.8],
 ];
 
 const MAX_VOICES = 8;
@@ -204,7 +397,8 @@ export function chimeNote(
   lastByKey.set(key, now);
 
   const velocity = Math.max(0.05, Math.min(1, opts.velocity ?? 0.6));
-  const spread = opts.spread ?? 12;
+  const spread = opts.spread ?? 4;
+  const brightness = Math.max(0, Math.min(1, opts.brightness ?? 1));
   const length = opts.length ?? 1;
   const { ctx, master, wet } = g;
   const t0 = ctx.currentTime + 0.005;
@@ -216,7 +410,7 @@ export function chimeNote(
   }
 
   const voice = ctx.createGain();
-  voice.gain.value = velocity * 0.8;
+  voice.gain.value = velocity * 0.38;
   voice.connect(master);
   voice.connect(wet);
 
@@ -228,15 +422,15 @@ export function chimeNote(
   PARTIALS.forEach(([ratio, amp, decay], i) => {
     const osc = ctx.createOscillator();
     osc.type = "sine";
-    const partialDetune = strikeDetune + (Math.random() * 2 - 1) * (3 + i * 2);
+    const partialDetune = strikeDetune + (Math.random() * 2 - 1) * (1 + i);
     osc.frequency.value = hz * ratio * cents(partialDetune);
 
     // brighter strikes carry more of the upper partials
-    const level = amp * (i === 0 ? 1 : 0.55 + velocity * 0.6);
+    const level = amp * (i === 0 ? 1 : (0.55 + velocity * 0.6) * brightness);
     const d = decay * length * (0.85 + velocity * 0.3);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0.0001, t0);
-    env.gain.exponentialRampToValueAtTime(level, t0 + 0.004);
+    env.gain.exponentialRampToValueAtTime(Math.max(0.0001, level), t0 + 0.045);
     env.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
 
     osc.connect(env);
@@ -260,7 +454,7 @@ export function chimeNote(
   band.frequency.value = Math.min(12000, hz * 4.2);
   band.Q.value = 5;
   const tink = ctx.createGain();
-  tink.gain.setValueAtTime(0.22 * velocity, t0);
+  tink.gain.setValueAtTime(Math.max(0.0001, 0.025 * velocity * brightness), t0);
   tink.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
   noise.connect(band);
   band.connect(tink);
@@ -296,22 +490,14 @@ export function chimeNote(
 
 /** Play the shard's own note. */
 export function chimeForShard(id: string, opts: ChimeOptions = {}): void {
-  chimeNote(noteForShard(id), opts, id);
+  chimeNote(
+    noteForShard(id),
+    { brightness: id === "books" ? 0.35 : 1, ...opts },
+    id,
+  );
 }
 
-/**
- * A soft cluster of several shards' notes in quick succession, for the
- * moment the field crystallises. Only audible if audio is already unlocked
- * (a first-visit intro is silent by browser policy).
- */
-export function chimeCluster(ids: string[], opts: ChimeOptions = {}): void {
-  if (muted) return;
-  ids.forEach((id, i) => {
-    setTimeout(() => chimeForShard(id, { velocity: 0.35, ...opts }), i * 70);
-  });
-}
-
-// Reflect the stored preference on the document as soon as the module loads.
+// Reflect the initial sound state as soon as the module loads.
 if (typeof document !== "undefined") {
   document.documentElement.toggleAttribute("data-muted", muted);
 }

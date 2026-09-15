@@ -61,10 +61,22 @@
     type SharedNebula,
   } from "../scripts/nebula";
 
-  const canvas = document.querySelector<HTMLCanvasElement>("canvas.nebula");
-  const ctx = canvas?.getContext("2d", { alpha: false });
+  let bound: HTMLCanvasElement | null = null;
+  let unsubscribe: (() => void) | null = null;
 
-  if (canvas && ctx) {
+  function unmount(): void {
+    unsubscribe?.();
+    unsubscribe = null;
+    bound = null;
+  }
+
+  function mount(): void {
+    const canvas = document.querySelector<HTMLCanvasElement>("canvas.nebula");
+    if (canvas === bound) return;
+    unmount();
+    const ctx = canvas?.getContext("2d", { alpha: false });
+    if (!canvas || !ctx) return;
+    bound = canvas;
     /** Element size relative to the viewport; mirrors the CSS. */
     const OVERSCAN = 1.04;
 
@@ -106,6 +118,10 @@
     }
 
     paint(getSharedNebula());
-    subscribeNebula(paint);
+    unsubscribe = subscribeNebula(paint);
   }
+
+  document.addEventListener("astro:page-load", mount);
+  document.addEventListener("astro:before-swap", unmount);
+  mount();
 </script>

@@ -7,25 +7,33 @@ import ShardField from "../components/ShardField.astro";
   title="Leon Lenk"
   description="Writing, research, food, books, self, philosophy — one shard each."
 >
-  <Fragment slot="head">
-    {/* Same gate as the field script, run before first paint so the chrome
-        never flashes in ahead of the intro. */}
-    <script is:inline>
-      (function () {
-        try {
-          if (
-            !sessionStorage.getItem("shardfield:intro-seen") &&
-            !matchMedia("(prefers-reduced-motion: reduce)").matches
-          ) {
-            document.documentElement.classList.add("intro-running");
-          }
-        } catch {
-          /* Storage blocked: no intro, no hidden chrome. */
-        }
-      })();
-    </script>
-  </Fragment>
-
+  <style slot="head" is:inline>
+    /* Block every visual layer until the field has painted a usable frame. */
+    html[data-field-pending] {
+      background: #050510;
+    }
+    html[data-field-pending] body {
+      opacity: 0;
+      visibility: hidden;
+    }
+    html[data-field-pending] .chrome {
+      opacity: 0;
+      transition: none;
+    }
+  </style>
+  <script slot="head" is:inline data-astro-rerun>
+    // Hide the whole scene before first paint while the renderer starts. With
+    // scripting disabled they stay visible; a failed download reveals them.
+    (() => {
+      const html = document.documentElement;
+      const token = String(performance.now());
+      html.dataset.fieldPending = token;
+      window.setTimeout(() => {
+        if (html.dataset.fieldPending === token)
+          delete html.dataset.fieldPending;
+      }, 4000);
+    })();
+  </script>
   <h1 class="visually-hidden">Leon Lenk</h1>
   <ShardField />
 </Base>

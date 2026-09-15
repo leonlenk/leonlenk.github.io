@@ -15,10 +15,10 @@
  * and `--ly` (pointer position relative to each panel) and the light and
  * ambient layers are radial gradients centred there. The fill covers the
  * light layer's interior, so only the ring and the chamfers catch it.
- * Hovering a link panel merely lifts it and lightens the fill.
+ * Hovering a link panel lifts it, lightens the fill, and accents its seam.
  *
  * Performance: the blurs are static, so the compositor keeps them; nothing
- * ever animates a filter, and the glow layers never change on hover. The
+ * ever animates a filter; interaction only changes glow opacity. The
  * pointer only repaints the two gradient layers of panels within reach.
  * There is deliberately no `drop-shadow` and no `backdrop-filter`.
  *
@@ -236,18 +236,17 @@ const inlineStyle = [
 
   /* --- glow ------------------------------------------------------------ */
 
-  /* Not clipped itself: the blur must be free to spill past the polygon.
-     A blurred shape carries only half its colour at the silhouette, so the
-     rest opacities sit high to match the light the old drop-shadows gave. */
+  /* A narrow halo keeps the cut visible without competing with the text.
+     The wrapper stays unclipped so its light can spill past the polygon. */
   .seam-glow {
     filter: blur(10px);
-    opacity: 0.55;
-    will-change: opacity;
+    opacity: 0.16;
+    transition: opacity 180ms var(--ease-out);
   }
 
   .seam-glow.wide {
     filter: blur(28px);
-    opacity: 0.1;
+    opacity: 0.025;
   }
 
   .seam-glow-shape {
@@ -268,12 +267,14 @@ const inlineStyle = [
   }
 
   .seam-edge {
+    opacity: 0.62;
+    transition: opacity 180ms var(--ease-out);
     background: linear-gradient(105deg, var(--seam-0), var(--seam-1));
   }
 
   /* Hot white core over the gradient; the fill covers all but the ring. */
   .seam-core {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.1);
   }
 
   /* Cursor light on the ring: sits under the fill, so only the 1.5px seam
@@ -313,7 +314,7 @@ const inlineStyle = [
     z-index: 1;
   }
 
-  /* --- link state: a quiet lift, no extra glow ------------------------- */
+  /* --- interaction: light gathers on the selected panel --------------- */
 
   a.seam:hover,
   a.seam:focus-visible {
@@ -325,18 +326,33 @@ const inlineStyle = [
     background-color: rgba(8, 8, 22, 0.8);
   }
 
-  /* --- quiet variant --------------------------------------------------- */
-
-  .seam.quiet .seam-glow {
-    opacity: 0.275;
+  a.seam:hover .seam-edge,
+  .seam:focus-within .seam-edge {
+    opacity: 0.95;
   }
 
-  .seam.quiet .seam-glow.wide {
+  a.seam:hover .seam-glow,
+  .seam:focus-within .seam-glow {
+    opacity: 0.3;
+  }
+
+  a.seam:hover .seam-glow.wide,
+  .seam:focus-within .seam-glow.wide {
     opacity: 0.05;
   }
 
+  /* --- quiet variant --------------------------------------------------- */
+
+  .seam.quiet .seam-glow {
+    opacity: 0.08;
+  }
+
+  .seam.quiet .seam-glow.wide {
+    opacity: 0.015;
+  }
+
   .seam.quiet .seam-edge {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 
   .seam.quiet .seam-core {

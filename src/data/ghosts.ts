@@ -1,53 +1,49 @@
-// Ghost text for the home field: faint, decorative labels that appear on
-// the larger unlabelled filler crystals, naming the kind of sub-selves and
-// drives a person is made of — the shards in "shard theory". They are pure
-// ornament: not links, not read by assistive technology, chosen fresh each
-// day from these pools. Edit freely; keep entries short so they fit.
+// Possible goals on the home field's smaller, unlabelled shards. These are
+// decorative possibilities, not biographical claims or navigation labels.
+// Entries rotate slowly; keep them short so each fits its crystal.
 
-/** One or two words, for mid-sized fillers. */
+/** Compact goals for the smaller filler crystals. */
 export const ghostWords: readonly string[] = [
-  "curiosity",
-  "doubt",
-  "memory",
-  "habit",
-  "awe",
-  "hunger",
-  "ritual",
-  "play",
-  "attention",
-  "restlessness",
+  "learn",
+  "create",
+  "understand",
+  "connect",
+  "rest",
+  "explore",
+  "notice",
+  "listen",
+  "practice",
+  "question",
+  "revise",
+  "share",
+  "read",
+  "write",
+  "cook",
   "care",
-  "pattern",
-  "drift",
   "wonder",
-  "silence",
-  "ambition",
-  "nostalgia",
-  "fear",
-  "craft",
-  "solitude",
-  "reverie",
-  "resolve",
-  "boredom",
-  "kinship",
-  "thrift",
-  "mischief",
-  "dread",
-  "tenderness",
+  "simplify",
+  "reflect",
+  "discover",
 ];
 
-/** "The one that…" phrases, for the very largest fillers only. */
+/** A little more room allows a goal to become a thought. */
 export const ghostPhrases: readonly string[] = [
-  "the one that keeps lists",
-  "the one that wants to be seen",
-  "the one that stays up late",
-  "the one that hoards books",
-  "the one that argues in the shower",
-  "the one that counts steps",
-  "the one that forgets names",
-  "the one that flinches",
-  "the one that saves the last bite",
-  "the one that rereads",
-  "the one that hums",
-  "the one that can't leave a party",
+  "make something useful",
+  "finish a poem",
+  "bake for friends",
+  "ask a better question",
+  "understand a little more",
+  "read something unexpected",
+  "follow an idea",
+  "find the right words",
+  "try a new recipe",
+  "notice the small things",
+  "make room for rest",
+  "listen more closely",
+  "revisit an assumption",
+  "share a good book",
+  "turn a thought into a page",
+  "learn from a mistake",
+  "leave space for wonder",
+  "connect two ideas",
 ];

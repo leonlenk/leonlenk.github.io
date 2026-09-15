@@ -8,8 +8,8 @@
 
 /** Colour constants, mirroring the --nebula-* tokens in global.css. */
 export const NEBULA = {
-  base: "#050510",
-  clouds: ["#141238", "#0a2230", "#2a1030"],
+  base: "#030308",
+  clouds: ["#100e2a", "#071a24", "#200b24"],
   vignette: "#000000",
 } as const;
 
@@ -105,7 +105,7 @@ export function renderNebula(
     const x = rand() * W;
     const y = rand() * H;
     const radius = 0.35 + rand() * 0.75;
-    const alpha = 0.1 + rand() * 0.5;
+    const alpha = 0.06 + rand() * 0.25;
     ctx.fillStyle = `rgba(230,227,239,${alpha.toFixed(3)})`;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);

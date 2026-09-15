@@ -1,9 +1,14 @@
 ---
+import { siteDescription, socialImagePath } from "../lib/sharing";
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
+import "../styles/transitions.css";
 import Nebula from "../components/Nebula.astro";
 import Chrome from "../components/Chrome.astro";
-import { shardCss, type ShardId } from "../data/shards";
+import ShardInterior from "../components/ShardInterior.astro";
+import { getShard, shardCss, type ShardId } from "../data/shards";
+import { hashString } from "../lib/geometry";
+import { mixHex } from "../lib/color";
 
 interface Props {
   title: string;
@@ -13,45 +18,175 @@ interface Props {
    * that shard's colour aliases (--shard-edge-0, --shard-mid, …).
    */
   shard?: ShardId;
+  /** Reading pages sit inside a single crystal face, unique to the article. */
+  article?: string;
 }
 
-const { title, description, shard } = Astro.props;
+const { title, description, shard, article } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const summary = description || siteDescription;
+const socialImage = new URL(socialImagePath(Astro.url.pathname), Astro.site);
+const socialTitle = title === "Leon Lenk" ? title : `${title} — Leon Lenk`;
+const articleSeed = article ? hashString(article) : 0;
+const palette = shard ? getShard(shard).edge : undefined;
+const articleStyle =
+  article && palette
+    ? `--article-accent:${mixHex(palette[0], palette[1], 0.15 + (articleSeed % 71) / 100)};--article-rule:${96 + (articleSeed % 81)}px`
+    : undefined;
 ---
 
 <!doctype html>
-<html lang="en" data-shard={shard}>
+<html lang="en" data-shard={shard} data-article={article} style={articleStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#050510" />
     <title>{title}</title>
-    {description && <meta name="description" content={description} />}
+    <meta name="description" content={summary} />
+    <meta property="og:site_name" content="Leon Lenk" />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:title" content={socialTitle} />
+    <meta property="og:description" content={summary} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={socialImage.href} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content={`${title} — Leon Lenk, framed by crystal shards`}
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={socialTitle} />
+    <meta name="twitter:description" content={summary} />
+    <meta name="twitter:image" content={socialImage.href} />
+    <meta
+      name="twitter:image:alt"
+      content={`${title} — Leon Lenk, framed by crystal shards`}
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Leon Lenk — posts"
+      href="/rss.xml"
+    />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link
       rel="preload"
-      href="/fonts/Syne/Syne-VariableFont_wght.ttf"
+      href="/fonts/Syne/Syne-VariableFont_wght.woff2"
       as="font"
-      type="font/ttf"
+      type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/Lora/Lora-VariableFont_wght.ttf"
+      href="/fonts/Lora/Lora-VariableFont_wght.woff2"
       as="font"
-      type="font/ttf"
+      type="font/woff2"
       crossorigin
     />
     {/* Shard palette, inlined so the tokens exist before first paint. */}
     <style is:inline set:html={shardCss()}></style>
     <ClientRouter />
+    <script
+      is:inline
+      data-goatcounter="https://mygoatcounterll.goatcounter.com/count"
+      async
+      src="https://gc.zgo.at/count.js"
+    ></script>
     <slot name="head" />
   </head>
   <body>
-    <Nebula />
+    {shard ? (
+      <ShardInterior
+        article={article ?? `section:${shard}`}
+        minerals={!!article}
+        section={article ? undefined : shard}
+      />
+    ) : (
+      <Nebula />
+    )}
     <Chrome />
     <slot />
   </body>
 </html>
+
+<script>
+  import "../scripts/mineral-light";
+  // GoatCounter counts the initial load; Astro navigation needs an explicit hit.
+  document.addEventListener("astro:after-swap", () => {
+    const { goatcounter } = window as Window & {
+      goatcounter?: { count: (options: { path: string; title: string }) => void };
+    };
+    goatcounter?.count({ path: location.pathname, title: document.title });
+  });
+
+  let navigationSequence = 0;
+  // Use one viewport snapshot per page. Independently morphing the card,
+  // title and body produces seams and luminance jumps between their images.
+  function clearCrystalTransition(doc: Document): void {
+    doc
+      .querySelectorAll<HTMLElement>("[data-crystal-transition]")
+      .forEach((el) => {
+        el.style.removeProperty("view-transition-name");
+        delete el.dataset.crystalTransition;
+      });
+    delete doc.documentElement.dataset.crystalNavigation;
+  }
+
+  function namePart(el: HTMLElement | null, name: string): void {
+    if (!el) return;
+    el.style.viewTransitionName = name;
+    el.dataset.crystalTransition = "";
+  }
+
+  document.addEventListener("astro:before-preparation", (event) => {
+    navigationSequence += 1;
+    clearCrystalTransition(document);
+    if (
+      !document.startViewTransition ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+
+    // Astro finishes loading the destination before taking either snapshot.
+    // Preparing both documents here also handles browser Back navigation.
+    const load = event.loader;
+    event.loader = async () => {
+      await load();
+      if (event.signal.aborted) return;
+      const next = event.newDocument;
+      const entering = !!next.documentElement.dataset.article;
+      const leaving = !!document.documentElement.dataset.article;
+      if (entering === leaving) return;
+
+      const listing = entering ? document : next;
+      const articlePath = entering ? event.to.pathname : event.from.pathname;
+      const card = Array.from(
+        listing.querySelectorAll<HTMLAnchorElement>("a.card"),
+      ).find(
+        (el) =>
+          new URL(el.getAttribute("href")!, event.to).pathname === articlePath,
+      );
+      if (!card) return;
+
+      for (const doc of [document, next]) {
+        namePart(doc.querySelector<HTMLElement>(".chrome"), "crystal-chrome");
+        doc.documentElement.dataset.crystalNavigation = entering
+          ? "enter"
+          : "leave";
+      }
+    };
+  });
+
+  document.addEventListener("astro:before-swap", (event) => {
+    const sequence = navigationSequence;
+    const cleanup = () => {
+      if (sequence === navigationSequence) clearCrystalTransition(document);
+    };
+    // page-load fires before the visual transition has finished.
+    void event.viewTransition.finished.then(cleanup, cleanup);
+  });
+</script>

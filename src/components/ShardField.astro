@@ -12,10 +12,14 @@
  * the script once labels may animate, so a return visit never fades them in.
  */
 import { shards } from "../data/shards";
+const quote =
+  "“Humans are not reward-maximizers, they are value shard-executors.”";
 ---
 
 <main class="field" data-state="intro">
   <canvas class="field-canvas" aria-hidden="true"></canvas>
+  <svg class="field-minerals" aria-hidden="true" focusable="false"></svg>
+  <svg class="field-gleam" aria-hidden="true" focusable="false"></svg>
   <canvas class="field-light" aria-hidden="true"></canvas>
   <nav class="field-shards" aria-label="Shards">
     {shards.map((shard) => (
@@ -29,6 +33,10 @@ import { shards } from "../data/shards";
   <p class="field-hint label" aria-hidden="true">
     click to skip
   </p>
+  <blockquote class="field-epigraph">
+    <p>{quote}</p>
+    <footer class="label">Quintin Pope and Alex Turner</footer>
+  </blockquote>
 </main>
 
 <style>
@@ -43,6 +51,8 @@ import { shards } from "../data/shards";
      so pointer movement never repaints the field. The light screens onto
      the field so it adds to the seams instead of covering them. */
   .field-canvas,
+  .field-minerals,
+  .field-gleam,
   .field-light {
     position: absolute;
     inset: 0;
@@ -53,6 +63,73 @@ import { shards } from "../data/shards";
 
   .field-light {
     mix-blend-mode: screen;
+  }
+
+  .field-gleam {
+    mix-blend-mode: screen;
+  }
+  .field-gleam :global(.gleam-edge) {
+    animation: shard-gleam var(--gleam-duration) cubic-bezier(0.4, 0, 0.6, 1)
+      both;
+  }
+  @keyframes shard-gleam {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.32;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .field-gleam {
+      display: none;
+    }
+  }
+
+  /* Cached grain shapes breathe slowly; the static canvas stays untouched. */
+  .field-minerals {
+    opacity: 0;
+    visibility: hidden;
+    mix-blend-mode: screen;
+    transition: opacity 900ms ease;
+  }
+
+  .field[data-state="settled"] .field-minerals {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .field-minerals :global(.mineral-breath) {
+    opacity: 0.06;
+    animation: mineral-breathe var(--mineral-period) ease-in-out infinite;
+    animation-delay: var(--mineral-delay);
+    animation-play-state: paused;
+  }
+
+  .field[data-state="settled"] .field-minerals :global(.mineral-breath) {
+    animation-play-state: running;
+  }
+
+  @keyframes mineral-breathe {
+    0%,
+    100% {
+      opacity: 0.06;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .field-minerals {
+      transition: none;
+    }
+
+    .field-minerals :global(.mineral-breath) {
+      animation: none;
+      opacity: 0.12;
+    }
   }
 
   .field-shards {
@@ -88,7 +165,7 @@ import { shards } from "../data/shards";
   }
 
   .shard-label {
-    transform: translate(-50%, calc(-50% + 8px));
+    transform: translate(-50%, -50%);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: clamp(13px, 1.25vw + 6px, 20px);
@@ -98,15 +175,31 @@ import { shards } from "../data/shards";
     text-shadow: 0 0 18px var(--shard-mid);
   }
 
+  .field[data-state="intro"] .shard-label {
+    opacity: var(--growth-label, 0);
+    transition: none;
+  }
+
   .field[data-state="settled"] .shard-label {
     opacity: 1;
     transform: translate(-50%, -50%);
   }
 
-  .field.is-live .shard-label {
-    transition:
-      opacity 600ms var(--ease-out),
-      transform 600ms var(--ease-out);
+  .field.is-live[data-state="settled"] .shard-label {
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  /* Fallback links start opaque. Never animate that old opacity down to
+     the intro's hidden state: it exposes text before its crystal grows. */
+  .field[data-state="intro"] .shard-label,
+  .field[data-state="intro"] .shard-tagline,
+  .field:not(.is-live) .shard-tagline {
+    transition: none;
+  }
+
+  .field[data-state="intro"][data-field-enhanced] .shard-tagline {
+    opacity: 0;
+    visibility: hidden;
   }
 
   .shard:focus-visible .shard-label {
@@ -145,7 +238,7 @@ import { shards } from "../data/shards";
     transition: opacity 120ms linear 400ms;
   }
 
-  /* Ghost text: faint decorative labels the script places on the larger
+  /* Ghost text: possible goals slowly surface on the unlabelled
      filler crystals (src/data/ghosts.ts). Never interactive. The cursor
      light lifts them through --ghost-boost, scaling the colour's alpha.
      The spans are created at runtime, so they carry no scope attribute:
@@ -154,17 +247,22 @@ import { shards } from "../data/shards";
     position: absolute;
     inset: 0;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out);
   }
 
   .field-ghosts :global(.ghost) {
     position: absolute;
     top: var(--cy, 50%);
     left: var(--cx, 50%);
-    transform: translate(-50%, calc(-50% + 8px));
+    transform: translate(-50%, -50%);
     text-align: center;
     pointer-events: none;
     user-select: none;
     opacity: 0;
+    animation: ghost-goal-cycle var(--ghost-period, 28s) ease-in-out infinite;
+    animation-delay: var(--ghost-delay, 0s);
+    animation-play-state: paused;
   }
 
   .field-ghosts :global(.ghost-word) {
@@ -188,25 +286,45 @@ import { shards } from "../data/shards";
     color: rgba(230, 227, 239, calc(0.24 * var(--ghost-boost, 1)));
   }
 
-  .field[data-state="settled"] :global(.ghost) {
+  .field[data-state="settled"] .field-ghosts {
     opacity: 1;
-    transform: translate(-50%, -50%);
   }
 
-  .field.is-live :global(.ghost) {
-    transition:
-      opacity 600ms var(--ease-out),
-      transform 600ms var(--ease-out);
+  .field[data-state="settled"] :global(.ghost) {
+    animation-play-state: running;
   }
 
-  .field[data-state="expanding"] :global(.ghost) {
-    opacity: 0;
-    transition: opacity 300ms var(--ease-out);
+  .field[data-ghosts-paused] :global(.ghost) {
+    animation-name: none;
+  }
+
+  @keyframes ghost-goal-cycle {
+    0%,
+    2%,
+    83%,
+    100% {
+      opacity: 0;
+    }
+    14%,
+    62% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .field-ghosts :global(.ghost) {
+      animation: none;
+      opacity: 0.65;
+    }
+
+    .field-ghosts {
+      transition: none;
+    }
   }
 
   .field-hint {
     position: absolute;
-    bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     color: var(--ink-3);
@@ -222,12 +340,186 @@ import { shards } from "../data/shards";
     transition-delay: 900ms;
   }
 
+  :global(html.intro-running) .field[data-state="intro"] .field-epigraph,
+  .field[data-intro-animation] .field-epigraph {
+    animation: quote-settle 5100ms cubic-bezier(0.45, 0, 0.55, 1) both;
+  }
+
+  @keyframes quote-settle {
+    0% {
+      opacity: 0;
+      transform: translate(
+          -50%,
+          calc(
+            -50svh + var(--quote-bottom, 1.5rem) +
+              env(safe-area-inset-bottom, 0px) + 50%
+          )
+        )
+        scale(var(--quote-intro-scale, 1.75));
+    }
+    7%,
+    72% {
+      opacity: 1;
+      transform: translate(
+          -50%,
+          calc(
+            -50svh + var(--quote-bottom, 1.5rem) +
+              env(safe-area-inset-bottom, 0px) + 50%
+          )
+        )
+        scale(var(--quote-intro-scale, 1.75));
+    }
+    100% {
+      opacity: 0.85;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  /* The epigraph: shard theory in one line, faint at the foot of the field.
+     It takes the hint's spot once the field has settled and hides again
+     while a shard expands. Never interactive. */
+  .field-epigraph {
+    position: fixed;
+    bottom: calc(
+      var(--quote-bottom, 1.5rem) + env(safe-area-inset-bottom, 0px)
+    );
+    left: 50%;
+    width: min(92vw, 44ch);
+    margin: 0;
+    padding: 0;
+    transform: translate(-50%, 6px);
+    text-align: center;
+    text-wrap: balance;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+  }
+
+  .field-epigraph p {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+
+  .field-epigraph footer {
+    margin-top: var(--space-2);
+    font-size: 0.625rem;
+    color: var(--ink-3);
+  }
+
+  .field[data-state="intro"] .field-epigraph,
+  .field[data-state="settled"] .field-epigraph {
+    opacity: 0.85;
+    transform: translate(-50%, 0);
+  }
+
+  .field.is-live .field-epigraph {
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .field[data-state="expanding"] .field-epigraph {
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  /* On phones the quotation gets its own quiet footnote space. The field
+     script measures this element, so the canvas and polygon links both
+     stop above the quote instead of putting the last label behind it. */
+  @media (max-width: 600px) and (min-height: 561px) {
+    .field {
+      --quote-bottom: 1rem;
+      --quote-intro-scale: 1.2;
+      bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .field-hint {
+      bottom: var(--space-5);
+    }
+
+    .field-epigraph {
+      position: fixed;
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+      width: min(74vw, 44ch);
+    }
+
+    .field-epigraph p {
+      font-size: 0.8125rem;
+    }
+
+    .field-epigraph footer {
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+  }
+
+  @media (max-height: 560px) {
+    .field-epigraph {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .shard-label,
     .shard-tagline,
     :global(.ghost),
-    .field-hint {
+    .field-hint,
+    .field-epigraph {
       transition: none;
+    }
+  }
+  /* The head gate prevents a fallback flash during normal module startup.
+     It expires if the module fails to load; no JavaScript means no gate. */
+  :global(html[data-field-pending])
+    .field:not([data-field-enhanced])
+    .field-shards {
+    visibility: hidden;
+  }
+
+  /* Real links are the default; enhance only after the field initializes. */
+  .field:not([data-field-enhanced]) .field-shards {
+    inset: 76px var(--gutter) 16px;
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+  .field:not([data-field-enhanced]) .shard {
+    position: relative;
+    inset: auto;
+    clip-path: none !important;
+    padding: 18px 22px;
+    border: 1px solid var(--shard-mid);
+    border-radius: 4px;
+    background: #0b0b18;
+  }
+  .field:not([data-field-enhanced]) .shard-label,
+  .field:not([data-field-enhanced]) .shard-tagline {
+    position: static;
+    display: block;
+    opacity: 1;
+    transform: none;
+    white-space: normal;
+    transition: none;
+  }
+  .field:not([data-field-enhanced]) .shard-tagline {
+    margin-top: 8px;
+  }
+  .field:not([data-field-enhanced]) .field-hint,
+  .field:not([data-field-enhanced]) .field-epigraph {
+    visibility: hidden;
+  }
+
+  @media (pointer: coarse) {
+    .field[data-field-enhanced][data-state="settled"] .shard-tagline {
+      opacity: 1;
+      width: 20ch;
+      max-width: 30vw;
+      white-space: normal;
+      text-align: center;
+      font-size: 11px;
     }
   }
 </style>
