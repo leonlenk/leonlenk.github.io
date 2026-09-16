@@ -43,7 +43,7 @@ export const sectionFacets: Record<
     shadeAngle: "225deg",
     plane: "polygon(82% 0, 100% 0, 100% 43%, 94% 36%)",
   },
-  books: {
+  art: {
     lines: [
       "M 90 -5 L 82 48 L 94 105",
       "M 82 48 L 105 32",

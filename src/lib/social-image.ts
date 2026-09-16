@@ -89,14 +89,16 @@ export async function renderSocialImage(page: {
   const [label, title, description, footer] = await Promise.all([
     text(section, "Syne", 21, 1020, 36, "#c6c0d6"),
     text(page.title, "Lora", 66, 900, 214, "#ffffff"),
-    text(page.description, "Lora", 25, 790, 90, "#c6c0d6"),
+    page.description.trim()
+      ? text(page.description, "Lora", 25, 790, 90, "#c6c0d6")
+      : null,
     text("leonlenk.com", "Syne", 20, 500, 30, "#aaa2be"),
   ]);
   return sharp(Buffer.from(svg))
     .composite([
       { input: label, left: 76, top: 81 },
       { input: title, left: 76, top: 191 },
-      { input: description, left: 76, top: 430 },
+      ...(description ? [{ input: description, left: 76, top: 430 }] : []),
       { input: footer, left: 76, top: 555 },
     ])
     .png()

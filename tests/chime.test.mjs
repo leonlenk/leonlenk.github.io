@@ -107,7 +107,7 @@ test("mute stops ambient and clicked voices without cancelAndHoldAtTime", async 
   const app = soundScene();
   app.audio.unlockAudio();
   await new Promise(setImmediate);
-  app.audio.chimeForShard("books");
+  app.audio.chimeForShard("art");
   assert.ok(app.oscillators.length > 0);
   let changes = 0;
   app.events.addEventListener("chime:muted-change", () => changes++);

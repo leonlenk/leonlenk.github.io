@@ -17,8 +17,6 @@ interface ShardDefinition {
   id: string;
   /** Display name. */
   label: string;
-  /** One short line shown under the label. */
-  tagline: string;
   /** Muted gradient stops for surfaces that carry text. */
   deep: Stops;
   /** Lifted gradient stops for seams and glow. */
@@ -31,7 +29,6 @@ export const shards = [
   {
     id: "writing",
     label: "Writing",
-    tagline: "Small verses, cut and set.",
     deep: ["#0f5461", "#233070"],
     edge: ["#26ceee", "#5b71db"],
     order: 1,
@@ -39,7 +36,6 @@ export const shards = [
   {
     id: "research",
     label: "Research",
-    tagline: "Light bent toward questions.",
     deep: ["#233070", "#4a2a7e"],
     edge: ["#5b71db", "#986edd"],
     order: 2,
@@ -47,15 +43,13 @@ export const shards = [
   {
     id: "food",
     label: "Food",
-    tagline: "What the kitchen remembers.",
     deep: ["#8a3a2c", "#8f5a22"],
     edge: ["#e18878", "#e9ac6c"],
     order: 3,
   },
   {
-    id: "books",
-    label: "Books",
-    tagline: "Margins, underlined.",
+    id: "art",
+    label: "Art",
     deep: ["#7d2a4c", "#8a3a2c"],
     edge: ["#dd6e9b", "#e18878"],
     order: 4,
@@ -63,7 +57,6 @@ export const shards = [
   {
     id: "self",
     label: "Self",
-    tagline: "Being known",
     deep: ["#4a2a7e", "#6e2d6f"],
     edge: ["#986edd", "#d26cd3"],
     order: 5,
@@ -71,7 +64,6 @@ export const shards = [
   {
     id: "philosophy",
     label: "Philosophy",
-    tagline: "Thinking out loud, slowly.",
     deep: ["#6e2d6f", "#7d2a4c"],
     edge: ["#d26cd3", "#dd6e9b"],
     order: 6,

@@ -25,7 +25,6 @@ const quote =
     {shards.map((shard) => (
       <a class="shard" href={`/${shard.id}/`} data-shard={shard.id}>
         <span class="shard-label">{shard.label}</span>
-        <span class="shard-tagline">{shard.tagline}</span>
       </a>
     ))}
   </nav>
@@ -153,8 +152,7 @@ const quote =
     outline: none;
   }
 
-  .shard-label,
-  .shard-tagline {
+  .shard-label {
     position: absolute;
     top: var(--cy, 50%);
     left: var(--cx, 50%);
@@ -189,41 +187,9 @@ const quote =
     transition: opacity 600ms var(--ease-out);
   }
 
-  /* Fallback links start opaque. Never animate that old opacity down to
-     the intro's hidden state: it exposes text before its crystal grows. */
-  .field[data-state="intro"] .shard-label,
-  .field[data-state="intro"] .shard-tagline,
-  .field:not(.is-live) .shard-tagline {
-    transition: none;
-  }
-
-  .field[data-state="intro"][data-field-enhanced] .shard-tagline {
-    opacity: 0;
-    visibility: hidden;
-  }
-
   .shard:focus-visible .shard-label {
     outline: 2px solid rgba(255, 255, 255, 0.85);
     outline-offset: 8px;
-  }
-
-  .shard-tagline {
-    transform: translate(-50%, calc(-50% + 1.75em + 4px));
-    font-family: var(--font-body);
-    font-style: italic;
-    font-size: var(--step--1);
-    color: var(--ink-2);
-    transition:
-      opacity 200ms var(--ease-out),
-      transform 200ms var(--ease-out);
-  }
-
-  @media (pointer: fine) {
-    .field[data-state="settled"] .shard:hover .shard-tagline,
-    .field[data-state="settled"] .shard:focus-visible .shard-tagline {
-      opacity: 1;
-      transform: translate(-50%, calc(-50% + 1.75em));
-    }
   }
 
   /* Expanding: everything else fades at once; the chosen label lingers. */
@@ -260,7 +226,7 @@ const quote =
     pointer-events: none;
     user-select: none;
     opacity: 0;
-    animation: ghost-goal-cycle var(--ghost-period, 28s) ease-in-out infinite;
+    animation: ghost-goal-cycle var(--ghost-period, 14s) ease-in-out infinite;
     animation-delay: var(--ghost-delay, 0s);
     animation-play-state: paused;
   }
@@ -462,7 +428,6 @@ const quote =
 
   @media (prefers-reduced-motion: reduce) {
     .shard-label,
-    .shard-tagline,
     :global(.ghost),
     .field-hint,
     .field-epigraph {
@@ -495,8 +460,7 @@ const quote =
     border-radius: 4px;
     background: #0b0b18;
   }
-  .field:not([data-field-enhanced]) .shard-label,
-  .field:not([data-field-enhanced]) .shard-tagline {
+  .field:not([data-field-enhanced]) .shard-label {
     position: static;
     display: block;
     opacity: 1;
@@ -504,23 +468,9 @@ const quote =
     white-space: normal;
     transition: none;
   }
-  .field:not([data-field-enhanced]) .shard-tagline {
-    margin-top: 8px;
-  }
   .field:not([data-field-enhanced]) .field-hint,
   .field:not([data-field-enhanced]) .field-epigraph {
     visibility: hidden;
-  }
-
-  @media (pointer: coarse) {
-    .field[data-field-enhanced][data-state="settled"] .shard-tagline {
-      opacity: 1;
-      width: 20ch;
-      max-width: 30vw;
-      white-space: normal;
-      text-align: center;
-      font-size: 11px;
-    }
   }
 </style>
 

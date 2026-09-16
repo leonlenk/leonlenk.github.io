@@ -9,7 +9,7 @@ import { shards } from "../../data/shards";
 import { cardShape } from "../../lib/card-shapes";
 import { hashString, mulberry32, toClipPathPercent } from "../../lib/geometry";
 import { formatDate, isoDate, postHref } from "../../lib/posts";
-import { postDescription } from "../../lib/sharing";
+import { postDescription, siteDescription } from "../../lib/sharing";
 import "../../styles/prose.css";
 
 export function getStaticPaths() {
@@ -28,7 +28,7 @@ if (shard.id === "self" && !selfPost) {
 const selfContent = selfPost ? await render(selfPost) : undefined;
 const SelfContent = selfContent?.Content;
 const title = selfPost?.data.title ?? shard.label;
-const description = selfPost ? postDescription(selfPost) : shard.tagline;
+const description = selfPost ? postDescription(selfPost) : siteDescription;
 
 const posts = (
   await getCollection(
@@ -72,7 +72,7 @@ const h1Em = 1.08 * title.length;
         {shard.id !== "self" && <span class="label count">{count}</span>}
       </div>
       <h1 style={`--h1-em:${h1Em}`}>{title}</h1>
-      <p class="tagline">{description}</p>
+      {selfPost && <p class="description">{description}</p>}
       {selfPost && (
         <div class="label meta">
           <time datetime={isoDate(selfPost.data.pubDate)}>
@@ -219,7 +219,7 @@ const h1Em = 1.08 * title.length;
     color: #fff;
   }
 
-  .tagline {
+  .description {
     max-width: 42ch;
     margin-top: var(--space-4);
     font-family: var(--font-body);

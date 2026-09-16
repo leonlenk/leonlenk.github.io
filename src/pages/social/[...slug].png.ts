@@ -26,9 +26,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
         title:
           shard.id === "self" && selfPost ? selfPost.data.title : shard.label,
         description:
-          shard.id === "self" && selfPost
-            ? postDescription(selfPost)
-            : shard.tagline,
+          shard.id === "self" && selfPost ? postDescription(selfPost) : "",
         shard: shard.id,
         seed: shard.id,
       },

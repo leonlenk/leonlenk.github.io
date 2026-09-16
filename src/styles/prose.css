@@ -125,6 +125,43 @@
   margin: 1.4em 0;
 }
 
+.prose figure {
+  margin: 1.4em 0;
+}
+
+.prose figure img {
+  margin: 0 auto;
+}
+
+.prose figcaption {
+  margin-top: 0.6em;
+  color: var(--ink-2);
+  font-size: 0.9em;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Columns pack differently shaped drawings without fixed-height grid rows.
+   Keep each image and its caption together; reading order runs down columns. */
+.prose .image-grid {
+  columns: 2 240px;
+  column-gap: 1.2em;
+  margin: 1.4em 0;
+}
+
+.prose .image-grid > figure {
+  display: inline-block;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 1.2em;
+  break-inside: avoid;
+  vertical-align: top;
+}
+
+.prose .image-grid img {
+  width: 100%;
+}
+
 .prose ul,
 .prose ol {
   margin: 1em 0;

@@ -2,7 +2,7 @@ import { getShard } from "../data/shards";
 import type { Post } from "./posts";
 
 export const siteDescription =
-  "Writing, research, food, books, self, philosophy — one shard each.";
+  "Writing, research, food, art, self, philosophy — one shard each.";
 
 export function escapeXml(value: string): string {
   return value.replace(

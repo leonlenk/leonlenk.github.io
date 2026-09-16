@@ -90,7 +90,7 @@ export function createFieldGhosts(
     }
     el.textContent = "";
     const text = el.dataset.ghostText ?? "";
-    const period = Number(el.dataset.ghostPeriod) || 28000;
+    const period = Number(el.dataset.ghostPeriod) || 14000;
     const rng = mulberry32(hashString(text) ^ GHOST_SEED ^ ghostRound);
     let length = 0;
     let typing = true;
@@ -226,10 +226,10 @@ export function createFieldGhosts(
       el.style.setProperty("--cx", `${ghost.center.x.toFixed(2)}px`);
       el.style.setProperty("--cy", `${ghost.center.y.toFixed(2)}px`);
       el.style.setProperty("--ghost-max", `${ghost.maxWidth.toFixed(0)}px`);
-      const period = 22 + rng() * 14;
+      const period = 11 + rng() * 7;
       el.dataset.ghostPeriod = String(period * 1000);
       el.style.setProperty("--ghost-period", `${period.toFixed(2)}s`);
-      el.style.setProperty("--ghost-delay", `${(rng() * 9).toFixed(2)}s`);
+      el.style.setProperty("--ghost-delay", `${(rng() * 4.5).toFixed(2)}s`);
       ghostHost.appendChild(el);
       ghosts.push({
         el,

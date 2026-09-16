@@ -39,7 +39,7 @@ const shardNoteIndices: Readonly<Record<string, number>> = {
   research: 0, // D4
   self: 4, // B4
   philosophy: 2, // G4
-  books: 5, // C5
+  art: 5, // C5
   food: 1, // E4
 };
 
@@ -492,7 +492,7 @@ export function chimeNote(
 export function chimeForShard(id: string, opts: ChimeOptions = {}): void {
   chimeNote(
     noteForShard(id),
-    { brightness: id === "books" ? 0.35 : 1, ...opts },
+    { brightness: id === "art" ? 0.35 : 1, ...opts },
     id,
   );
 }
