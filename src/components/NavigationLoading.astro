@@ -1,0 +1,101 @@
+<div class="navigation-loading" hidden>
+  <span class="navigation-seam" aria-hidden="true"></span>
+  <p role="status" aria-live="polite"></p>
+  <a hidden>Continue to page →</a>
+</div>
+
+<style>
+  .navigation-loading {
+    position: fixed;
+    z-index: 100;
+    inset: auto 0 0;
+    padding: 1rem var(--gutter);
+    background: #050510;
+    color: var(--ink-2);
+    font: 0.8125rem var(--font-body);
+  }
+  .navigation-loading[hidden] {
+    display: none;
+  }
+  .navigation-loading p {
+    margin: 0;
+  }
+  .navigation-loading a {
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+  .navigation-loading a[hidden] {
+    display: none;
+  }
+  .navigation-seam {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    overflow: hidden;
+    background: #a78bfa26;
+  }
+  .navigation-seam::after {
+    content: "";
+    display: block;
+    width: 25%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, #c4b5fd, transparent);
+    animation: seam-loading 1.8s ease-in-out infinite;
+  }
+  @keyframes seam-loading {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(400%);
+    }
+  }
+  .navigation-loading[data-stalled] .navigation-seam::after {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .navigation-seam::after {
+      animation: none;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  let dispose = () => {};
+  document.addEventListener("astro:before-preparation", (event) => {
+    dispose();
+    const host = document.querySelector<HTMLElement>(".navigation-loading");
+    const status = host?.querySelector("p");
+    const link = host?.querySelector("a");
+    if (!host || !status || !link) return;
+    link.href = event.to.href;
+    // The crystal expansion lasts 400 ms. Only show a glint if fetching
+    // takes longer, without putting any work in its animation loop.
+    const delay = window.setTimeout(() => {
+      host.hidden = false;
+      status.textContent = "Opening shard…";
+    }, 450);
+    const timeout = window.setTimeout(() => {
+      host.hidden = false;
+      host.dataset.stalled = "";
+      status.textContent = "This page is taking longer to arrive.";
+      link.hidden = false;
+      link.setAttribute("data-astro-reload", "");
+    }, 10000);
+    const clear = () => {
+      clearTimeout(delay);
+      clearTimeout(timeout);
+      host.hidden = true;
+      status.textContent = "";
+      link.hidden = true;
+      delete host.dataset.stalled;
+      event.signal.removeEventListener("abort", clear);
+    };
+    event.signal.addEventListener("abort", clear, { once: true });
+    dispose = clear;
+  });
+  document.addEventListener("astro:after-preparation", () => dispose());
+  document.addEventListener("astro:before-swap", () => dispose());
+  window.addEventListener("pagehide", () => dispose());
+</script>

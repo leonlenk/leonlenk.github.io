@@ -13,7 +13,7 @@
 // Layers are built in stages so the first paint never waits on blur: the
 // interior layer without its bleed goes up synchronously with cheap stand-in
 // seams; the bleed and the real seam layer follow in deferred steps and
-// repaint. Nothing is cached across reloads.
+// repaint. A bounded, single-entry cache survives client-side round trips.
 //
 // A settled frame is two blits and never changes on pointer movement. The
 // cursor light lives on `.field-light` above it: every seam edge is stored
@@ -38,7 +38,10 @@ import type { Cell, Layer } from "./field-types";
 import { createFieldGhosts } from "./field-ghosts";
 import { createFieldParticles } from "./field-particles";
 import { buildGrowths, T_NUCLEATE, type Growth } from "./field-growth";
-import { navigate } from "astro:transitions/client";
+import {
+  navigate,
+  type TransitionBeforePreparationEvent,
+} from "astro:transitions/client";
 import { midpoint, shards, type Shard } from "../data/shards";
 import { hexToRgb, mixHex, rgbToHsl, withAlpha } from "../lib/color";
 import { paintCrystalLight } from "../lib/crystal-light";
@@ -176,7 +179,7 @@ const T_SETTLE = 5100;
 const SETTLE_FADE_MS = 420;
 const SKIP_MS = 250;
 
-const EXPAND_MS = 520;
+const EXPAND_MS = 400;
 /** Extra tint laid over the settled interior (TINT) by the end of the
  * expand: 0.68 + 0.32 × 0.82 ≈ 0.94, the reading view's darkness. */
 const EXPAND_DARKEN = 0.82;
@@ -297,6 +300,17 @@ interface Hover {
 }
 
 type State = "intro" | "settled" | "expanding";
+
+// Keep only the last completed scene, without links or other DOM references.
+// Two RGBA layers at 1440 × 900 × 1.5 use about 23 MiB. Large displays
+// rebuild instead of retaining an unbounded amount of graphics memory.
+const MAX_CACHED_LAYER_BYTES = 32 * 1024 * 1024;
+let cachedLayers: {
+  key: string;
+  interior: Layer;
+  seams: Layer;
+  minerals: Cell["mineralGlints"][];
+} | null = null;
 
 /* ---------- the field ---------- */
 
@@ -819,6 +833,19 @@ function createField(root: HTMLElement): () => void {
    * when they land. */
   function buildLayers(): void {
     cancelDeferred(pendingBuild);
+    pendingBuild = null;
+    if (cachedLayers?.key === layerKey()) {
+      interiorLayer = cachedLayers.interior;
+      seamLayer = cachedLayers.seams;
+      cells.forEach((cell, i) => {
+        cell.mineralGlints = cachedLayers!.minerals[i];
+      });
+      buildMineralOverlay();
+      if (state === "intro") buildCellSprites();
+      mark("layers-cached");
+      return;
+    }
+    cachedLayers = null;
     interiorLayer = makeLayer(viewport());
     if (interiorLayer) {
       const g = interiorLayer.g;
@@ -845,6 +872,19 @@ function createField(root: HTMLElement): () => void {
     pendingBuild = null;
     seamLayer = makeLayer(viewport());
     if (seamLayer) for (const cell of cells) paintSeam(seamLayer.g, cell);
+    if (
+      interiorLayer &&
+      seamLayer &&
+      interiorLayer.canvas.width * interiorLayer.canvas.height * 8 <=
+        MAX_CACHED_LAYER_BYTES
+    ) {
+      cachedLayers = {
+        key: layerKey(),
+        interior: interiorLayer,
+        seams: seamLayer,
+        minerals: cells.map((cell) => cell.mineralGlints),
+      };
+    }
     if (state === "intro") buildCellSprites();
     else if (state === "settled") {
       drawSettled();
@@ -852,6 +892,10 @@ function createField(root: HTMLElement): () => void {
       revealField();
     }
     mark("layers-ready");
+  }
+
+  function layerKey(): string {
+    return `${w}:${h}:${dpr}:${nebula.version}:${labelled.map((s) => s.id).join(",")}`;
   }
 
   /* ----- layout ----- */
@@ -1586,10 +1630,12 @@ function createField(root: HTMLElement): () => void {
     if (!seamLayer) {
       cancelDeferred(pendingBuild);
       buildLayers();
-      cancelDeferred(pendingBuild);
-      buildBleed();
-      cancelDeferred(pendingBuild);
-      buildSeams();
+      if (!seamLayer) {
+        cancelDeferred(pendingBuild);
+        buildBleed();
+        cancelDeferred(pendingBuild);
+        buildSeams();
+      }
     }
     drawSettled();
     settledEntryLayer = makeLayer(viewport());
@@ -1768,6 +1814,7 @@ function createField(root: HTMLElement): () => void {
     settle();
     buildLayers();
     drawSettled();
+    if (seamLayer) revealField();
     if (!firstFrameMarked) {
       firstFrameMarked = true;
       mark("first-frame");
@@ -1797,6 +1844,19 @@ function createField(root: HTMLElement): () => void {
    * click time; the expand scales this one bitmap about the centroid, so
    * the prism zooms with the stone and no frame repaints it. */
   let expandSprite: Layer | null = null;
+  let finishExpansion: (() => void) | null = null;
+  let expansionReady: Promise<void> | null = null;
+
+  // Fetch and prepare the destination while the crystal grows. The swap
+  // still waits for the final frame, preserving the existing transition.
+  function prepareNavigation(event: TransitionBeforePreparationEvent): void {
+    if (!expansionReady) return;
+    const ready = expansionReady;
+    const load = event.loader;
+    event.loader = async () => {
+      await Promise.all([load(), ready]);
+    };
+  }
 
   /** One expand frame: veil, the rest of the field fading for 300 ms, the
    * cell sprite scaled about its centroid, one clipped fill darkening the
@@ -1856,6 +1916,13 @@ function createField(root: HTMLElement): () => void {
       return;
     }
     expandSprite = cellSprite(cell);
+    // Keep the resting geometry, but enlarge the drawing surface to include
+    // the mobile quote area before calculating the viewport-covering scale.
+    h = Math.max(h, window.innerHeight - rootTop);
+    canvas.style.height = `${h}px`;
+    canvas.height = Math.max(1, Math.round(h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawExpandFrame(cell, 0, 0, 1);
     const scale =
       coverScale(cell.inner, cell.c, { x0: 0, y0: 0, x1: w, y1: h }) * 1.03;
     const t0 = performance.now();
@@ -1867,10 +1934,16 @@ function createField(root: HTMLElement): () => void {
       else {
         raf = 0;
         expandSprite = null;
-        go(href);
+        finishExpansion?.();
+        finishExpansion = null;
+        expansionReady = null;
       }
     };
     raf = requestAnimationFrame(step);
+    expansionReady = new Promise<void>((resolve) => {
+      finishExpansion = resolve;
+    });
+    go(href);
   }
 
   /* ----- events ----- */
@@ -1928,11 +2001,12 @@ function createField(root: HTMLElement): () => void {
   /** Full rebuild: geometry, DOM positions, layers; then whatever the current
    * state needs on top. */
   function relayout(): void {
+    if (state === "expanding") return;
     stopGleam();
     layout();
+    cellSprites = [];
     buildLayers();
     if (state === "intro") {
-      cellSprites = [];
       particles.remap();
     } else if (state === "settled") {
       drawSettled();
@@ -1978,6 +2052,7 @@ function createField(root: HTMLElement): () => void {
     link.addEventListener("pointerleave", onPointerLeave);
   }
   document.addEventListener("visibilitychange", onVisibility);
+  document.addEventListener("astro:before-preparation", prepareNavigation);
   observer.observe(root);
   gleamMotion.addEventListener("change", scheduleGleam);
 
@@ -1991,6 +2066,9 @@ function createField(root: HTMLElement): () => void {
     stopGleam();
     gleamMotion.removeEventListener("change", scheduleGleam);
     unschedule();
+    finishExpansion?.();
+    finishExpansion = null;
+    expansionReady = null;
     cancelDeferred(pendingBuild);
     pendingBuild = null;
     disableLight();
@@ -2002,6 +2080,7 @@ function createField(root: HTMLElement): () => void {
     mineralOverlay?.replaceChildren();
     unsubscribe();
     document.removeEventListener("visibilitychange", onVisibility);
+    document.removeEventListener("astro:before-preparation", prepareNavigation);
     document.removeEventListener("keydown", onKeyDown);
     root.removeEventListener("pointerdown", onPointerDown);
     root.removeEventListener("click", onClick);

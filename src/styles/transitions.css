@@ -4,7 +4,7 @@
 html[data-crystal-navigation]::view-transition-old(root),
 html[data-crystal-navigation]::view-transition-new(root) {
   mix-blend-mode: normal;
-  animation-duration: 420ms;
+  animation-duration: 300ms;
   animation-timing-function: cubic-bezier(0.22, 0.68, 0, 1);
   animation-fill-mode: both;
 }

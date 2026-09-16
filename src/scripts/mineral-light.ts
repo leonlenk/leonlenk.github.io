@@ -60,6 +60,14 @@ function illuminate(): void {
   for (const grain of grains) {
     const dx = pointerX - grain.x;
     const dy = pointerY - grain.y;
+    // Outside this radius both the angular lobe and direct Gaussian are
+    // below the paint threshold. Avoid trigonometry and exponentials for
+    // the many grains that cannot catch the cursor light.
+    if (dx * dx + dy * dy > grain.reach * grain.reach) {
+      if (grain.lit) grain.el.style.removeProperty("--grain-glint");
+      grain.lit = false;
+      continue;
+    }
     const distance = Math.hypot(dx, dy);
     // Direct light always catches a nearby grain. Farther away, a softer
     // angular lobe retains the impression of differently oriented faces.

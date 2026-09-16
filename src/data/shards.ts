@@ -62,8 +62,8 @@ export const shards = [
     order: 5,
   },
   {
-    id: "philosophy",
-    label: "Philosophy",
+    id: "ai",
+    label: "AI",
     deep: ["#6e2d6f", "#7d2a4c"],
     edge: ["#d26cd3", "#dd6e9b"],
     order: 6,

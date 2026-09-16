@@ -1,5 +1,5 @@
 ---
-title: "About"
+title: "Self"
 description: "Who I am and what this site is for."
 pubDate: 2026-09-15
 shard: self

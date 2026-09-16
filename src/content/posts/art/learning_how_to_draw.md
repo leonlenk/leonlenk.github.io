@@ -1,5 +1,6 @@
 ---
 title: "How I Started Drawing"
+description: "How I learned to draw as an adult, from early sketches to figure proportions, reference studies, and color practice—with drawings along the way."
 pubDate: 2026-09-15
 shard: art
 tags: ["About me", "Drawing"]
@@ -64,7 +65,7 @@ At this point my friend goes on a long rant about how artists should start from 
 There was also quite a bit of off-screen practice, for example I drew hundreds of boxes at different angles on random sticky notes I had lying around. At this point I was feeling pretty good so I decided to take on a major project. So at the suggestion of my friend (who at this point was my art teacher) I found a Miku reference and drew her:
 
 <figure>
-  <video controls playsinline preload="metadata" style="width: 100%;">
+  <video controls playsinline preload="none" width="474" height="1024" style="width: 100%; height: auto; aspect-ratio: 474 / 1024;">
     <source src="/videos/miku_timelapse.mp4" type="video/mp4">
     Your browser does not support video playback.
   </video>

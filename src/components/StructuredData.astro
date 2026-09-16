@@ -1,0 +1,95 @@
+---
+import { getShard, type ShardId } from "../data/shards";
+import type { Post } from "../lib/posts";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: URL;
+  image: URL;
+  shard?: ShardId;
+  post?: Post;
+}
+
+const { title, description, canonical, image, shard, post } = Astro.props;
+const home = new URL("/", canonical).href;
+const profile = new URL("/self/", canonical).href;
+const person = {
+  "@type": "Person",
+  "@id": `${profile}#person`,
+  name: "Leon Lenk",
+  url: profile,
+};
+const isProfile = canonical.href === profile;
+const graph: Record<string, unknown>[] = [];
+
+if (canonical.href === home) {
+  graph.push({
+    "@type": "WebSite",
+    "@id": `${home}#website`,
+    name: "Leon Lenk",
+    url: home,
+    description,
+    inLanguage: "en",
+    author: person,
+  });
+} else if (isProfile) {
+  graph.push({
+    "@type": "ProfilePage",
+    "@id": `${profile}#webpage`,
+    url: profile,
+    name: "About Leon Lenk",
+    description,
+    mainEntity: person,
+    ...(post && {
+      dateCreated: post.data.pubDate.toISOString(),
+      ...(post.data.updatedDate && {
+        dateModified: post.data.updatedDate.toISOString(),
+      }),
+    }),
+  });
+} else if (post) {
+  graph.push({
+    "@type": "BlogPosting",
+    "@id": `${canonical.href}#article`,
+    mainEntityOfPage: canonical.href,
+    url: canonical.href,
+    headline: title,
+    description,
+    image: image.href,
+    datePublished: post.data.pubDate.toISOString(),
+    ...(post.data.updatedDate && {
+      dateModified: post.data.updatedDate.toISOString(),
+    }),
+    author: ["Leon", "Leon Lenk"].includes(post.data.author)
+      ? person
+      : { "@type": "Person", name: post.data.author },
+    inLanguage: "en",
+    articleSection: getShard(post.data.shard).label,
+  });
+}
+
+if (shard) {
+  const crumbs = [
+    { name: "Leon Lenk", item: home },
+    { name: getShard(shard).label, item: new URL(`/${shard}/`, home).href },
+    ...(!isProfile && post ? [{ name: title, item: canonical.href }] : []),
+  ];
+  graph.push({
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      ...crumb,
+    })),
+  });
+}
+
+// Keep frontmatter text from terminating the script element.
+const json = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": graph,
+}).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" is:inline set:html={json}></script>

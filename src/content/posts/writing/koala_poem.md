@@ -1,5 +1,6 @@
 ---
 title: "Koala's Are Silly"
+description: "A playful limerick by Leon Lenk about koalas and their unusual feeding habits."
 pubDate: 2026-08-25
 author: "Leon"
 tags: ["Poetry", "Limerick"]

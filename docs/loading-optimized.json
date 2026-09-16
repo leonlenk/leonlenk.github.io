@@ -1,0 +1,704 @@
+[
+  {
+    "path": "/",
+    "run": 1,
+    "lcp": 3808,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 1025.8999999985099,
+        "duration": 77
+      },
+      {
+        "start": 1103.2999999970198,
+        "duration": 61
+      },
+      {
+        "start": 1172.5,
+        "duration": 96
+      },
+      {
+        "start": 1524.2999999970198,
+        "duration": 59
+      },
+      {
+        "start": 6205.0999999940395,
+        "duration": 50
+      }
+    ],
+    "settled": 6679,
+    "lcpElement": "shard-label",
+    "fcp": 1176,
+    "bytes": 155617,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-Italic-VariableFont_wght-latin.woff2",
+        "bytes": 41108
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Cq3BTbXS.css",
+        "bytes": 2203
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Nebula.astro_astro_type_script_index_0_lang.BUN6lTJe.js",
+        "bytes": 1309
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardField.astro_astro_type_script_index_0_lang.drq-K6df.js",
+        "bytes": 17103
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/nebula.DI_oaM6a.js",
+        "bytes": 1374
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": [
+      {
+        "name": "shardfield:eval",
+        "time": 1026.2999999970198
+      },
+      {
+        "name": "shardfield:first-frame",
+        "time": 1103.6999999955297
+      },
+      {
+        "name": "shardfield:layers-ready",
+        "time": 1524.2999999970198
+      }
+    ]
+  },
+  {
+    "path": "/",
+    "run": 2,
+    "lcp": 3780,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 1182.6999999955297,
+        "duration": 80
+      },
+      {
+        "start": 1471.2999999970198,
+        "duration": 52
+      },
+      {
+        "start": 6169.5,
+        "duration": 53
+      }
+    ],
+    "settled": 6605.19999999553,
+    "lcpElement": "shard-label",
+    "fcp": 1124,
+    "bytes": 155617,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-Italic-VariableFont_wght-latin.woff2",
+        "bytes": 41108
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Cq3BTbXS.css",
+        "bytes": 2203
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Nebula.astro_astro_type_script_index_0_lang.BUN6lTJe.js",
+        "bytes": 1309
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardField.astro_astro_type_script_index_0_lang.drq-K6df.js",
+        "bytes": 17103
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/nebula.DI_oaM6a.js",
+        "bytes": 1374
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": [
+      {
+        "name": "shardfield:eval",
+        "time": 1035
+      },
+      {
+        "name": "shardfield:first-frame",
+        "time": 1066.8999999985099
+      },
+      {
+        "name": "shardfield:layers-ready",
+        "time": 1470.5
+      }
+    ]
+  },
+  {
+    "path": "/",
+    "run": 3,
+    "lcp": 3748,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 1185,
+        "duration": 75
+      },
+      {
+        "start": 1276.6999999955297,
+        "duration": 51
+      },
+      {
+        "start": 1465.3999999985099,
+        "duration": 56
+      },
+      {
+        "start": 6177.19999999553,
+        "duration": 50
+      }
+    ],
+    "settled": 6607.39999999851,
+    "lcpElement": "shard-label",
+    "fcp": 1124,
+    "bytes": 155617,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-Italic-VariableFont_wght-latin.woff2",
+        "bytes": 41108
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Cq3BTbXS.css",
+        "bytes": 2203
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Nebula.astro_astro_type_script_index_0_lang.BUN6lTJe.js",
+        "bytes": 1309
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardField.astro_astro_type_script_index_0_lang.drq-K6df.js",
+        "bytes": 17103
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/nebula.DI_oaM6a.js",
+        "bytes": 1374
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": [
+      {
+        "name": "shardfield:eval",
+        "time": 1034.8999999985099
+      },
+      {
+        "name": "shardfield:first-frame",
+        "time": 1065.5
+      },
+      {
+        "name": "shardfield:layers-ready",
+        "time": 1465.2999999970198
+      }
+    ]
+  },
+  {
+    "path": "/art/",
+    "run": 1,
+    "lcp": 584,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 846.9000000059605,
+        "duration": 73
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 584,
+    "bytes": 97494,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Ctlbwyu8.css",
+        "bytes": 2465
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardCard.astro_astro_type_script_index_0_lang.DHpBXcVE.js",
+        "bytes": 768
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": []
+  },
+  {
+    "path": "/art/",
+    "run": 2,
+    "lcp": 568,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 846.6000000014901,
+        "duration": 73
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 568,
+    "bytes": 97494,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Ctlbwyu8.css",
+        "bytes": 2465
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardCard.astro_astro_type_script_index_0_lang.DHpBXcVE.js",
+        "bytes": 768
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": []
+  },
+  {
+    "path": "/art/",
+    "run": 3,
+    "lcp": 576,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 847.8999999985099,
+        "duration": 80
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 576,
+    "bytes": 97494,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/index.Ctlbwyu8.css",
+        "bytes": 2465
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ShardCard.astro_astro_type_script_index_0_lang.DHpBXcVE.js",
+        "bytes": 768
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      }
+    ],
+    "marks": []
+  },
+  {
+    "path": "/art/learning_how_to_draw/",
+    "run": 1,
+    "lcp": 612,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 1302.5,
+        "duration": 78
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 612,
+    "bytes": 189201,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/tree.DVrbaX7__Cf5Fe.webp",
+        "bytes": 49720
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/bad_asa.TkA80yv5_jdT6y.webp",
+        "bytes": 45220
+      }
+    ],
+    "marks": []
+  },
+  {
+    "path": "/art/learning_how_to_draw/",
+    "run": 2,
+    "lcp": 600,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 1316.5,
+        "duration": 71
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 600,
+    "bytes": 189201,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/tree.DVrbaX7__Cf5Fe.webp",
+        "bytes": 49720
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/bad_asa.TkA80yv5_jdT6y.webp",
+        "bytes": 45220
+      }
+    ],
+    "marks": []
+  },
+  {
+    "path": "/art/learning_how_to_draw/",
+    "run": 3,
+    "lcp": 1112,
+    "cls": 0,
+    "longTasks": [
+      {
+        "start": 2049.89999999851,
+        "duration": 608
+      }
+    ],
+    "settled": 0,
+    "lcpElement": "",
+    "fcp": 1112,
+    "bytes": 189201,
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4390/fonts/Syne/Syne-VariableFont_wght-latin.woff2",
+        "bytes": 39964
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/ClientRouter.astro_astro_type_script_index_0_lang.DoVXwGDF.js",
+        "bytes": 2030
+      },
+      {
+        "url": "http://127.0.0.1:4390/fonts/Lora/Lora-VariableFont_wght-latin.woff2",
+        "bytes": 38228
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/prose.Cwgx2i7w.css",
+        "bytes": 1741
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Base.D_0JINJM.css",
+        "bytes": 4033
+      },
+      {
+        "url": "https://gc.zgo.at/count.js",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/Chrome.astro_astro_type_script_index_0_lang.D-jOQKcH.js",
+        "bytes": 893
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/chime.EXUUUK8N.js",
+        "bytes": 2839
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/client.BUdHoqhN.js",
+        "bytes": 4533
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/tree.DVrbaX7__Cf5Fe.webp",
+        "bytes": 49720
+      },
+      {
+        "url": "http://127.0.0.1:4390/assets/bad_asa.TkA80yv5_jdT6y.webp",
+        "bytes": 45220
+      }
+    ],
+    "marks": []
+  }
+]

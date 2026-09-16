@@ -85,7 +85,7 @@ export async function renderSocialImage(page: {
   };
   const section = page.shard
     ? `LEON LENK  /  ${getShard(page.shard).label.toUpperCase()}`
-    : "WRITING · RESEARCH · CURIOSITY";
+    : "WRITING · RESEARCH · THOUGHTS";
   const [label, title, description, footer] = await Promise.all([
     text(section, "Syne", 21, 1020, 36, "#c6c0d6"),
     text(page.title, "Lora", 66, 900, 214, "#ffffff"),

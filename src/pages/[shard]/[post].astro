@@ -31,6 +31,7 @@ const { Content } = await render(post);
   description={postDescription(post)}
   shard={post.data.shard}
   article={post.id}
+  post={post}
 >
   <main class="post-page" data-shard={shard.id}>
     <article class="post">
@@ -40,6 +41,11 @@ const { Content } = await render(post);
         </a>
         <h1 data-crystal-title>{title}</h1>
         <div class="label meta">
+          <span>
+            By {post.data.author === "Leon" || post.data.author === "Leon Lenk" ? (
+              <a href="/self/" rel="author">{post.data.author}</a>
+            ) : post.data.author}
+          </span>
           <time datetime={isoDate(pubDate)}>{formatDate(pubDate)}</time>
           {updatedDate && (
             <span class="updated">
@@ -121,7 +127,7 @@ const { Content } = await render(post);
     margin-top: var(--space-5);
     font-family: var(--font-body);
     font-weight: 600;
-    font-size: clamp(1.9rem, 4.5vw, 3rem);
+    font-size: clamp(1.5rem, 1rem + 3vw, 3rem);
     line-height: 1.12;
     letter-spacing: 0;
     color: #fff;
@@ -195,3 +201,7 @@ const { Content } = await render(post);
     }
   }
 </style>
+
+<script>
+  import "../../scripts/video-loading";
+</script>

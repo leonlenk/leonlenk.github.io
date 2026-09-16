@@ -88,7 +88,7 @@ export const sectionFacets: Record<
     shadeAngle: "145deg",
     plane: "polygon(0 0, 13% 0, 20% 29%, 0 47%)",
   },
-  philosophy: {
+  ai: {
     lines: [
       "M -5 28 L 13 62 L 7 105",
       "M 13 62 L -5 77",

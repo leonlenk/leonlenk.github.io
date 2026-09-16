@@ -38,7 +38,7 @@ const shardNoteIndices: Readonly<Record<string, number>> = {
   writing: 3, // A4
   research: 0, // D4
   self: 4, // B4
-  philosophy: 2, // G4
+  ai: 2, // G4
   art: 5, // C5
   food: 1, // E4
 };

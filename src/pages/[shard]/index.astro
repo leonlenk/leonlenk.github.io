@@ -9,7 +9,7 @@ import { shards } from "../../data/shards";
 import { cardShape } from "../../lib/card-shapes";
 import { hashString, mulberry32, toClipPathPercent } from "../../lib/geometry";
 import { formatDate, isoDate, postHref } from "../../lib/posts";
-import { postDescription, siteDescription } from "../../lib/sharing";
+import { postDescription, sectionDescriptions } from "../../lib/sharing";
 import "../../styles/prose.css";
 
 export function getStaticPaths() {
@@ -28,7 +28,7 @@ if (shard.id === "self" && !selfPost) {
 const selfContent = selfPost ? await render(selfPost) : undefined;
 const SelfContent = selfContent?.Content;
 const title = selfPost?.data.title ?? shard.label;
-const description = selfPost ? postDescription(selfPost) : siteDescription;
+const description = selfPost ? postDescription(selfPost) : sectionDescriptions[shard.id];
 
 const posts = (
   await getCollection(
@@ -59,7 +59,7 @@ const emptyPolygon = toClipPathPercent(empty.polygon);
 const h1Em = 1.08 * title.length;
 ---
 
-<Base title={title} description={description} shard={shard.id}>
+<Base title={title} description={description} shard={shard.id} post={selfPost}>
   <main
     class:list={["shard-page", { "self-page": shard.id === "self" }]}
     data-shard={shard.id}
@@ -169,6 +169,7 @@ const h1Em = 1.08 * title.length;
   /* --- header ---------------------------------------------------------- */
 
   .shard-header {
+    container-type: inline-size;
     padding-block: var(--space-4) var(--space-3);
     margin-bottom: var(--space-7);
   }
@@ -212,10 +213,11 @@ const h1Em = 1.08 * title.length;
   .shard-header h1 {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(2.2rem, 6vw, 4.4rem);
+    font-size: min(clamp(2.2rem, 6vw, 4.4rem), calc(100cqw / var(--h1-em)));
     line-height: 1;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    white-space: nowrap;
     color: #fff;
   }
 
@@ -327,10 +329,7 @@ const h1Em = 1.08 * title.length;
     }
 
     .shard-header h1 {
-      font-size: min(
-        clamp(2rem, 11vw, 2.6rem),
-        calc((100vw - 2 * var(--gutter)) / var(--h1-em))
-      );
+      font-size: min(clamp(2rem, 11vw, 2.6rem), calc(100cqw / var(--h1-em)));
     }
   }
 </style>

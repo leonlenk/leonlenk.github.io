@@ -3,16 +3,13 @@ import Base from "../layouts/Base.astro";
 import ShardField from "../components/ShardField.astro";
 ---
 
-<Base
-  title="Leon Lenk"
-  description="Writing, research, food, art, self, philosophy — one shard each."
->
+<Base title="Leon Lenk">
   <style slot="head" is:inline>
     /* Block every visual layer until the field has painted a usable frame. */
     html[data-field-pending] {
       background: #050510;
     }
-    html[data-field-pending] body {
+    html[data-field-pending] body > :not(.startup-loading) {
       opacity: 0;
       visibility: hidden;
     }
@@ -34,11 +31,71 @@ import ShardField from "../components/ShardField.astro";
       }, 4000);
     })();
   </script>
+  <div
+    class="startup-loading"
+    role="status"
+    aria-label="Preparing the crystal field"
+  >
+    <span aria-hidden="true"></span>
+    <p>Preparing the crystal field…</p>
+  </div>
   <h1 class="visually-hidden">Leon Lenk</h1>
   <ShardField />
 </Base>
 
 <style>
+  .startup-loading {
+    display: none;
+  }
+  :global(html[data-field-pending]) .startup-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    color: #a19cb8;
+    font:
+      0.8125rem system-ui,
+      sans-serif;
+    opacity: 0;
+    animation: seed-appear 0s 300ms forwards;
+  }
+  .startup-loading span {
+    width: 8px;
+    height: 8px;
+    background: #bca2ed;
+    box-shadow: 0 0 18px #a78bfa88;
+    animation: seed-loading 1.8s 300ms ease-in-out infinite;
+  }
+  .startup-loading p {
+    margin: 0;
+  }
+  @keyframes seed-appear {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes seed-loading {
+    0%,
+    100% {
+      transform: rotate(45deg) scale(0.65);
+      opacity: 0.35;
+    }
+    50% {
+      transform: rotate(45deg) scale(1);
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .startup-loading span {
+      animation: none;
+      transform: rotate(45deg);
+    }
+  }
+
   .visually-hidden {
     position: absolute;
     width: 1px;

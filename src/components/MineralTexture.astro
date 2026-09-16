@@ -15,18 +15,20 @@ const timing = mulberry32(seed ^ 0x51e7a9);
   {minerals.flecks.map((fleck) => {
     const phase = timing();
     const cycle = 7 + timing() * 6;
-    const brightness = Math.min(1, fleck.opacity * 1.1);
-    const points = fleck.poly.map((p) => `${p.x},${p.y}`).join(" ");
+    const brightness = Math.min(1, fleck.opacity * 1.1).toFixed(3);
+    const points = fleck.poly
+      .map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+      .join(" ");
     return (
       <g
         class:list={["grain-pocket", { "has-glow": fleck.glow > 0 }]}
-        style={`--grain-cycle:${cycle}s;--grain-delay:${-phase * cycle}s`}
+        style={`--grain-cycle:${cycle.toFixed(3)}s;--grain-delay:${(-phase * cycle).toFixed(3)}s`}
       >
         {fleck.glow > 0 && (
           <polygon
             class="mineral-halo"
             points={points}
-            opacity={fleck.glow * 0.6}
+            opacity={(fleck.glow * 0.6).toFixed(3)}
           />
         )}
         <polygon
@@ -37,8 +39,8 @@ const timing = mulberry32(seed ^ 0x51e7a9);
           data-grain-angle={Math.atan2(
             fleck.poly[1].y - fleck.poly[0].y,
             fleck.poly[1].x - fleck.poly[0].x,
-          )}
-          data-grain-phase={phase}
+          ).toFixed(4)}
+          data-grain-phase={phase.toFixed(4)}
         />
       </g>
     );

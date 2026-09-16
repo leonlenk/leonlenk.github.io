@@ -1,9 +1,12 @@
 ---
 import { siteDescription, socialImagePath } from "../lib/sharing";
+import type { Post } from "../lib/posts";
+import StructuredData from "../components/StructuredData.astro";
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import "../styles/transitions.css";
 import Nebula from "../components/Nebula.astro";
+import NavigationLoading from "../components/NavigationLoading.astro";
 import Chrome from "../components/Chrome.astro";
 import ShardInterior from "../components/ShardInterior.astro";
 import { getShard, shardCss, type ShardId } from "../data/shards";
@@ -20,13 +23,15 @@ interface Props {
   shard?: ShardId;
   /** Reading pages sit inside a single crystal face, unique to the article. */
   article?: string;
+  post?: Post;
 }
 
-const { title, description, shard, article } = Astro.props;
+const { title, description, shard, article, post } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const summary = description || siteDescription;
 const socialImage = new URL(socialImagePath(Astro.url.pathname), Astro.site);
 const socialTitle = title === "Leon Lenk" ? title : `${title} — Leon Lenk`;
+const documentTitle = Astro.url.pathname === "/self/" ? "About Leon Lenk" : socialTitle;
 const articleSeed = article ? hashString(article) : 0;
 const palette = shard ? getShard(shard).edge : undefined;
 const articleStyle =
@@ -41,8 +46,26 @@ const articleStyle =
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#050510" />
-    <title>{title}</title>
+    <title>{documentTitle}</title>
     <meta name="description" content={summary} />
+    <meta name="robots" content="max-image-preview:large" />
+    {post && <meta name="author" content={post.data.author} />}
+    {article && post && (
+      <>
+        <meta property="article:published_time" content={post.data.pubDate.toISOString()} />
+        {post.data.updatedDate && (
+          <meta property="article:modified_time" content={post.data.updatedDate.toISOString()} />
+        )}
+      </>
+    )}
+    <StructuredData
+      title={title}
+      description={summary}
+      canonical={canonical}
+      image={socialImage}
+      shard={shard}
+      post={post}
+    />
     <meta property="og:site_name" content="Leon Lenk" />
     <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:title" content={socialTitle} />
@@ -75,18 +98,27 @@ const articleStyle =
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link
       rel="preload"
-      href="/fonts/Syne/Syne-VariableFont_wght.woff2"
+      href="/fonts/Syne/Syne-VariableFont_wght-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/Lora/Lora-VariableFont_wght.woff2"
+      href="/fonts/Lora/Lora-VariableFont_wght-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
+    {!shard && (
+      <link
+        rel="preload"
+        href="/fonts/Lora/Lora-Italic-VariableFont_wght-latin.woff2"
+        as="font"
+        type="font/woff2"
+        crossorigin
+      />
+    )}
     {/* Shard palette, inlined so the tokens exist before first paint. */}
     <style is:inline set:html={shardCss()}></style>
     <ClientRouter />
@@ -109,6 +141,7 @@ const articleStyle =
       <Nebula />
     )}
     <Chrome />
+    <NavigationLoading />
     <slot />
   </body>
 </html>
@@ -118,7 +151,9 @@ const articleStyle =
   // GoatCounter counts the initial load; Astro navigation needs an explicit hit.
   document.addEventListener("astro:after-swap", () => {
     const { goatcounter } = window as Window & {
-      goatcounter?: { count: (options: { path: string; title: string }) => void };
+      goatcounter?: {
+        count: (options: { path: string; title: string }) => void;
+      };
     };
     goatcounter?.count({ path: location.pathname, title: document.title });
   });

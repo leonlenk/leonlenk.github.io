@@ -46,6 +46,12 @@ const quote =
     overflow: hidden;
   }
 
+  /* The mobile quote reserves space below the resting field. Let the
+     expanding canvas paint into that space without moving the shards. */
+  .field[data-state="expanding"] {
+    overflow: visible;
+  }
+
   /* Two stacked canvases: the static field, and the cursor light above it
      so pointer movement never repaints the field. The light screens onto
      the field so it adds to the seams instead of covering them. */
@@ -201,7 +207,7 @@ const quote =
   .field[data-state="expanding"] .shard.is-active .shard-label {
     opacity: 0;
     transform: translate(-50%, -50%);
-    transition: opacity 120ms linear 400ms;
+    transition: opacity 100ms linear 280ms;
   }
 
   /* Ghost text: possible goals slowly surface on the unlabelled

@@ -1,5 +1,6 @@
 ---
 title: "Boltzmann Brains"
+description: "A short poem by Leon Lenk imagining a Boltzmann brain that dreams itself into a nine-to-five life."
 pubDate: 2026-08-25
 author: "Leon"
 tags: ["Poetry", "Limerick"]
