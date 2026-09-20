@@ -32,21 +32,21 @@ export const LAYOUT_SEED = hashString("shard-field");
 /** Viewports at least this wide get the desktop gap and filler count. */
 export const WIDE_MIN = 900;
 export const GAP_WIDE = 20;
-export const GAP_NARROW = 14;
+export const GAP_NARROW = 9;
 
 /** Crystal axis, degrees from horizontal rising to the right, and how much
  * cells stretch along it. Anisotropy steps down by ANISOTROPY_STEP until
  * every label fits its cell horizontally. */
 export const CRYSTAL_AXIS_DEG = 64;
 export const ANISOTROPY_WIDE = 2.3;
-export const ANISOTROPY_NARROW = 1.9;
+export const ANISOTROPY_NARROW = 2.7;
 export const ANISOTROPY_STEP = 0.2;
 /** A labelled cell must offer this much room beside its label. */
 export const LABEL_MARGIN = 32;
 
 /** Filler crystals: unlabelled, inert cells between the shards. */
 export const FILLERS_WIDE = 18;
-export const FILLERS_NARROW = 8;
+export const FILLERS_NARROW = 18;
 /** Share of fillers strung along veins; the veins run at the crystal axis
  * ± VEIN_ANGLE_SPREAD, with points every VEIN_SPACING_MIN–MAX px and a
  * small perpendicular jitter. */
@@ -172,16 +172,6 @@ export function horizontalChord(poly: Poly, y: number): number {
   return hi > lo ? hi - lo : 0;
 }
 
-function centroidOf(poly: Poly): Pt {
-  let x = 0;
-  let y = 0;
-  for (const p of poly) {
-    x += p.x;
-    y += p.y;
-  }
-  return { x: x / poly.length, y: y / poly.length };
-}
-
 /** One attempt at a given anisotropy; the rng is fresh per attempt so sites
  * and veins are identical whatever `k` ends up being. */
 function buildLayout(
@@ -296,8 +286,9 @@ function labelsFit(
     if (cell.labelled < 0) return true;
     const width = labelWidths[cell.labelled];
     if (width === undefined) return true;
-    const c = centroidOf(cell.inner);
-    return horizontalChord(cell.inner, c.y) >= width + LABEL_MARGIN;
+    const c = centroid(cell.inner);
+    const margin = layout.wide ? LABEL_MARGIN : 20;
+    return horizontalChord(cell.inner, c.y) >= width + margin;
   });
 }
 

@@ -1,4 +1,5 @@
-/* A single continuous crossfade preserves the page's composition. Tiny
+/* Keep the outgoing snapshot opaque under the incoming fade: fading both
+ * with normal compositing exposes the page background mid-transition. Tiny
  * opposing scale changes suggest entering a face without stretching text
  * or revealing the gaps between separately animated snapshot layers. */
 html[data-crystal-navigation]::view-transition-old(root),
@@ -40,7 +41,7 @@ html[data-crystal-navigation]::view-transition-new(crystal-chrome) {
     transform: scale(1);
   }
   to {
-    opacity: 0;
+    opacity: 1;
     transform: scale(1.012);
   }
 }
@@ -60,7 +61,7 @@ html[data-crystal-navigation]::view-transition-new(crystal-chrome) {
     transform: scale(1);
   }
   to {
-    opacity: 0;
+    opacity: 1;
     transform: scale(0.988);
   }
 }

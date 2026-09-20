@@ -401,9 +401,9 @@ const quote =
      stop above the quote instead of putting the last label behind it. */
   @media (max-width: 600px) and (min-height: 561px) {
     .field {
-      --quote-bottom: 1rem;
+      --quote-bottom: 0.5rem;
       --quote-intro-scale: 1.2;
-      bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+      bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
     }
 
     .field-hint {
@@ -412,8 +412,8 @@ const quote =
 
     .field-epigraph {
       position: fixed;
-      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-      width: min(74vw, 44ch);
+      bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+      width: min(90vw, 44ch);
     }
 
     .field-epigraph p {
