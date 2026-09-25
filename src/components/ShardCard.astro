@@ -9,7 +9,7 @@ import { getShard } from "../data/shards";
 import { mixHex, variantPair } from "../lib/color";
 import { cardShape } from "../lib/card-shapes";
 import { hashString, mulberry32, toClipPathPercent } from "../lib/geometry";
-import { formatDate, isoDate, type Post } from "../lib/posts";
+import { formatDate, isoDate, smartQuotes, type Post } from "../lib/posts";
 import SeamPanel from "./SeamPanel.astro";
 import "../styles/prose.css";
 
@@ -18,17 +18,26 @@ interface Props {
   /** Position in the list; selects the colour variant. */
   index: number;
   href: string;
+  /** Multiplier on chamfer depth; below 1 for the wider sparse-grid cards. */
+  depth?: number;
 }
 
-const { post, index, href } = Astro.props;
+const { post, index, href, depth = 1 } = Astro.props;
 const shard = getShard(post.data.shard);
 const [v0, v1] = variantPair(shard.edge, index);
 const mid = mixHex(v0, v1);
 // Cards run about 300–360px wide and rarely taller than they are wide;
 // 1.2 is the squarest a card gets, which is the worst case for the pads.
-const shape = cardShape(mulberry32(hashString(post.id)), { aspect: 1.2 });
+const shape = cardShape(mulberry32(hashString(post.id)), {
+  aspect: 1.2,
+  depth,
+});
 const polygon = toClipPathPercent(shape.polygon);
-const { title, description, pubDate, tags } = post.data;
+const { pubDate, tags } = post.data;
+const title = smartQuotes(post.data.title);
+const description = post.data.description
+  ? smartQuotes(post.data.description)
+  : undefined;
 ---
 
 <SeamPanel
@@ -83,7 +92,7 @@ const { title, description, pubDate, tags } = post.data;
 
 <style>
   .card {
-    min-height: 190px;
+    min-height: var(--card-min-h, 190px);
     height: 100%;
   }
 
@@ -91,7 +100,7 @@ const { title, description, pubDate, tags } = post.data;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    min-height: 190px;
+    min-height: var(--card-min-h, 190px);
     height: 100%;
     /* The design padding, or the clearance the silhouette's cuts demand,
        whichever is larger (see card-shapes.ts). */

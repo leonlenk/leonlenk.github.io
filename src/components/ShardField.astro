@@ -46,8 +46,8 @@ const quote =
     overflow: hidden;
   }
 
-  /* The mobile quote reserves space below the resting field. Let the
-     expanding canvas paint into that space without moving the shards. */
+  /* Let the expanding canvas paint past the resting field's box without
+     moving the shards. */
   .field[data-state="expanding"] {
     overflow: visible;
   }
@@ -55,19 +55,35 @@ const quote =
   /* Two stacked canvases: the static field, and the cursor light above it
      so pointer movement never repaints the field. The light screens onto
      the field so it adds to the seams instead of covering them. */
+  /* The script sets --field-h to the height it laid out for, so a skipped
+     height-only resize (the phone address bar) never stretches a layer. */
   .field-canvas,
   .field-minerals,
   .field-gleam,
   .field-light {
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
     width: 100%;
-    height: 100%;
+    height: var(--field-h, 100%);
     pointer-events: none;
   }
 
+  /* Phones: the field is sized by the large viewport, so the address bar
+     showing or hiding overlaps its foot instead of resizing it. The
+     epigraph is position: fixed and rides the visible bottom on its own. */
+  @media (pointer: coarse), (max-width: 899px) {
+    .field {
+      bottom: auto;
+      height: 100vh;
+      height: 100lvh;
+    }
+  }
+
+  /* The script fades the light in and out through its opacity (see
+     fadeLight in shard-field.ts) so it never cuts. */
   .field-light {
     mix-blend-mode: screen;
+    transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .field-gleam {
@@ -127,7 +143,8 @@ const quote =
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .field-minerals {
+    .field-minerals,
+    .field-light {
       transition: none;
     }
 
@@ -312,38 +329,23 @@ const quote =
     transition-delay: 900ms;
   }
 
+  /* During the intro the epigraph stays out of the way: it waits at its
+     resting place and only fades in as the crystal settles, never floating
+     over the growing field. */
   :global(html.intro-running) .field[data-state="intro"] .field-epigraph,
   .field[data-intro-animation] .field-epigraph {
-    animation: quote-settle 5100ms cubic-bezier(0.45, 0, 0.55, 1) both;
+    animation: quote-settle 5100ms linear both;
   }
 
   @keyframes quote-settle {
-    0% {
+    0%,
+    82% {
       opacity: 0;
-      transform: translate(
-          -50%,
-          calc(
-            -50svh + var(--quote-bottom, 1.5rem) +
-              env(safe-area-inset-bottom, 0px) + 50%
-          )
-        )
-        scale(var(--quote-intro-scale, 1.75));
-    }
-    7%,
-    72% {
-      opacity: 1;
-      transform: translate(
-          -50%,
-          calc(
-            -50svh + var(--quote-bottom, 1.5rem) +
-              env(safe-area-inset-bottom, 0px) + 50%
-          )
-        )
-        scale(var(--quote-intro-scale, 1.75));
+      transform: translate(-50%, 0);
     }
     100% {
-      opacity: 0.85;
-      transform: translate(-50%, 0) scale(1);
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
   }
 
@@ -367,6 +369,31 @@ const quote =
     opacity: 0;
   }
 
+  /* A feathered dark plate under the words: seams and ghosts dim beneath
+     the quote so it reads cleanly. A static gradient, no filters, painted
+     once; it rides the epigraph's own opacity. */
+  .field-epigraph::before {
+    content: "";
+    position: absolute;
+    inset: -3rem -7rem -2.5rem;
+    z-index: -1;
+    background: radial-gradient(
+      closest-side,
+      rgba(4, 4, 12, 0.96) 0%,
+      rgba(4, 4, 12, 0.92) 50%,
+      rgba(4, 4, 12, 0.6) 76%,
+      rgba(4, 4, 12, 0.2) 90%,
+      rgba(4, 4, 12, 0) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* The words stay faint; the plate behind them does not. */
+  .field-epigraph p,
+  .field-epigraph footer {
+    opacity: 0.85;
+  }
+
   .field-epigraph p {
     font-family: var(--font-body);
     font-style: italic;
@@ -383,7 +410,7 @@ const quote =
 
   .field[data-state="intro"] .field-epigraph,
   .field[data-state="settled"] .field-epigraph {
-    opacity: 0.85;
+    opacity: 1;
     transform: translate(-50%, 0);
   }
 
@@ -396,32 +423,45 @@ const quote =
     transition: opacity 300ms var(--ease-out);
   }
 
-  /* On phones the quotation gets its own quiet footnote space. The field
-     script measures this element, so the canvas and polygon links both
-     stop above the quote instead of putting the last label behind it. */
+  /* On phones the field fills the whole screen, as on desktop, and the
+     quotation overlays its foot on a plate shaped for the narrow two-line
+     quote. The field script reads the quote's box: ghosts stay clear of it
+     and a label that would touch it is lifted above it. */
   @media (max-width: 600px) and (min-height: 561px) {
     .field {
-      --quote-bottom: 0.5rem;
-      --quote-intro-scale: 1.2;
-      bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+      --quote-bottom: 0.875rem;
     }
 
     .field-hint {
-      bottom: var(--space-5);
+      bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
     }
 
     .field-epigraph {
-      position: fixed;
-      bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-      width: min(90vw, 44ch);
+      width: min(84vw, 34ch);
+    }
+
+    /* Wider than the words and reaching past the screen's foot, so the
+       seams dim evenly under both lines and the plate has no bottom edge. */
+    .field-epigraph::before {
+      inset: -2.125rem -2.25rem
+        calc(-2.25rem - env(safe-area-inset-bottom, 0px));
+      background: radial-gradient(
+        closest-side,
+        rgba(4, 4, 12, 0.95) 0%,
+        rgba(4, 4, 12, 0.9) 58%,
+        rgba(4, 4, 12, 0.55) 80%,
+        rgba(4, 4, 12, 0.16) 93%,
+        rgba(4, 4, 12, 0) 100%
+      );
     }
 
     .field-epigraph p {
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
     }
 
     .field-epigraph footer {
-      margin-top: 0.5rem;
+      margin-top: 0.3125rem;
+      font-size: 0.5625rem;
       line-height: 1.5;
     }
   }
@@ -477,6 +517,15 @@ const quote =
   .field:not([data-field-enhanced]) .field-hint,
   .field:not([data-field-enhanced]) .field-epigraph {
     visibility: hidden;
+  }
+
+  /* The phone field reaches under the address bar; keep the list's end
+     above it. */
+  @media (pointer: coarse), (max-width: 899px) {
+    .field:not([data-field-enhanced]) .field-shards {
+      bottom: 16px;
+      bottom: calc(16px + 100lvh - 100svh);
+    }
   }
 </style>
 

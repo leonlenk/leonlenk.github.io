@@ -8,8 +8,12 @@
  * shards; only the links themselves stay interactive.
  *
  * The last item in the nav is the sound toggle, a button styled like
- * the glyph links; its two glyphs swap on `html[data-muted]`, which the
- * chime module mirrors from the sound state.
+ * the glyph links. It steps down from the default, chimes + ambient
+ * music → chimes only → off, and back round;
+ * its three glyphs swap on `html[data-sound]`, which the chime module
+ * mirrors from the persisted sound mode. Until the music has started
+ * (`html[data-sound-pending]`), the glyph breathes, the tooltip says a
+ * click will begin the sound, and a click on the button does just that.
  *
  * Glyphs are hand-authored single paths on a 24-unit grid, filled with
  * currentColor — no icon package.
@@ -84,46 +88,93 @@ const elsewhere: Elsewhere[] = [
     <button
       type="button"
       class="mute"
-      aria-pressed="true"
-      aria-label="Sound"
-      title="Turn sound off"
+      aria-label="Sound: chimes and ambient music"
+      title="Ambient music on. Click for chimes only"
     >
-      {/* Speaker with two sound waves. */}
-      <svg class="on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {/* Chimes only: speaker with one small wave. */}
+      <svg
+        class="chimes"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M3 9h4l5-4v14l-5-4H3ZM14.6 10.3a2.4 2.4 0 0 1 0 3.4l-1.1-1.1a.9.9 0 0 0 0-1.2Z" />
+      </svg>
+      {/* Chimes and ambient music: speaker with two waves. */}
+      <svg
+        class="ambient"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        focusable="false"
+      >
         <path d="M3 9h4l5-4v14l-5-4H3ZM14.6 10.3a2.4 2.4 0 0 1 0 3.4l-1.1-1.1a.9.9 0 0 0 0-1.2ZM17.2 7.7a6 6 0 0 1 0 8.6l-1.1-1.1a4.5 4.5 0 0 0 0-6.4Z" />
       </svg>
-      {/* Speaker behind a slash. */}
+      {/* Off: speaker behind a cross. */}
       <svg class="off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M3 9h4l5-4v14l-5-4H3ZM16.2 8.8l1.4-1.4 2.2 2.2 2.2-2.2 1.4 1.4-2.2 2.2 2.2 2.2-1.4 1.4-2.2-2.2-2.2 2.2-1.4-1.4 2.2-2.2Z" />
       </svg>
     </button>
+    {/* Described-by text while the music waits for a first gesture. */}
+    <span id="sound-hint" hidden>
+      Sound begins on your first click
+    </span>
   </nav>
 </div>
 
 <script>
   import {
     MUTED_CHANGE_EVENT,
-    audioAvailable,
+    cycleSoundMode,
+    getSoundMode,
     isMuted,
-    toggleMuted,
+    isSoundPending,
+    reflectSoundMode,
     unlockAudio,
+    type SoundMode,
   } from "../scripts/chime";
 
-  /* Reflect the preference on whichever button the current page has. The
-     accessible name stays constant, as a toggle's should; state is carried
-     by aria-pressed, and the tooltip says what a click will do. */
+  /* The accessible name states the current mode; the tooltip also says
+     what a click will do next. */
+  const LABELS: Record<SoundMode, { label: string; title: string }> = {
+    chimes: {
+      label: "Sound: chimes only",
+      title: "Chimes only. Click to turn sound off",
+    },
+    ambient: {
+      label: "Sound: chimes and ambient music",
+      title: "Ambient music on. Click for chimes only",
+    },
+    muted: {
+      label: "Sound: off",
+      title: "Sound off. Click to turn it back on",
+    },
+  };
+
+  /* Until the music has started (it waits for a first gesture), the
+     tooltip and the accessible description say so; the label keeps
+     describing the mode. */
+  const PENDING_HINT = "Sound begins on your first click";
+
+  /* Reflect the mode on <html> and on whichever button the current page
+     has. Also run straight after a ClientRouter swap, which replaces the
+     <html> attributes, so the glyph never flickers back to the default. */
   function sync(): void {
+    reflectSoundMode();
     const button = document.querySelector<HTMLButtonElement>("button.mute");
     if (!button) return;
-    const muted = isMuted();
-    document.documentElement.toggleAttribute("data-muted", muted);
-    button.setAttribute("aria-pressed", String(!muted));
-    button.setAttribute("aria-label", "Sound");
-    button.title = muted ? "Turn sound on" : "Turn sound off";
+    const { label, title } = LABELS[getSoundMode()];
+    const pending = isSoundPending();
+    button.setAttribute("aria-label", label);
+    button.title = pending ? PENDING_HINT : title;
+    if (pending) button.setAttribute("aria-describedby", "sound-hint");
+    else button.removeAttribute("aria-describedby");
   }
 
+  /* While the music waits for a first gesture, the hint promises that a
+     click starts it; honour that here too rather than stepping the mode. */
   function onClick(): void {
-    toggleMuted();
+    if (isSoundPending()) unlockAudio();
+    else cycleSoundMode();
   }
 
   document.addEventListener("astro:page-load", () => {
@@ -135,6 +186,7 @@ const elsewhere: Elsewhere[] = [
     sync();
     if (!isMuted()) unlockAudio();
   });
+  document.addEventListener("astro:after-swap", sync);
   document.addEventListener(MUTED_CHANGE_EVENT, sync);
 
   /* Hide the bar while scrolling down, bring it back on the way up or near
@@ -188,15 +240,8 @@ const elsewhere: Elsewhere[] = [
   document.addEventListener("astro:page-load", startHiding);
   document.addEventListener("astro:before-swap", stopHiding);
 
-  // Retry blocked autoplay on clicks (including touch) and keyboard input.
-  // The sound button handles its own gesture so it cannot start then mute.
-  function onAudioGesture(event: Event): void {
-    if (event.target instanceof Element && event.target.closest("button.mute"))
-      return;
-    if (!isMuted() && !audioAvailable()) unlockAudio();
-  }
-  document.addEventListener("click", onAudioGesture);
-  document.addEventListener("keydown", onAudioGesture);
+  // The first gesture anywhere (which starts the music) is handled by the
+  // chime module itself, so it also works on pages without this script.
 </script>
 
 <style>
@@ -338,14 +383,46 @@ const elsewhere: Elsewhere[] = [
     fill: currentColor;
   }
 
-  /* One glyph at a time, chosen by the muted flag on <html>. */
+  /* One glyph at a time, chosen by the sound mode on <html>. The ambient
+     glyph is the default, before the script has stamped the attribute. */
+  .mute .chimes,
   .mute .off,
-  :global(html[data-muted]) .mute .on {
+  :global(html[data-sound="chimes"]) .mute .ambient,
+  :global(html[data-sound="muted"]) .mute .ambient {
     display: none;
   }
 
-  :global(html[data-muted]) .mute .off {
+  :global(html[data-sound="chimes"]) .mute .chimes,
+  :global(html[data-sound="muted"]) .mute .off {
     display: block;
+  }
+
+  /* Sound is on but waits for a first gesture: the glyph breathes, on
+     opacity alone (compositor-only, no layout, no glow). Not while the bar
+     is slid away, and not under reduced motion. */
+  :global(html[data-sound-pending]) .mute svg {
+    animation: sound-breathe 3.2s ease-in-out infinite;
+  }
+
+  :global(html[data-sound-pending]) .chrome--hidden .mute svg {
+    animation: none;
+  }
+
+  @keyframes sound-breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html[data-sound-pending]) .mute svg {
+      animation: none;
+    }
   }
 
   @media (max-width: 639.98px) {

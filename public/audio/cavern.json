@@ -1,0 +1,525 @@
+{
+  "version": 1,
+  "track": "cavern",
+  "sampleRate": 48000,
+  "seed": 1,
+  "settings": {
+    "space": 0.7,
+    "light": 0.37,
+    "depth": 0.73,
+    "swell": 1,
+    "air": 0.3,
+    "pace": 1
+  },
+  "crossfade": 2,
+  "overhang": 3,
+  "peakDbfs": {
+    "intro": -18.96,
+    "loop": -13.44
+  },
+  "intro": {
+    "duration": 22.2691,
+    "fileDuration": 25.2691,
+    "movements": [
+      {
+        "name": "Void",
+        "start": 0,
+        "length": 22.2691,
+        "entry": 0,
+        "I": 0.1,
+        "fadeOut": false,
+        "dust": false,
+        "slide": false,
+        "glints": [
+          "D5",
+          "G5",
+          "A5",
+          "D6"
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "start": 0,
+        "end": 7.5,
+        "movement": "Void",
+        "bass": [],
+        "chord": [
+          "D3",
+          "A3"
+        ]
+      },
+      {
+        "start": 7.5,
+        "end": 22.2691,
+        "movement": "Void",
+        "bass": [
+          "G1",
+          "G2"
+        ],
+        "chord": [
+          "D3",
+          "A3"
+        ]
+      }
+    ]
+  },
+  "loop": {
+    "duration": 371.183,
+    "fileDuration": 374.183,
+    "movements": [
+      {
+        "name": "Descent",
+        "start": 0,
+        "length": 97.5826,
+        "entry": 0,
+        "I": 0.5,
+        "fadeOut": false,
+        "dust": false,
+        "slide": true,
+        "glints": [
+          "G6",
+          "E6",
+          "D6",
+          "B5",
+          "A5",
+          "G5",
+          "E5",
+          "D5",
+          "B4",
+          "A4"
+        ]
+      },
+      {
+        "name": "Awe",
+        "start": 97.5826,
+        "length": 95.8775,
+        "entry": 6.2,
+        "I": 1,
+        "fadeOut": false,
+        "dust": false,
+        "slide": false,
+        "glints": [
+          "E6",
+          "G6",
+          "B6",
+          "D7"
+        ]
+      },
+      {
+        "name": "Hover",
+        "start": 193.46,
+        "length": 79.8146,
+        "entry": 4,
+        "I": 0.28,
+        "fadeOut": false,
+        "dust": true,
+        "slide": false,
+        "glints": [
+          "A5",
+          "D6",
+          "E6",
+          "A6"
+        ]
+      },
+      {
+        "name": "Return",
+        "start": 273.2747,
+        "length": 97.9084,
+        "entry": 0,
+        "I": 0.08,
+        "fadeOut": true,
+        "dust": false,
+        "slide": false,
+        "glints": [
+          "G5",
+          "B5",
+          "D6"
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "start": 0,
+        "end": 7.5,
+        "movement": "Descent",
+        "bass": [
+          "G1",
+          "D2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ]
+      },
+      {
+        "start": 7.5,
+        "end": 22,
+        "movement": "Descent",
+        "bass": [
+          "E1",
+          "E2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ]
+      },
+      {
+        "start": 22,
+        "end": 29.4478,
+        "movement": "Descent",
+        "bass": [
+          "E1",
+          "E2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "E5"
+      },
+      {
+        "start": 29.4478,
+        "end": 33.0248,
+        "movement": "Descent",
+        "bass": [
+          "E1",
+          "E2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "D5"
+      },
+      {
+        "start": 33.0248,
+        "end": 36.8956,
+        "movement": "Descent",
+        "bass": [
+          "D1",
+          "D2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "D5"
+      },
+      {
+        "start": 36.8956,
+        "end": 44.3435,
+        "movement": "Descent",
+        "bass": [
+          "D1",
+          "D2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "B4"
+      },
+      {
+        "start": 44.3435,
+        "end": 51.7913,
+        "movement": "Descent",
+        "bass": [
+          "D1",
+          "D2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "A4"
+      },
+      {
+        "start": 51.7913,
+        "end": 53.6704,
+        "movement": "Descent",
+        "bass": [
+          "D1",
+          "D2"
+        ],
+        "chord": [
+          "G3",
+          "B3",
+          "D4"
+        ],
+        "line": "G4"
+      },
+      {
+        "start": 53.6704,
+        "end": 57.4204,
+        "movement": "Descent",
+        "bass": [
+          "D1",
+          "D2"
+        ],
+        "chord": [
+          "E3",
+          "G3",
+          "B3"
+        ],
+        "line": "G4"
+      },
+      {
+        "start": 57.4204,
+        "end": 59.2391,
+        "movement": "Descent",
+        "bass": [
+          "B0",
+          "B1"
+        ],
+        "chord": [
+          "E3",
+          "G3",
+          "B3"
+        ],
+        "line": "G4"
+      },
+      {
+        "start": 59.2391,
+        "end": 66.6869,
+        "movement": "Descent",
+        "bass": [
+          "B0",
+          "B1"
+        ],
+        "chord": [
+          "E3",
+          "G3",
+          "B3"
+        ],
+        "line": "E4"
+      },
+      {
+        "start": 66.6869,
+        "end": 73.1869,
+        "movement": "Descent",
+        "bass": [
+          "B0",
+          "B1"
+        ],
+        "chord": [
+          "E3",
+          "G3",
+          "B3"
+        ],
+        "line": "D4"
+      },
+      {
+        "start": 73.1869,
+        "end": 74.1347,
+        "movement": "Descent",
+        "bass": [
+          "B0",
+          "B1"
+        ],
+        "chord": [
+          "E3",
+          "G3"
+        ],
+        "line": "D4"
+      },
+      {
+        "start": 74.1347,
+        "end": 76.9369,
+        "movement": "Descent",
+        "bass": [
+          "B0",
+          "B1"
+        ],
+        "chord": [
+          "E3",
+          "G3"
+        ],
+        "line": "B3"
+      },
+      {
+        "start": 76.9369,
+        "end": 97.5826,
+        "movement": "Descent",
+        "bass": [
+          "A0",
+          "A1"
+        ],
+        "chord": [
+          "E3",
+          "G3"
+        ],
+        "line": "B3"
+      },
+      {
+        "start": 97.5826,
+        "end": 103.7826,
+        "movement": "Awe",
+        "bass": [
+          "A0",
+          "A1"
+        ],
+        "chord": [
+          "E3",
+          "G3"
+        ]
+      },
+      {
+        "start": 103.7826,
+        "end": 106.4826,
+        "movement": "Awe",
+        "bass": [
+          "A0",
+          "A1"
+        ],
+        "chord": [
+          "D3",
+          "G3",
+          "A3",
+          "D4",
+          "A4",
+          "D5"
+        ]
+      },
+      {
+        "start": 106.4826,
+        "end": 159.4415,
+        "movement": "Awe",
+        "bass": [
+          "G1",
+          "G2"
+        ],
+        "chord": [
+          "D3",
+          "G3",
+          "A3",
+          "D4",
+          "A4",
+          "D5"
+        ]
+      },
+      {
+        "start": 159.4415,
+        "end": 167.4415,
+        "movement": "Awe",
+        "bass": [
+          "G1",
+          "G2"
+        ],
+        "chord": [
+          "E3",
+          "G3",
+          "C4",
+          "E4",
+          "G4",
+          "E5"
+        ]
+      },
+      {
+        "start": 167.4415,
+        "end": 193.46,
+        "movement": "Awe",
+        "bass": [
+          "C1",
+          "C2",
+          "G2"
+        ],
+        "chord": [
+          "C3",
+          "E3",
+          "G3",
+          "C4",
+          "E4",
+          "G4",
+          "E5",
+          "G5"
+        ]
+      },
+      {
+        "start": 193.46,
+        "end": 197.46,
+        "movement": "Hover",
+        "bass": [
+          "C1",
+          "C2",
+          "G2"
+        ],
+        "chord": [
+          "C3",
+          "E3",
+          "G3",
+          "C4",
+          "E4",
+          "G4",
+          "E5",
+          "G5"
+        ]
+      },
+      {
+        "start": 197.46,
+        "end": 200.61,
+        "movement": "Hover",
+        "bass": [
+          "C1",
+          "C2",
+          "G2"
+        ],
+        "chord": [
+          "E3",
+          "A3",
+          "D4",
+          "G4"
+        ]
+      },
+      {
+        "start": 200.61,
+        "end": 273.2747,
+        "movement": "Hover",
+        "bass": [
+          "D2",
+          "A2"
+        ],
+        "chord": [
+          "E3",
+          "A3",
+          "D4",
+          "G4"
+        ]
+      },
+      {
+        "start": 273.2747,
+        "end": 280.7747,
+        "movement": "Return",
+        "bass": [
+          "D2",
+          "A2"
+        ],
+        "chord": [
+          "B3",
+          "D4"
+        ]
+      },
+      {
+        "start": 280.7747,
+        "end": 371.183,
+        "movement": "Return",
+        "bass": [
+          "G1",
+          "D2"
+        ],
+        "chord": [
+          "B3",
+          "D4"
+        ]
+      }
+    ]
+  }
+}

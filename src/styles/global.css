@@ -280,12 +280,12 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 2px solid var(--shard-edge-0, #986edd);
+  outline: 2px solid var(--shard-edge-0, #a876f2);
   outline-offset: 3px;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--shard-mid, #986edd) 38%, transparent);
+  background: color-mix(in srgb, var(--shard-mid, #a876f2) 38%, transparent);
   color: var(--ink);
 }
 

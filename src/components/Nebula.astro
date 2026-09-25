@@ -43,6 +43,17 @@
     }
   }
 
+  /* Phones: size against the large viewport so the address bar showing or
+     hiding never resizes the sky (see STABLE_VIEWPORT_QUERY in nebula.ts). */
+  @media (pointer: coarse), (max-width: 899px) {
+    .nebula {
+      top: -2vh;
+      top: -2lvh;
+      height: 104vh;
+      height: 104lvh;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .nebula {
       animation: none;
@@ -97,8 +108,9 @@
 
     function paint(nebula: SharedNebula): void {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const W = Math.max(1, Math.ceil(window.innerWidth * OVERSCAN * dpr));
-      const H = Math.max(1, Math.ceil(window.innerHeight * OVERSCAN * dpr));
+      // The bitmap's own viewport, which on phones ignores the address bar.
+      const W = Math.max(1, Math.ceil(nebula.w * OVERSCAN * dpr));
+      const H = Math.max(1, Math.ceil(nebula.h * OVERSCAN * dpr));
       canvas!.width = W;
       canvas!.height = H;
       ctx!.drawImage(nebula.canvas, 0, 0, W, H);

@@ -39,3 +39,18 @@ export function formatDate(date: Date): string {
 export function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
+
+/**
+ * Typographic quotes for frontmatter strings, which smartypants never sees
+ * (it only touches the markdown body). Apostrophes and closing quotes follow
+ * a letter, digit or closing punctuation; everything else opens.
+ * "Why I've become an AI 'Doomer'" → "Why I’ve become an AI ‘Doomer’".
+ */
+export function smartQuotes(text: string): string {
+  return text
+    .replace(/(^|[\s([{—–-])"/g, "$1“")
+    .replace(/"/g, "”")
+    .replace(/'(?=\d\ds\b)/g, "’")
+    .replace(/(^|[\s([{—–-])'/g, "$1‘")
+    .replace(/'/g, "’");
+}

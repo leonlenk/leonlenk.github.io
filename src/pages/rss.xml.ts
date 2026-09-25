@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
-import { postHref } from "../lib/posts";
+import { postHref, smartQuotes } from "../lib/posts";
 import { escapeXml, postDescription, siteDescription } from "../lib/sharing";
 
 export const GET: APIRoute = async ({ site }) => {
@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ site }) => {
     .map((post) => {
       const url = escapeXml(new URL(postHref(post), site).href);
       return `<item>
-      <title>${escapeXml(post.data.title)}</title>
+      <title>${escapeXml(smartQuotes(post.data.title))}</title>
       <link>${url}</link><guid isPermaLink="true">${url}</guid>
       <description>${escapeXml(postDescription(post))}</description>
       <pubDate>${post.data.pubDate.toUTCString()}</pubDate>

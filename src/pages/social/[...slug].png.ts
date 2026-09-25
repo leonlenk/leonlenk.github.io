@@ -1,7 +1,7 @@
 import type { APIRoute, GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import { shards, type ShardId } from "../../data/shards";
-import { postHref } from "../../lib/posts";
+import { postHref, smartQuotes } from "../../lib/posts";
 import { postDescription, siteDescription } from "../../lib/sharing";
 import { renderSocialImage } from "../../lib/social-image";
 
@@ -24,7 +24,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
       params: { slug: shard.id },
       props: {
         title:
-          shard.id === "self" && selfPost ? selfPost.data.title : shard.label,
+          shard.id === "self" && selfPost
+            ? smartQuotes(selfPost.data.title)
+            : shard.label,
         description:
           shard.id === "self" && selfPost ? postDescription(selfPost) : "",
         shard: shard.id,
@@ -38,7 +40,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       .map((post) => ({
         params: { slug: postHref(post).slice(1, -1) },
         props: {
-          title: post.data.title,
+          title: smartQuotes(post.data.title),
           description: postDescription(post),
           shard: post.data.shard,
           seed: post.id,

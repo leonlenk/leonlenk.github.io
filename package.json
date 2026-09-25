@@ -15,7 +15,8 @@
     "check": "astro check",
     "format": "pnpm exec prettier . --write",
     "lint": "eslint .",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "music:render": "node tools/music/render.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.0",

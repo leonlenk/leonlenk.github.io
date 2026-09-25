@@ -45,7 +45,7 @@ import {
 import { midpoint, shards, type Shard } from "../data/shards";
 import { hexToRgb, mixHex, rgbToHsl, withAlpha } from "../lib/color";
 import { paintCrystalLight } from "../lib/crystal-light";
-import { LAYOUT_SEED, layoutField } from "../lib/field-layout";
+import { LAYOUT_SEED, WIDE_MIN, layoutField } from "../lib/field-layout";
 import {
   bbox,
   centroid,
@@ -62,8 +62,11 @@ import {
 import { chimeForShard, unlockAudio } from "./chime";
 import {
   NEBULA,
+  STABLE_HEIGHT_SLACK,
   getSharedNebula,
+  stableViewport,
   subscribeNebula,
+  viewportUnits,
   type SharedNebula,
 } from "./nebula";
 
@@ -91,8 +94,51 @@ const MAX_DPR = 1.5;
 /* Fillers (placement lives in field-layout.ts; this is their look). */
 /** Seam colour: mix toward the nebula base by this much (0.5 → 50% colour). */
 const FILLER_DIM = 0.5;
+/** Fillers are the rock around the gems: pull their colour toward a cool
+ * slate by this much (0 = a dimmed copy of the nearest shard, 1 = stone). */
+const FILLER_DULL = 0.25;
+const FILLER_STONE = "#4b4a5e";
 /** Second gradient stop is sampled this far along the spectrum from the first. */
 const FILLER_SPAN = 0.08;
+/** Under the cursor light a filler's seam shows its hidden gem colour: the
+ * same palette before the stone and nebula mixing, lifted like a labelled
+ * seam. 0 lights the dull rock colour, 1 the full gem colour. */
+const FILLER_REVEAL = 1;
+
+/* Seam treatment, chosen with Leon from the prism gradient study
+ * (2026-09-25). The six tunables match the study's sliders. */
+/** Flow around the shard: 0 = straight-across linear gradient (edge[0] →
+ * edge[1]); toward 1 each stop's colour mixes toward a conic gradient about
+ * the centroid that goes out and back around the outline. */
+const SEAM_FLOW = 0.31;
+/** Hue range: how far each seam's palette widens toward its spectral
+ * neighbours' edge stops (0 = own two stops only). */
+const SEAM_HUE_RANGE = 0.07;
+/** Colour bands: how many times the colour cycles around the outline. */
+const SEAM_BANDS = 1;
+/** Softness: a feathered body of wide, faint strokes under a thinner core. */
+const SEAM_SOFTNESS = 0.52;
+/** Seam width, CSS px, before softness thins the core. */
+const SEAM_WIDTH = 1.3;
+/** Glow: scales the outer shadowBlur halo (1 = the original 27px halo). */
+const SEAM_GLOW = 0.33;
+/** Supporting constants: gradient resolution, where the conic starts, and
+ * the feathered body's shape (layers, spread in px at softness 1, alpha). */
+const SEAM_GRADIENT_STOPS = 48;
+const SEAM_CONIC_START = -Math.PI * 0.75;
+const SEAM_FEATHER_LAYERS = 6;
+/** Per-frame (intro, expand) seams approximate the feather with fewer. */
+const SEAM_FEATHER_LAYERS_FAST = 2;
+const SEAM_FEATHER_SPREAD = 9;
+const SEAM_FEATHER_ALPHA = 0.12;
+const SEAM_HALO_BLUR = 27;
+const SEAM_ALPHA = 0.95;
+/** Colour width of the core stroke once softness has thinned it. */
+const SEAM_CORE_WIDTH = Math.max(0.8, SEAM_WIDTH * (1 - SEAM_SOFTNESS * 0.45));
+const SEAM_CORE_ALPHA = SEAM_ALPHA * (1 - SEAM_SOFTNESS * 0.3);
+const SEAM_HALO_ALPHA = SEAM_ALPHA * (1 - SEAM_SOFTNESS * 0.35);
+/** The white hot line down the middle of the core. */
+const SEAM_HOT = `rgba(255,255,255,${(0.28 * (1 - SEAM_SOFTNESS * 0.3)).toFixed(3)})`;
 
 /* Prism interior. One key light from the upper left; every cell is its own
  * stone, tilted a little its own way (seeded, so it holds across reloads
@@ -131,6 +177,37 @@ const SIDE_MIN_ALPHA = 0.012;
 const FACE_TINT_ALPHA = 0.08;
 const FACE_WELL_ALPHA = 0.12;
 
+/* Light swell. The key light slowly brightens and ebbs, like light in a
+ * cave, and the facets' contrast follows; its direction never changes.
+ * Once per layout the difference between the settled prism shading and
+ * the same shading at SWELL_GAIN is painted into one overlay canvas (lit
+ * faces a little brighter, shadowed ones a touch deeper). The compositor
+ * animates its opacity through uneven, eased keyframes on a long cycle, so
+ * it breathes without a beat. Settled desktop only; with reduced motion, a
+ * coarse pointer or a narrow layout it is not built. */
+const SWELL_GAIN = 1.45;
+/** Backing resolution of the overlay; the deltas are soft enough that a
+ * lower resolution than the field's is invisible. */
+const SWELL_DPR = 1;
+/** Face deltas below this alpha are skipped. */
+const SWELL_MIN_ALPHA = 0.002;
+/** Seconds per cycle and the overlay's opacity keyframes (offset,
+ * opacity): swells of different heights and lengths, never a steady beat. */
+const SWELL_PERIOD_S = 83;
+const SWELL_KEYS: readonly (readonly [number, number])[] = [
+  [0, 0.1],
+  [0.09, 0.55],
+  [0.16, 0.35],
+  [0.3, 1],
+  [0.41, 0.2],
+  [0.49, 0.3],
+  [0.58, 0],
+  [0.7, 0.75],
+  [0.78, 0.6],
+  [0.9, 0.9],
+  [1, 0.1],
+];
+
 /* Cursor light. The reach (how far along the seams the light is felt) is
  * wider than the ambient bloom, which keeps a fixed pixel size. */
 const LIGHT_R_WIDE = 260;
@@ -166,6 +243,14 @@ const LIGHT_CORE_ALPHA = 1.0;
 /** Below this a stop is fully dark, and an edge with no brighter stop is
  * skipped outright. */
 const LIGHT_MIN_I = 0.01;
+
+/* Labels keep this far (CSS px) from the epigraph's text box, and this
+ * much room from the cell's sides when one is lifted above it. */
+const LABEL_QUOTE_MARGIN = 14;
+const LABEL_SIDE_ROOM = 10;
+/** Touch screens: assume the address bar can cover at least this much of
+ * the large viewport when placing labels clear of the epigraph. */
+const PHONE_BAR_ALLOWANCE = 90;
 
 /* Per-shard hover, drawn on the light canvas. */
 const HOVER_MS = 150;
@@ -290,6 +375,155 @@ function sampleStops(stops: readonly string[], u: number): string {
   const i = Math.min(stops.length - 2, Math.floor(pos));
   return mixHex(stops[i], stops[i + 1], pos - i);
 }
+
+/* ---------- seam gradients ---------- */
+
+const CONIC_SEAMS =
+  SEAM_FLOW > 0 &&
+  typeof CanvasRenderingContext2D !== "undefined" &&
+  "createConicGradient" in CanvasRenderingContext2D.prototype;
+
+/** The colours a seam walks through: its own two stops, widened toward its
+ * spectral neighbours' outer stops by SEAM_HUE_RANGE. */
+function seamPalette(
+  edge: readonly [string, string],
+  prev: string,
+  next: string,
+): string[] {
+  const r = SEAM_HUE_RANGE * 0.85;
+  return [mixHex(edge[0], prev, r), edge[0], edge[1], mixHex(edge[1], next, r)];
+}
+
+/** Evenly spaced gradient colours. Linear: straight across the palette.
+ * Conic: each stop mixes the straight-across colour toward one that goes
+ * out and back around the outline (so the loop closes) by SEAM_FLOW. */
+function seamColours(pal: readonly string[], conic: boolean): string[] {
+  const out: string[] = [];
+  for (let k = 0; k <= SEAM_GRADIENT_STOPS; k++) {
+    const u = k / SEAM_GRADIENT_STOPS;
+    const across = sampleStops(pal, u);
+    if (!conic) {
+      out.push(across);
+      continue;
+    }
+    const tri = 1 - Math.abs(((u * SEAM_BANDS) % 1) * 2 - 1);
+    out.push(mixHex(across, sampleStops(pal, tri), SEAM_FLOW));
+  }
+  return out;
+}
+
+/** Linear seam gradient axis: across the bounding box, pulled in a little
+ * vertically so tall cells still show both ends. */
+function seamAxis(bb: BBox): [number, number, number, number] {
+  const dy = (bb.y1 - bb.y0) * 0.15;
+  return [bb.x0, bb.y0 + dy, bb.x1, bb.y1 - dy];
+}
+
+/** A cell's seam gradient at full alpha: conic about `c`, or linear across
+ * `bb` where conic gradients are unsupported. */
+function makeSeamGradient(
+  g: CanvasRenderingContext2D,
+  seam: readonly string[],
+  conic: boolean,
+  c: Pt,
+  bb: BBox,
+): CanvasGradient {
+  const grad = conic
+    ? g.createConicGradient(SEAM_CONIC_START, c.x, c.y)
+    : g.createLinearGradient(...seamAxis(bb));
+  const n = seam.length - 1;
+  for (let k = 0; k <= n; k++) grad.addColorStop(k / n, seam[k]);
+  return grad;
+}
+
+/** The seam gradient's colour at a point on the outline. */
+function seamColourAt(
+  cell: Cell,
+  x: number,
+  y: number,
+  seam: readonly string[] = cell.seam,
+): string {
+  if (cell.seamConic) {
+    const a = Math.atan2(y - cell.c.y, x - cell.c.x) - SEAM_CONIC_START;
+    return sampleStops(seam, (((a / TAU) % 1) + 1) % 1);
+  }
+  const [x0, y0, x1, y1] = seamAxis(cell.bb);
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const t = ((x - x0) * dx + (y - y0) * dy) / (dx * dx + dy * dy || 1);
+  return sampleStops(seam, t);
+}
+
+/** The [left, right] ends of the horizontal chord of a convex polygon at
+ * height `y`, or [0, 0] when the line misses it. */
+function chordAt(poly: Poly, y: number): [number, number] {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    if ((a.y <= y && b.y >= y) || (b.y <= y && a.y >= y)) {
+      const x =
+        a.y === b.y ? a.x : a.x + ((y - a.y) * (b.x - a.x)) / (b.y - a.y);
+      lo = Math.min(lo, x);
+      hi = Math.max(hi, x);
+    }
+  }
+  return hi > lo ? [lo, hi] : [0, 0];
+}
+
+/** Side-face fill alphas of a prism lit from (lx, ly): per outer edge of
+ * `poly`, positive for white (toward the light), negative for black. */
+function sideShades(
+  poly: Poly,
+  c: Pt,
+  lx: number,
+  ly: number,
+  amp: number,
+  keyExposure: number,
+): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i];
+    const q = poly[(i + 1) % poly.length];
+    const ex = q.x - p.x;
+    const ey = q.y - p.y;
+    const len = Math.hypot(ex, ey) || 1;
+    let onx = ey / len;
+    let ony = -ex / len;
+    if ((c.x - p.x) * onx + (c.y - p.y) * ony > 0) {
+      onx = -onx;
+      ony = -ony;
+    }
+    const f = onx * lx + ony * ly;
+    out.push(
+      f > 0
+        ? lerp(SIDE_MIN_ALPHA, SIDE_LIGHT_ALPHA, Math.min(1, f)) *
+            amp *
+            keyExposure
+        : -lerp(SIDE_MIN_ALPHA, SIDE_DARK_ALPHA, Math.min(1, -f)) * amp,
+    );
+  }
+  return out;
+}
+
+/** Feathered body passes, widest first: `count` wide faint strokes (fewer
+ * layers carry proportionally more alpha, so the body keeps its weight). */
+function featherPasses(count: number): { width: number; alpha: number }[] {
+  const out: { width: number; alpha: number }[] = [];
+  if (SEAM_SOFTNESS <= 0) return out;
+  const scale = SEAM_FEATHER_LAYERS / count;
+  for (let j = count; j >= 1; j--) {
+    const i = j * scale;
+    out.push({
+      width: SEAM_WIDTH + (SEAM_SOFTNESS * SEAM_FEATHER_SPREAD * j) / count,
+      alpha: (SEAM_SOFTNESS * SEAM_FEATHER_ALPHA * scale) / (0.6 + i * 0.4),
+    });
+  }
+  return out;
+}
+const FEATHER = featherPasses(SEAM_FEATHER_LAYERS);
+const FEATHER_FAST = featherPasses(SEAM_FEATHER_LAYERS_FAST);
 
 /* ---------- types ---------- */
 
@@ -418,6 +652,119 @@ function createField(root: HTMLElement): () => void {
 
   // One occasional surface gleam, including unlabelled crystal fragments.
   let gleamTimer = 0;
+
+  // Light swell overlay (see SWELL_*): created on first use, repainted per
+  // layout, animated by the compositor while settled.
+  const useSwell = !reduceMotion && !coarse;
+  let swellWide = false;
+  let swellEl: HTMLCanvasElement | null = null;
+  let swellAnim: Animation | null = null;
+
+  /** The settled prism shading scaled by SWELL_GAIN − 1: the body gradient
+   * and every side face, same key light, same geometry. */
+  function paintSwell(el: HTMLCanvasElement): void {
+    const scale = Math.min(dpr, SWELL_DPR);
+    el.width = Math.max(1, Math.round(w * scale));
+    el.height = Math.max(1, Math.round(h * scale));
+    const g = el.getContext("2d", { alpha: true, willReadFrequently: false });
+    if (!g) return;
+    g.setTransform(scale, 0, 0, scale, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const k = SWELL_GAIN - 1;
+    for (const cell of cells) {
+      const { inner, face, c, lx, ly, amp } = cell;
+      const r = intersectRect(rectOf(cell.bb), viewport());
+      if (!r || inner.length < 3) continue;
+      let pmax = -Infinity;
+      let pmin = Infinity;
+      for (const v of inner) {
+        const p = (v.x - c.x) * lx + (v.y - c.y) * ly;
+        pmax = Math.max(pmax, p);
+        pmin = Math.min(pmin, p);
+      }
+      g.save();
+      tracePoly(g, inner);
+      g.clip();
+      if (pmax > pmin) {
+        const body = g.createLinearGradient(
+          c.x + lx * pmax,
+          c.y + ly * pmax,
+          c.x + lx * pmin,
+          c.y + ly * pmin,
+        );
+        body.addColorStop(
+          0,
+          `rgba(255,255,255,${(k * SHADE_LIGHT_ALPHA * amp * cell.keyExposure).toFixed(4)})`,
+        );
+        body.addColorStop(0.45, "rgba(0,0,0,0)");
+        body.addColorStop(
+          1,
+          `rgba(0,0,0,${(k * SHADE_DARK_ALPHA * amp).toFixed(4)})`,
+        );
+        g.fillStyle = body;
+        g.fillRect(r.x, r.y, r.w, r.h);
+      }
+      if (face) {
+        const n = inner.length;
+        for (let i = 0; i < n; i++) {
+          const d = k * cell.faceShade[i];
+          if (Math.abs(d) < SWELL_MIN_ALPHA) continue;
+          const j = (i + 1) % n;
+          g.beginPath();
+          g.moveTo(inner[i].x, inner[i].y);
+          g.lineTo(inner[j].x, inner[j].y);
+          g.lineTo(face[j].x, face[j].y);
+          g.lineTo(face[i].x, face[i].y);
+          g.closePath();
+          g.fillStyle =
+            d > 0
+              ? `rgba(255,255,255,${d.toFixed(4)})`
+              : `rgba(0,0,0,${(-d).toFixed(4)})`;
+          g.fill();
+        }
+      }
+      g.restore();
+    }
+  }
+
+  /** Paint the swell overlay for the current layout and set it breathing.
+   * Only opacity animates, so the compositor does the work and settled
+   * frames stay free of script. */
+  function startSwell(): void {
+    if (!useSwell || !swellWide || state !== "settled") {
+      stopSwell();
+      return;
+    }
+    if (!swellEl) {
+      swellEl = document.createElement("canvas");
+      swellEl.className = "field-swell";
+      swellEl.setAttribute("aria-hidden", "true");
+      swellEl.style.cssText =
+        "position:absolute;inset:0;width:100%;height:var(--field-h,100%);pointer-events:none;opacity:0";
+      canvas.after(swellEl);
+    }
+    paintSwell(swellEl);
+    if (swellAnim) return;
+    swellAnim = swellEl.animate(
+      SWELL_KEYS.map(([offset, opacity]) => ({
+        offset,
+        opacity,
+        easing: "ease-in-out",
+      })),
+      { duration: SWELL_PERIOD_S * 1000, iterations: Infinity },
+    );
+    if (document.hidden) swellAnim.pause();
+  }
+
+  function stopSwell(remove = false): void {
+    swellAnim?.cancel();
+    swellAnim = null;
+    if (remove) {
+      swellEl?.remove();
+      swellEl = null;
+    }
+  }
+
   let lastGleamCell = -1;
   const gleamRandom = mulberry32(hashString(`gleam:${Date.now()}`));
 
@@ -533,17 +880,12 @@ function createField(root: HTMLElement): () => void {
     g.closePath();
   }
 
-  function edgeGradient(
-    g: CanvasRenderingContext2D,
-    edge: readonly [string, string],
-    bb: BBox,
-    alpha: number,
-  ): CanvasGradient {
-    const dy = (bb.y1 - bb.y0) * 0.15;
-    const grad = g.createLinearGradient(bb.x0, bb.y0 + dy, bb.x1, bb.y1 - dy);
-    grad.addColorStop(0, withAlpha(edge[0], alpha));
-    grad.addColorStop(1, withAlpha(edge[1], alpha));
-    return grad;
+  /** The cell's seam gradient for `poly`/`bb`: the cached one for its own
+   * outline, or for a scaled copy when conic (the centre does not move). */
+  function seamStroke(cell: Cell, poly: Poly, bb: BBox): CanvasGradient {
+    return cell.seamConic || poly === cell.inner
+      ? cell.seamStroke
+      : makeSeamGradient(ctx, cell.seam, false, cell.c, bb);
   }
 
   /** Viewport point → nebula bitmap coordinates, through the cell's
@@ -763,30 +1105,46 @@ function createField(root: HTMLElement): () => void {
     g.shadowColor = withAlpha(cell.mid, 0.5);
     g.shadowBlur = 51 * dpr;
     g.lineWidth = 3;
-    g.strokeStyle = edgeGradient(g, cell.edge, cell.bb, 0.27);
+    g.strokeStyle = cell.seamStroke;
+    g.globalAlpha = 0.27;
     g.stroke();
     g.restore();
   }
 
-  /** The seam with its real (blurred) glow and the white hot core. */
+  /** The settled seam: a thin stroke carrying the (blurred) outer halo, the
+   * feathered body of wide faint strokes, the core, and the white hot line.
+   * All of it lands in the offscreen seam layer, once per layout. */
   function paintSeam(g: CanvasRenderingContext2D, cell: Cell): void {
     g.save();
     g.lineJoin = "round";
     tracePoly(g, cell.inner);
-    g.shadowColor = withAlpha(cell.mid, 0.95);
-    g.shadowBlur = 27 * dpr;
-    g.lineWidth = 1.5;
-    g.strokeStyle = edgeGradient(g, cell.edge, cell.bb, 0.95);
+    g.strokeStyle = cell.seamStroke;
+    if (SEAM_GLOW > 0) {
+      g.shadowColor = withAlpha(cell.mid, SEAM_ALPHA * Math.min(1, SEAM_GLOW));
+      g.shadowBlur = SEAM_HALO_BLUR * SEAM_GLOW * dpr;
+    }
+    g.lineWidth = SEAM_WIDTH;
+    g.globalAlpha = SEAM_HALO_ALPHA;
     g.stroke();
     g.shadowBlur = 0;
     g.shadowColor = "transparent";
+    for (const pass of FEATHER) {
+      g.lineWidth = pass.width;
+      g.globalAlpha = pass.alpha;
+      g.stroke();
+    }
+    g.lineWidth = SEAM_CORE_WIDTH;
+    g.globalAlpha = SEAM_CORE_ALPHA;
+    g.stroke();
+    g.globalAlpha = 1;
     g.lineWidth = 0.7;
-    g.strokeStyle = "rgba(255,255,255,0.28)";
+    g.strokeStyle = SEAM_HOT;
     g.stroke();
     g.restore();
   }
 
-  /** Per-frame seam without blur: three stroked passes (wide/mid/core). `k`
+  /** Per-frame seam without blur: a flat halo standing in for the shadow
+   * (scaled by SEAM_GLOW), a cheaper feathered body, then the core. `k`
    * scales the widths (2 → 1 as the seam snaps hard), `boost` widens and
    * brightens the outer passes for the expand animation. */
   function paintFakeSeam(
@@ -805,23 +1163,29 @@ function createField(root: HTMLElement): () => void {
     tracePoly(g, poly);
     g.strokeStyle = withAlpha(
       cell.mid,
-      Math.min(1, 0.12 * alpha * (1 + boost)),
+      Math.min(1, 0.12 * SEAM_GLOW * alpha * (1 + boost)),
     );
     g.lineWidth = 10 * k * (1 + boost);
     g.stroke();
     g.strokeStyle = withAlpha(
       cell.mid,
-      Math.min(1, 0.3 * alpha * (1 + 0.5 * boost)),
+      Math.min(1, 0.3 * SEAM_GLOW * alpha * (1 + 0.5 * boost)),
     );
     g.lineWidth = 4 * k * (1 + 0.5 * boost);
     g.stroke();
-    g.globalAlpha = Math.min(1, alpha);
-    g.strokeStyle = edgeGradient(g, cell.edge, bb, 0.95);
-    g.lineWidth = 1.5 * k;
+    const a = Math.min(1, alpha);
+    g.strokeStyle = seamStroke(cell, poly, bb);
+    for (const pass of FEATHER_FAST) {
+      g.lineWidth = pass.width * k;
+      g.globalAlpha = a * pass.alpha;
+      g.stroke();
+    }
+    g.globalAlpha = a * SEAM_CORE_ALPHA;
+    g.lineWidth = SEAM_CORE_WIDTH * k;
     g.stroke();
     if (core > 0) {
       g.globalAlpha = Math.min(1, core);
-      g.strokeStyle = "rgba(255,255,255,0.28)";
+      g.strokeStyle = SEAM_HOT;
       g.lineWidth = 0.7;
       g.stroke();
     }
@@ -914,6 +1278,10 @@ function createField(root: HTMLElement): () => void {
     canvas.width = Math.max(1, Math.round(w * dpr));
     canvas.height = Math.max(1, Math.round(h * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Every layer is sized to the layout, not to the live box, so a skipped
+    // height-only resize never stretches them.
+    canvas.style.removeProperty("height");
+    root.style.setProperty("--field-h", `${h}px`);
     if (lightEl && lightCtx) {
       lightEl.width = canvas.width;
       lightEl.height = canvas.height;
@@ -923,10 +1291,37 @@ function createField(root: HTMLElement): () => void {
       lightPoint = null;
     }
 
-    const field = layoutField(w, h, labelled.length, {}, labelWidths());
+    const widths = labelWidths();
+    const field = layoutField(w, h, labelled.length, {}, widths);
+    const quote = epigraphBox();
     lightR = field.wide ? LIGHT_R_WIDE : LIGHT_R_NARROW;
+    swellWide = field.wide;
     const stops = labelled.flatMap((s) => [s.edge[0], s.edge[1]]);
-    const dim = (hex: string): string => mixHex(hex, NEBULA.base, FILLER_DIM);
+    const dim = (hex: string): string =>
+      mixHex(
+        mixHex(hex, FILLER_STONE, FILLER_DULL * 0.8),
+        NEBULA.base,
+        FILLER_DIM,
+      );
+    // Fillers take their colour from nearby shards because the spectrum
+    // isn't a simple function of x (see spectrumOrder).
+    const anchors = field.cells
+      .filter((fc) => fc.labelled >= 0)
+      .map((fc) => ({ i: fc.labelled, c: centroid(fc.inner) }));
+    const spectralU = (p: Pt): number => {
+      const n = labelled.length;
+      const near = anchors
+        .map((a) => ({ i: a.i, d: Math.hypot(a.c.x - p.x, a.c.y - p.y) }))
+        .sort((a, b) => a.d - b.d);
+      if (!near.length) return p.x / w;
+      const [a, b] = near;
+      const ua = (a.i + 0.5) / n;
+      // Between two spectral neighbours, blend toward the midpoint at the
+      // boundary; beside a non-neighbour, keep the nearest shard's hue.
+      if (!b || Math.abs(a.i - b.i) !== 1) return ua;
+      const ub = (b.i + 0.5) / n;
+      return ua + (ub - ua) * (a.d / (a.d + b.d || 1));
+    };
 
     cells = field.cells.map((fc, index) => {
       const inner = fc.inner;
@@ -978,39 +1373,48 @@ function createField(root: HTMLElement): () => void {
           }
           shift *= 0.5;
         }
-        for (let i = 0; i < inner.length; i++) {
-          const p = inner[i];
-          const q = inner[(i + 1) % inner.length];
-          const ex = q.x - p.x;
-          const ey = q.y - p.y;
-          const len = Math.hypot(ex, ey) || 1;
-          let onx = ey / len;
-          let ony = -ex / len;
-          if ((c.x - p.x) * onx + (c.y - p.y) * ony > 0) {
-            onx = -onx;
-            ony = -ony;
-          }
-          const f = onx * lx + ony * ly;
-          faceShade.push(
-            f > 0
-              ? lerp(SIDE_MIN_ALPHA, SIDE_LIGHT_ALPHA, Math.min(1, f)) *
-                  amp *
-                  keyExposure
-              : -lerp(SIDE_MIN_ALPHA, SIDE_DARK_ALPHA, Math.min(1, -f)) * amp,
-          );
-        }
+        faceShade.push(...sideShades(inner, c, lx, ly, amp, keyExposure));
       }
-      const u = c.x / w;
+      const u = shard ? 0 : spectralU(c);
       const edge: readonly [string, string] = shard
         ? shard.edge
         : [
-            dim(sampleStops(stops, u)),
-            dim(sampleStops(stops, u + FILLER_SPAN)),
+            dim(sampleStops(stops, u - FILLER_SPAN / 2)),
+            dim(sampleStops(stops, u + FILLER_SPAN / 2)),
           ];
+      // Spectral neighbours' outer stops, for the seam's widened palette.
+      // A filler looks one shard's width further along the spectrum.
+      const reach = FILLER_SPAN / 2 + 2 / Math.max(1, stops.length - 1);
+      const prev = shard
+        ? labelled[Math.max(0, fc.labelled - 1)].edge[0]
+        : dim(sampleStops(stops, u - reach));
+      const next = shard
+        ? labelled[Math.min(labelled.length - 1, fc.labelled + 1)].edge[1]
+        : dim(sampleStops(stops, u + reach));
+      const seam = seamColours(seamPalette(edge, prev, next), CONIC_SEAMS);
+      // The filler's hidden gem: the same palette without the dulling,
+      // blended by FILLER_REVEAL, for the cursor light only.
+      let litSeam: readonly string[] | undefined;
+      if (!shard) {
+        const gem = seamColours(
+          seamPalette(
+            [
+              sampleStops(stops, u - FILLER_SPAN / 2),
+              sampleStops(stops, u + FILLER_SPAN / 2),
+            ],
+            sampleStops(stops, u - reach),
+            sampleStops(stops, u + reach),
+          ),
+          CONIC_SEAMS,
+        );
+        litSeam = gem.map((c, k) => mixHex(seam[k], c, FILLER_REVEAL));
+      }
+      const bb = bbox(inner);
       if (link) {
+        const at = labelAnchor(inner, c, widths[fc.labelled], quote);
         link.style.clipPath = toClipPathPx(inner);
-        link.style.setProperty("--cx", `${c.x.toFixed(1)}px`);
-        link.style.setProperty("--cy", `${c.y.toFixed(1)}px`);
+        link.style.setProperty("--cx", `${at.x.toFixed(1)}px`);
+        link.style.setProperty("--cy", `${at.y.toFixed(1)}px`);
       }
       const mid = midpoint(edge[0], edge[1]);
       return {
@@ -1018,11 +1422,15 @@ function createField(root: HTMLElement): () => void {
         link,
         edge,
         mid,
+        seam,
+        seamConic: CONIC_SEAMS,
+        seamStroke: makeSeamGradient(ctx, seam, CONIC_SEAMS, c, bb),
+        litSeam,
         lifted: mixHex(mid, "#ffffff", BRIGHT_LIFT),
         poly: fc.poly,
         inner,
         c,
-        bb: bbox(inner),
+        bb,
         far,
         lx,
         ly,
@@ -1034,7 +1442,78 @@ function createField(root: HTMLElement): () => void {
       };
     });
     if (useLight) buildSeamEdges();
-    ghosts.place(field, w, h);
+    ghosts.place(
+      field,
+      w,
+      h,
+      quote && {
+        x0: quote.x + LABEL_QUOTE_MARGIN,
+        y0: quote.y + LABEL_QUOTE_MARGIN,
+        x1: quote.x + quote.w - LABEL_QUOTE_MARGIN,
+        y1: quote.y + quote.h - LABEL_QUOTE_MARGIN,
+      },
+    );
+  }
+
+  /** The epigraph's box in field coordinates, grown by LABEL_QUOTE_MARGIN,
+   * or null when hidden or outside the field. One layout read per layout.
+   * The quote rides the visible bottom, so on phones it is placed where it
+   * sits with the address bar showing (the small viewport): the highest it
+   * ever gets, and the same whichever state the bar is in right now. */
+  function epigraphBox(): Rect | null {
+    const el = root.querySelector<HTMLElement>(".field-epigraph");
+    if (!el) return null;
+    const q = el.getBoundingClientRect();
+    if (q.width === 0 || q.height === 0) return null;
+    // Its distance from the visible bottom is fixed; put that bottom at the
+    // small viewport, and on touch screens at least an address bar's height
+    // above the large one, in case the units under-report the bar.
+    let lift = 0;
+    if (stableViewport()) {
+      const { svh, lvh } = viewportUnits();
+      const low = coarse ? Math.min(svh, lvh - PHONE_BAR_ALLOWANCE) : svh;
+      lift = Math.max(0, window.innerHeight - low);
+    }
+    const y0 = q.top - lift - rootTop - LABEL_QUOTE_MARGIN;
+    const y1 = q.bottom - lift - rootTop + LABEL_QUOTE_MARGIN;
+    if (y0 >= h || y1 <= 0) return null;
+    return {
+      x: q.left - rootLeft - LABEL_QUOTE_MARGIN,
+      y: y0,
+      w: q.width + 2 * LABEL_QUOTE_MARGIN,
+      h: y1 - y0,
+    };
+  }
+
+  /** Where a label sits: the centroid, unless its box would touch the
+   * epigraph; then the lowest row above the quote where the cell is still
+   * wide enough for it. */
+  function labelAnchor(
+    poly: Poly,
+    c: Pt,
+    width: number | undefined,
+    quote: Rect | null,
+  ): Pt {
+    if (!quote || width === undefined) return c;
+    const half = labelHeight() / 2;
+    const hits = (x: number, y: number): boolean =>
+      x + width / 2 > quote.x &&
+      x - width / 2 < quote.x + quote.w &&
+      y + half > quote.y &&
+      y - half < quote.y + quote.h;
+    if (!hits(c.x, c.y)) return c;
+    const top = Math.min(...poly.map((p) => p.y)) + half;
+    for (let y = Math.min(c.y, quote.y - half); y >= top; y -= 4) {
+      const [lo, hi] = chordAt(poly, y);
+      const room = hi - lo - width - LABEL_SIDE_ROOM * 2;
+      if (room < 0) continue;
+      const x = Math.min(
+        Math.max(c.x, lo + LABEL_SIDE_ROOM + width / 2),
+        hi - LABEL_SIDE_ROOM - width / 2,
+      );
+      if (!hits(x, y)) return { x, y };
+    }
+    return c;
   }
 
   /** Estimated rendered width of each shard label (site order = spectrum
@@ -1044,6 +1523,11 @@ function createField(root: HTMLElement): () => void {
   function labelWidths(): number[] {
     const size = Math.min(20, Math.max(13, 0.0125 * w + 6));
     return labelled.map((s) => s.label.length * 0.82 * size);
+  }
+
+  /** The label line box, from the same font-size clamp. */
+  function labelHeight(): number {
+    return Math.min(20, Math.max(13, 0.0125 * w + 6)) * 1.2;
   }
 
   /** Every seam edge with its outward normal, split into ≤ SEG_MAX segments
@@ -1063,12 +1547,6 @@ function createField(root: HTMLElement): () => void {
     for (const cell of cells) {
       const poly = cell.inner;
       const n = poly.length;
-      const bb = cell.bb;
-      const g0x = bb.x0;
-      const g0y = bb.y0 + (bb.y1 - bb.y0) * 0.15;
-      const gdx = bb.x1 - g0x;
-      const gdy = bb.y1 - (bb.y1 - bb.y0) * 0.15 - g0y;
-      const glen2 = gdx * gdx + gdy * gdy || 1;
       for (let i = 0; i < n; i++) {
         const p = poly[i];
         const q = poly[(i + 1) % n];
@@ -1093,9 +1571,8 @@ function createField(root: HTMLElement): () => void {
           const sx = p.x + ex * t;
           const sy = p.y + ey * t;
           ts.push(t);
-          const gt = clamp01(((sx - g0x) * gdx + (sy - g0y) * gdy) / glen2);
           const lifted = mixHex(
-            mixHex(cell.edge[0], cell.edge[1], gt),
+            seamColourAt(cell, sx, sy, cell.litSeam),
             "#ffffff",
             BRIGHT_LIFT,
           );
@@ -1448,11 +1925,14 @@ function createField(root: HTMLElement): () => void {
           : Math.max(hv.target, hv.alpha - step);
       if (hv.alpha !== hv.target) active = true;
     }
+    let moved = false;
     if (pointerPending) {
       pointerPending = false;
       lightPoint = { x: pointerX, y: pointerY };
+      moved = true;
     }
     renderLight();
+    if (moved) showLight();
     hovers = hovers.filter((hv) => hv.alpha > 0 || hv.target > 0);
     if (active) lightRaf = requestAnimationFrame(lightFrame);
   }
@@ -1465,10 +1945,41 @@ function createField(root: HTMLElement): () => void {
     scheduleLight();
   }
 
-  function onPointerLeaveField(): void {
+  /* The light canvas fades rather than cuts: CSS transitions its opacity
+   * (ShardField.astro). Hiding keeps the last frame in place under the
+   * fade and drops it once the transition ends; showing draws the new
+   * position first, then raises the opacity, so a re-entry elsewhere
+   * never flashes the old spot. No timers: transitionend does the rest. */
+  let lightShown = false;
+
+  function showLight(): void {
+    if (lightShown || !lightEl) return;
+    lightShown = true;
+    lightEl.style.opacity = "1";
+  }
+
+  function fadeLight(): void {
     pointerPending = false;
+    if (!lightShown || !lightEl) return;
+    lightShown = false;
+    lightEl.style.opacity = "0";
+    if (reduceMotion) dropLight();
+  }
+
+  /** The fade has finished: forget the light and clear its pixels. */
+  function dropLight(): void {
+    if (lightShown) return;
     lightPoint = null;
     if (state === "settled") renderLight();
+    else clearLight();
+  }
+
+  function onLightFaded(e: TransitionEvent): void {
+    if (e.propertyName === "opacity") dropLight();
+  }
+
+  function onPointerLeaveField(): void {
+    fadeLight();
   }
 
   function setHover(cell: Cell, on: boolean): void {
@@ -1496,14 +2007,19 @@ function createField(root: HTMLElement): () => void {
     if (!cell) return;
     lightPoint = { x: cell.c.x, y: cell.c.y };
     renderLight();
+    showLight();
   }
 
   function enableLight(): void {
     if (!useLight || lightOn) return;
     lightOn = true;
     readRootOffset();
+    lightShown = false;
+    if (lightEl) lightEl.style.opacity = "0";
     root.addEventListener("pointermove", onPointerMove);
     root.addEventListener("pointerleave", onPointerLeaveField);
+    lightEl?.addEventListener("transitionend", onLightFaded);
+    window.addEventListener("blur", fadeLight);
   }
 
   function disableLight(): void {
@@ -1511,6 +2027,9 @@ function createField(root: HTMLElement): () => void {
     lightOn = false;
     root.removeEventListener("pointermove", onPointerMove);
     root.removeEventListener("pointerleave", onPointerLeaveField);
+    lightEl?.removeEventListener("transitionend", onLightFaded);
+    window.removeEventListener("blur", fadeLight);
+    lightShown = false;
     clearLight();
   }
 
@@ -1739,6 +2258,7 @@ function createField(root: HTMLElement): () => void {
     enableLight();
     parkLightOnFocus();
     scheduleGleam();
+    startSwell();
   }
 
   function skip(): void {
@@ -1765,6 +2285,10 @@ function createField(root: HTMLElement): () => void {
 
   function onVisibility(): void {
     scheduleGleam();
+    if (swellAnim) {
+      if (document.hidden) swellAnim.pause();
+      else swellAnim.play();
+    }
     ghosts.pause();
     if (state !== "intro") return;
     if (document.hidden) unschedule();
@@ -1821,6 +2345,7 @@ function createField(root: HTMLElement): () => void {
     }
     enableLight();
     scheduleGleam();
+    startSwell();
     // Labels are already visible; enable their transitions one frame later so
     // nothing animates on a return visit.
     liveTimer = requestAnimationFrame(() => {
@@ -1907,10 +2432,15 @@ function createField(root: HTMLElement): () => void {
     const href = cell.link.href;
     chimeForShard(cell.shard.id, { velocity: 0.9, length: 1.4 });
     ghosts.clearTimers();
+    stopSwell();
     state = "expanding";
     root.dataset.state = "expanding";
     cell.link.classList.add("is-active");
-    clearLight();
+    // The light fades with the rest of the field; hovers stop here.
+    cancelAnimationFrame(lightRaf);
+    lightRaf = 0;
+    hovers = [];
+    fadeLight();
     if (reduceMotion) {
       go(href);
       return;
@@ -1992,10 +2522,7 @@ function createField(root: HTMLElement): () => void {
   function onFocusOut(): void {
     if (!focused) return;
     focused = null;
-    if (useLight && state === "settled") {
-      lightPoint = null;
-      renderLight();
-    }
+    if (useLight && state === "settled") fadeLight();
   }
 
   /** Full rebuild: geometry, DOM positions, layers; then whatever the current
@@ -2012,15 +2539,23 @@ function createField(root: HTMLElement): () => void {
       drawSettled();
       parkLightOnFocus();
       scheduleGleam();
+      startSwell();
     }
   }
 
   let resizeTimer = 0;
   function onResize(): void {
+    const nw = root.clientWidth;
+    const nh = root.clientHeight;
+    if (nw === w && nh === h && targetDpr() === dpr) return;
+    // Phones: a height-only change within the slack is the address bar (or
+    // emulation of it). The field keeps its geometry and the bar overlaps
+    // its foot; only rotation, split view or a real resize re-lays out.
     if (
-      root.clientWidth === w &&
-      root.clientHeight === h &&
-      targetDpr() === dpr
+      (coarse || w < WIDE_MIN) &&
+      nw === w &&
+      targetDpr() === dpr &&
+      Math.abs(nh - h) <= STABLE_HEIGHT_SLACK * h
     )
       return;
     nebula = getSharedNebula();
@@ -2073,6 +2608,7 @@ function createField(root: HTMLElement): () => void {
     pendingBuild = null;
     disableLight();
     clearLight();
+    stopSwell(true);
     cancelAnimationFrame(liveTimer);
     window.clearTimeout(resizeTimer);
     observer.disconnect();

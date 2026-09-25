@@ -3,3 +3,5 @@ dist
 dist-*
 .astro
 src/content
+tools/music/cavern-engine.js
+public/audio

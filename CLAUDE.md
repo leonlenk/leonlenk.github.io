@@ -7,16 +7,17 @@ Pull requests run the same checks without deploying. Package manager is
 
 ## Commands
 
-| Command        | Does                                        |
-| -------------- | ------------------------------------------- |
-| `pnpm dev`     | Dev server at localhost:4321                |
-| `pnpm build`   | Static build to `dist/`                     |
-| `pnpm preview` | Serve the built `dist/` locally             |
-| `pnpm sync`    | Regenerate `.astro/` content types          |
-| `pnpm check`   | `astro check` — type errors in `.astro`     |
-| `pnpm test`    | Node regression tests for browser lifecycle |
-| `pnpm lint`    | ESLint (flat config, `eslint-plugin-astro`) |
-| `pnpm format`  | Prettier over the repo                      |
+| Command             | Does                                        |
+| ------------------- | ------------------------------------------- |
+| `pnpm dev`          | Dev server at localhost:4321                |
+| `pnpm build`        | Static build to `dist/`                     |
+| `pnpm preview`      | Serve the built `dist/` locally             |
+| `pnpm sync`         | Regenerate `.astro/` content types          |
+| `pnpm check`        | `astro check` — type errors in `.astro`     |
+| `pnpm test`         | Node regression tests for browser lifecycle |
+| `pnpm lint`         | ESLint (flat config, `eslint-plugin-astro`) |
+| `pnpm format`       | Prettier over the repo                      |
+| `pnpm music:render` | Re-render the background music (see Sound)  |
 
 Before trusting editor diagnostics after an Astro upgrade, run `pnpm sync` —
 stale `.astro/types.d.ts` produces a flood of bogus `JSX.IntrinsicElements`
@@ -27,8 +28,10 @@ errors.
 The site is themed on shard theory. A dark nebula sits behind everything;
 navigation is a Voronoi field of crystal **shards**, one per top-level
 section. Colour lives **only in the seams** (glowing gradient edges); shard
-interiors are dark glass. Each shard owns one slice of a single
-teal→indigo→violet→plum→wine→ember spectrum ("Dusk Prism"). Display face is
+interiors are dark glass. Each shard is a gemstone and owns one slice of a
+single aquamarine→sapphire→amethyst→rhodolite→rose garnet→citrine spectrum
+("Geode"); the unlabeled filler shards are the duller rock around them
+(`FILLER_DULL` in `shard-field.ts`). Display face is
 Syne (uppercase, tracked), body is Lora. The intro animation (particles →
 nucleation → crystallised seams → labels) plays once per session. These
 choices were made deliberately with Leon; don't reopen them without asking.
@@ -37,7 +40,7 @@ choices were made deliberately with Leon; don't reopen them without asking.
 
 ```
 src/
-  data/shards.ts        THE registry: id, label, tagline, deep/edge stops.
+  data/shards.ts        THE registry: id, label, deep/edge stops, order.
                         Also emits the CSS custom properties (shardCss()).
   data/ghosts.ts        decorative "ghost" labels shown on the largest filler shards
   content.config.ts     `posts` (glob, markdown) and `papers` (JSON) collections
@@ -55,8 +58,15 @@ src/
   scripts/field-particles.ts intro particles and glow sprite cache
   scripts/field-growth.ts   seeded crystal growth geometry
   scripts/field-types.ts    shared renderer data contracts
-  scripts/chime.ts      Web Audio crystal chimes: one tone per shard on a rising
-                        C-major-ninth arpeggio, in spectrum order (teal low → ember high)
+  scripts/chime.ts      struck-glass chimes (one fixed note per shard, G major
+                        pentatonic), the sound modes, gesture unlock, returning-
+                        visitor autoplay, the pending hint, hidden-tab suspend
+  scripts/audio.ts      the one shared AudioContext + master (0.55) → compressor
+  scripts/music.ts      background-music player: two <audio> elements ping-pong
+                        the pre-rendered intro/loop through Web Audio gains
+  scripts/glints.ts     live glints and Hover's dust over the bed, driven by the
+                        cue sheet; lazily built cave reverb + echo
+  data/music.ts         the track descriptor (intro/loop URLs, cue URL) and cue types
   components/
     Nebula.astro        fixed background canvas, transition:persist
     Chrome.astro        wordmark + GitHub/Scholar/LinkedIn/email glyphs
@@ -74,6 +84,11 @@ src/
   styles/prose.css      reading typography, .chip
 public/fonts/           Syne and Lora variable WOFF2s for browsers; original TTFs
                         retained for social-image generation
+public/audio/           rendered music (committed assets): cavern-{intro,loop}.{webm,m4a}
+                        and the cavern.json cue sheet
+tools/music/            offline render tool (not shipped): cavern-engine.js (the
+                        prototype's engine, seeded and audio-clock scheduled),
+                        render-page.js (OfflineAudioContext driver), render.mjs
 ```
 
 Pages should not hand-roll `<html>`/`<head>`; pass `title`/`description`
@@ -85,8 +100,11 @@ Pages should not hand-roll `<html>`/`<head>`; pass `title`/`description`
 - **A shard:** add an entry to `src/data/shards.ts` (pick `deep`/`edge`
   stops that sit between its spectral neighbours) and create
   `src/content/posts/<id>/`. Routes, tokens, the home field and the schema
-  all derive from the registry. The field places shards left→right by the hue
-  of `edge[0]`.
+  all derive from the registry. The field sweeps the spectrum along the
+  viewport's long axis (column by column on landscape, row by row on
+  portrait; `spectrumOrder` in `lib/field-layout.ts`). A row snake was tried
+  and rejected: it put amber beside indigo and teal. Fillers take the colour
+  of the nearest labelled shard.
 - **A post:** markdown in `src/content/posts/<shard>/`. Required frontmatter:
   `title`, `pubDate`, `shard`. Optional: `description`, `updatedDate`, `tags`,
   `draft`. The URL is `/<shard>/<filename>/`.
@@ -159,10 +177,57 @@ better-established alternative.
 - `astro dev` and `astro preview` run as daemons in Astro 7 and only one
   preview may run at a time: stop them with `pnpm astro dev stop` /
   `pnpm astro preview stop`, not `pkill`.
-- Chimes play only on click (a shard on the home field, a card on a shard
-  page), never on hover or focus. Browsers block audio until the first click
-  or keypress, so the intro's cluster chime is silent on a fresh load. The
-  mute toggle in the top bar persists in `localStorage` (`shards:muted`).
+
+## Sound
+
+- **Chimes** are live Web Audio (struck glass, `chime.ts`) and play only on
+  click (a shard on the home field, a card on a shard page), never on hover or
+  focus. Browsers block audio until the first click or keypress, so the intro's
+  cluster chime is silent on a fresh load.
+- **Background music** is "Cavern of Light", one track for the whole site,
+  **pre-rendered** (live synthesis cost 23–35% of a core; too much for phones).
+  It is on by default (a deliberate artistic choice). The top-bar sound button
+  cycles chimes + ambient → chimes only → off, persisted in `localStorage`
+  (`shards:sound`). Until the music has actually started, `html[data-sound-pending]`
+  is set, the button's glyph breathes (CSS only) and its tooltip says "Sound
+  begins on your first click"; a click on the button then starts the sound
+  rather than stepping the mode.
+- **Starting:** the first pointerdown/pointerup/touchstart/touchend/keydown/click
+  starts it (play() is called synchronously, for iOS). A visitor whose saved
+  mode is ambient gets it on load without a gesture where the browser allows
+  (Chrome's engagement rules); play() is only called once the context actually
+  runs, otherwise it quietly waits for the gesture. Nothing loads before then.
+- **Player** (`music.ts`): two `new Audio()` elements (not in the DOM, so they
+  survive ClientRouter swaps) → MediaElementSource → gain → destination. Levels
+  only through Web Audio gains (iOS ignores `element.volume`); never decode the
+  tracks into AudioBuffers (~140 MB for six minutes of stereo). WebM/Opus where
+  `canPlayType` says so, else M4A/AAC. The intro plays once per tab session;
+  the loop repeats. Each file runs 3 s past its musical end (the cue's
+  `duration`), and the seams are 2 s equal-power crossfades between the two
+  elements, one timer per seam. Navigation never restarts or ducks it; a full
+  reload resumes the loop at the saved position (sessionStorage `shards:music`)
+  plus elapsed time, fading in over 3 s. Hidden tab: fade 1 s, pause both
+  elements, drop the glints, suspend the context; no timers run while paused.
+- **Glints stay live and random** (`glints.ts`): the prototype's gems and
+  Hover's dust, placed by the cue sheet's movement spans. The cave reverb and
+  echo exist only while a glint rings (the convolver is the expensive node:
+  about +10 points of a core on desktop while ringing, +5 on phones, where the
+  cave is one mono convolution and the glass keeps 3 partials). The bed alone
+  costs about 2 points over an idle page.
+- **Re-rendering:** `pnpm music:render` (needs chromium-browser and ffmpeg)
+  renders the bed offline, deterministically (seeded), and writes
+  `public/audio/cavern-*` plus `cavern.json`. The rendered files are
+  **committed assets**: re-render and commit them together whenever the engine
+  or settings change. Options: `--seed`, `--space/--light/--depth/--swell/--air/--pace`,
+  `--track <name>` (output basename), `--engine <file>`. The render reports the
+  peak; it must stay below −1 dBFS and is never normalised.
+- **Per-page tracks** (not done; Leon chose one continuous track): render
+  another track with different settings (`--track <name>`), add a descriptor to
+  `data/music.ts` and a context → track lookup, and crossfade in the player on
+  `astro:after-swap`.
+- Harmony: every shard note must fit every chord of the music. Shard notes stay
+  in G major pentatonic (D4 E4 G4 A4 B4 D5); the music never uses F#, and C
+  only at C4 or below.
 
 ## Version pins — do not bump blindly
 

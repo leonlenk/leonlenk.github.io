@@ -8,6 +8,8 @@
 // a trapezoid, and chamfering a convex corner with cut points on its two
 // edges keeps convexity. 5–8 vertices: at least one corner is always cut.
 
+import { hashString, mulberry32 } from "./geometry";
+
 export interface Pt {
   x: number;
   y: number;
@@ -246,4 +248,57 @@ export function cardShape(
       padY: Math.round(padY * 10) / 10,
     };
   }
+}
+
+/* ---------- paper rows ---------- */
+
+export interface PaperShapes {
+  /** Desktop row, about 5:1. */
+  wide: CardShape;
+  /** Phone row, nearly square, with shallower cuts from the same seed. */
+  narrow: CardShape;
+}
+
+/**
+ * Silhouettes for one paper row. Rows are wide on desktop (about 5:1) and
+ * nearly square on a phone, where the same percent cuts would bite five
+ * times deeper; so two silhouettes from one seed, each with pads for its
+ * aspect.
+ */
+export function paperShapes(id: string): PaperShapes {
+  const seed = hashString(id);
+  return {
+    wide: cardShape(mulberry32(seed), {
+      aspect: 4,
+      depth: 0.6,
+      slant: 0.7,
+      wide: true,
+    }),
+    narrow: cardShape(mulberry32(seed), {
+      aspect: 1,
+      depth: 0.35,
+      slant: 0.7,
+      maxSlant: 4,
+      wide: true,
+    }),
+  };
+}
+
+/**
+ * Stacked paper rows share one width, so a shared horizontal pad lines
+ * their text up in a single column. Each row keeps its own silhouette; the
+ * pad is the largest any row needs, so every row still clears its cuts.
+ */
+export function sharedPaperPadX(ids: string[]): {
+  wide: number;
+  narrow: number;
+} {
+  let wide = 0;
+  let narrow = 0;
+  for (const id of ids) {
+    const shapes = paperShapes(id);
+    wide = Math.max(wide, shapes.wide.padX);
+    narrow = Math.max(narrow, shapes.narrow.padX);
+  }
+  return { wide, narrow };
 }

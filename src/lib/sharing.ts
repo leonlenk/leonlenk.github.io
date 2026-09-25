@@ -1,5 +1,5 @@
 import { getShard, type ShardId } from "../data/shards";
-import type { Post } from "./posts";
+import { smartQuotes, type Post } from "./posts";
 
 export const siteDescription =
   "Leon Lenk's personal website: research papers, poetry, drawings, and reflections on learning and life.";
@@ -31,9 +31,9 @@ export function escapeXml(value: string): string {
 
 /** Shared by metadata, the feed, and generated artwork. */
 export function postDescription(post: Post): string {
-  return (
+  return smartQuotes(
     post.data.description ||
-    `${post.data.title} — ${getShard(post.data.shard).label.toLowerCase()} by Leon Lenk.`
+      `${post.data.title} — ${getShard(post.data.shard).label.toLowerCase()} by Leon Lenk.`,
   );
 }
 

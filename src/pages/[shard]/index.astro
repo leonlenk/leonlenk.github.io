@@ -6,9 +6,9 @@ import SeamPanel from "../../components/SeamPanel.astro";
 import ShardCard from "../../components/ShardCard.astro";
 import PaperCard from "../../components/PaperCard.astro";
 import { shards } from "../../data/shards";
-import { cardShape } from "../../lib/card-shapes";
+import { cardShape, sharedPaperPadX } from "../../lib/card-shapes";
 import { hashString, mulberry32, toClipPathPercent } from "../../lib/geometry";
-import { formatDate, isoDate, postHref } from "../../lib/posts";
+import { formatDate, isoDate, postHref, smartQuotes } from "../../lib/posts";
 import { postDescription, sectionDescriptions } from "../../lib/sharing";
 import "../../styles/prose.css";
 
@@ -27,8 +27,10 @@ if (shard.id === "self" && !selfPost) {
 }
 const selfContent = selfPost ? await render(selfPost) : undefined;
 const SelfContent = selfContent?.Content;
-const title = selfPost?.data.title ?? shard.label;
-const description = selfPost ? postDescription(selfPost) : sectionDescriptions[shard.id];
+const title = selfPost ? smartQuotes(selfPost.data.title) : shard.label;
+const description = selfPost
+  ? postDescription(selfPost)
+  : sectionDescriptions[shard.id];
 
 const posts = (
   await getCollection(
@@ -42,12 +44,22 @@ const papers =
   shard.id === "research"
     ? (await getCollection("papers")).sort((a, b) => b.data.year - a.data.year)
     : [];
+const paperPadX = sharedPaperPadX(papers.map((paper) => paper.data.id));
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-const count = [
-  ...(shard.id === "research" ? [plural(papers.length, "paper")] : []),
+// Zero parts are dropped ("3 papers", not "3 papers · 0 posts"); a section
+// with nothing at all still says "0 posts" rather than going blank.
+const countParts = [
+  plural(papers.length, "paper"),
   plural(posts.length, "post"),
-].join(" · ");
+].filter((part) => !part.startsWith("0 "));
+const count =
+  countParts.length > 0 ? countParts.join(" · ") : plural(0, "post");
+
+// One or two posts would leave most of a 3-up grid empty; they get a
+// layout of their own (see .post-grid.sparse) and shallower cuts, since
+// their cards run wider than the 3-up ones the default depth is tuned for.
+const sparse = posts.length > 0 && posts.length <= 2;
 
 const empty = cardShape(mulberry32(hashString(`${shard.id}/empty`)), {
   aspect: 3,
@@ -56,7 +68,8 @@ const empty = cardShape(mulberry32(hashString(`${shard.id}/empty`)), {
 const emptyPolygon = toClipPathPercent(empty.polygon);
 
 // Leave room for a long section name without shrinking the shorter titles.
-const h1Em = 1.08 * title.length;
+// Syne 800 caps plus tracking run up to ~1.27em each ("RESEARCH").
+const h1Em = 1.3 * title.length;
 ---
 
 <Base title={title} description={description} shard={shard.id} post={selfPost}>
@@ -111,7 +124,7 @@ const h1Em = 1.08 * title.length;
         <ul class="paper-list">
           {papers.map((paper, i) => (
             <li>
-              <PaperCard paper={paper} index={i} />
+              <PaperCard paper={paper} index={i} padX={paperPadX} />
             </li>
           ))}
         </ul>
@@ -131,10 +144,17 @@ const h1Em = 1.08 * title.length;
           <span class="rule" aria-hidden="true"></span>
         </div>
         {posts.length > 0 ? (
-          <ul class="post-grid">
+          <ul
+            class:list={["post-grid", { sparse, single: posts.length === 1 }]}
+          >
             {posts.map((post, i) => (
               <li>
-                <ShardCard post={post} index={i} href={postHref(post)} />
+                <ShardCard
+                  post={post}
+                  index={i}
+                  href={postHref(post)}
+                  depth={sparse ? 0.7 : 1}
+                />
               </li>
             ))}
           </ul>
@@ -299,6 +319,22 @@ const h1Em = 1.08 * title.length;
 
   .post-grid > li {
     display: grid;
+  }
+
+  /* Few posts: auto-fit collapses the empty tracks, so two cards share the
+     full row and a lone card takes a generous reading width instead of a
+     third of it. */
+  .post-grid.sparse {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: var(--space-6);
+  }
+
+  .post-grid.single {
+    max-width: 760px;
+  }
+
+  .post-grid.sparse > li {
+    --card-min-h: 240px;
   }
 
   .empty p {

@@ -4,7 +4,13 @@ import { postDescription } from "../../lib/sharing";
 import Base from "../../layouts/Base.astro";
 import ReadingTools from "../../components/ReadingTools.astro";
 import { getShard } from "../../data/shards";
-import { formatDate, isoDate, postSlug, type Post } from "../../lib/posts";
+import {
+  formatDate,
+  isoDate,
+  postSlug,
+  smartQuotes,
+  type Post,
+} from "../../lib/posts";
 import "../../styles/prose.css";
 
 export async function getStaticPaths() {
@@ -22,7 +28,8 @@ interface Props {
 const { post } = Astro.props;
 if (post.id === "self/about") return Astro.redirect("/self/", 301);
 const shard = getShard(post.data.shard);
-const { title, pubDate, updatedDate, tags } = post.data;
+const { pubDate, updatedDate, tags } = post.data;
+const title = smartQuotes(post.data.title);
 const { Content } = await render(post);
 ---
 

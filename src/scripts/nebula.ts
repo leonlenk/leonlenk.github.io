@@ -161,8 +161,62 @@ export function nebulaScale(): number {
   return Math.min(window.devicePixelRatio || 1, 1.5) * 0.5;
 }
 
+/** Phones and narrow windows: layouts here key on width and the large
+ * viewport height, so the mobile address bar showing or hiding (a height
+ * change of a few percent) never re-renders or re-lays anything out. */
+export const STABLE_VIEWPORT_QUERY = "(pointer: coarse), (max-width: 899px)";
+/** A height-only change within this share is the address bar, not a new
+ * viewport. */
+export const STABLE_HEIGHT_SLACK = 0.3;
+
+let units: { w: number; ih: number; svh: number; lvh: number } | null = null;
+
+function measureUnit(unit: string): number {
+  const probe = document.createElement("div");
+  probe.style.cssText = `position:fixed;top:0;left:0;width:0;height:100vh;height:100${unit};visibility:hidden;pointer-events:none`;
+  document.documentElement.append(probe);
+  const size = probe.getBoundingClientRect().height;
+  probe.remove();
+  return size;
+}
+
+/** Whether this viewport keys its layout on width and the large viewport. */
+export function stableViewport(): boolean {
+  return (
+    typeof matchMedia === "function" &&
+    matchMedia(STABLE_VIEWPORT_QUERY).matches
+  );
+}
+
+/** The small and large viewport heights (CSS svh/lvh), measured once per
+ * width and re-measured only past STABLE_HEIGHT_SLACK. Falls back to
+ * innerHeight where the units are unsupported. */
+export function viewportUnits(): { svh: number; lvh: number } {
+  const w = window.innerWidth;
+  const ih = window.innerHeight;
+  if (
+    !units ||
+    units.w !== w ||
+    Math.abs(ih - units.ih) > STABLE_HEIGHT_SLACK * units.ih
+  ) {
+    const svh = measureUnit("svh") || ih;
+    const lvh = measureUnit("lvh") || ih;
+    units = { w, ih, svh, lvh };
+  }
+  return { svh: units.svh, lvh: units.lvh };
+}
+
 function viewport(): { w: number; h: number } {
-  return { w: window.innerWidth, h: window.innerHeight };
+  const w = window.innerWidth;
+  if (!stableViewport()) return { w, h: window.innerHeight };
+  return { w, h: Math.max(window.innerHeight, viewportUnits().lvh) };
+}
+
+/** The shared bitmap still serves this viewport. */
+function fits(n: SharedNebula, w: number, h: number): boolean {
+  if (n.w !== w) return false;
+  if (n.h === h) return true;
+  return stableViewport() && Math.abs(h - n.h) <= STABLE_HEIGHT_SLACK * n.h;
 }
 
 function rerender(): SharedNebula {
@@ -190,7 +244,7 @@ function watch(): void {
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
       const { w, h } = viewport();
-      if (!shared || shared.w !== w || shared.h !== h) rerender();
+      if (!shared || !fits(shared, w, h)) rerender();
       // Someone may already have re-rendered via getSharedNebula() during
       // the debounce window; `notify` compares versions so they still hear.
       notify();
@@ -206,7 +260,7 @@ function watch(): void {
 export function getSharedNebula(): SharedNebula {
   watch();
   const { w, h } = viewport();
-  if (shared && shared.w === w && shared.h === h) return shared;
+  if (shared && fits(shared, w, h)) return shared;
   return rerender();
 }
 

@@ -7,11 +7,22 @@
 .prose a:focus-visible {
   color: #fff;
 }
+/* Markers sit tight against the following punctuation and never grow
+   their line: the <sup> contributes no line height, and the enlarged tap
+   target is an absolutely positioned pseudo-element outside the flow. */
+.prose sup {
+  line-height: 0;
+}
 .prose [data-footnote-ref] {
+  position: relative;
   color: var(--article-accent, var(--shard-edge-0));
   text-decoration: none;
-  padding: 0.15em 0.2em;
   font-weight: 600;
+}
+.prose [data-footnote-ref]::after {
+  content: "";
+  position: absolute;
+  inset: -0.45em -0.4em;
 }
 .prose [data-footnotes] {
   margin-top: 3rem;

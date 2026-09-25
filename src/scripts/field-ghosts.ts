@@ -4,6 +4,7 @@ import {
   assignGhosts,
   type FieldLayout,
   type GhostAssignment,
+  type GhostKeepOut,
 } from "../lib/field-layout";
 import { hashString, mulberry32, type Pt } from "../lib/geometry";
 
@@ -29,6 +30,8 @@ export function createFieldGhosts(
     boost: number;
   }[] = [];
   let ghostLayout: FieldLayout | null = null;
+  /** The epigraph's box in field coordinates, which ghosts stay clear of. */
+  let keepOut: GhostKeepOut | null = null;
   let ghostRound = 0;
   const ghostVisits = new Map<number, number>();
   const ghostTimers = new Map<HTMLElement, Set<number>>();
@@ -189,10 +192,36 @@ export function createFieldGhosts(
     );
   }
 
+  /** The epigraph's rendered box relative to the field, or null when it is
+   * hidden or lies outside the field (the phone layout sets it below). One
+   * layout read per placement, never per frame. */
+  function readKeepOut(): GhostKeepOut | null {
+    const quote = root.querySelector<HTMLElement>(".field-epigraph");
+    if (!quote) return null;
+    const q = quote.getBoundingClientRect();
+    if (q.width === 0 || q.height === 0) return null;
+    const r = root.getBoundingClientRect();
+    const box = {
+      x0: q.left - r.left,
+      y0: q.top - r.top,
+      x1: q.right - r.left,
+      y1: q.bottom - r.top,
+    };
+    return box.y0 >= h || box.y1 <= 0 ? null : box;
+  }
+
   /** Refit all choices against the current polygons whenever layout changes. */
-  function place(field: FieldLayout, width: number, height: number): void {
+  /** `quote`, when given, is the epigraph's box as the field sees it (on
+   * phones its worst-case, small-viewport position); otherwise it is read. */
+  function place(
+    field: FieldLayout,
+    width: number,
+    height: number,
+    quote?: GhostKeepOut | null,
+  ): void {
     w = width;
     h = height;
+    keepOut = quote === undefined ? readKeepOut() : quote;
     clearGhostTimers();
     ghosts = [];
     ghostLayout = field;
@@ -209,6 +238,7 @@ export function createFieldGhosts(
       ghostWords,
       ghostPhrases,
       measureGhostText,
+      keepOut,
     );
     const slots = Math.min(field.wide ? 3 : 2, pool.length);
     for (let slot = 0; slot < slots; slot++) {
@@ -257,6 +287,7 @@ export function createFieldGhosts(
       ghostWords.filter((text) => !occupied.has(text)),
       ghostPhrases.filter((text) => !occupied.has(text)),
       measureGhostText,
+      keepOut,
     );
     const next = chooseGhostHost(choices, ghost);
     if (next) {
@@ -303,7 +334,8 @@ export function createFieldGhosts(
 
   let destroyed = false;
   void document.fonts.ready.then(() => {
-    if (!destroyed && root.isConnected && ghostLayout) place(ghostLayout, w, h);
+    if (!destroyed && root.isConnected && ghostLayout)
+      place(ghostLayout, w, h, keepOut);
   });
   ghostHost?.addEventListener("animationiteration", onGhostIteration);
   ghostHost?.addEventListener("animationstart", onGhostStart);

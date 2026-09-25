@@ -20,6 +20,15 @@ export interface Cell {
   link: HTMLAnchorElement | null;
   edge: readonly [string, string];
   mid: string;
+  /** Seam gradient colours, evenly spaced: around the outline from the
+   * conic start angle when `seamConic`, else across `bb` (linear). */
+  seam: readonly string[];
+  seamConic: boolean;
+  /** The seam gradient for `inner` at full alpha (stroke with globalAlpha). */
+  seamStroke: CanvasGradient;
+  /** Fillers only: the undulled gem palette (same layout as `seam`) that
+   * the cursor light paints, so the light reveals the gem in the rock. */
+  litSeam?: readonly string[];
   /** `mid` lifted toward white: the hover stroke. */
   lifted: string;
   /** Full power cell (tiles the viewport with its neighbours). */

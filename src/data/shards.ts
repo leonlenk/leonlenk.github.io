@@ -3,9 +3,10 @@
 // palette all derive from this list, so adding a shard here is the only
 // registration step.
 //
-// Colour lives only in a shard's glowing edges. Each shard owns one slice of
-// the "Dusk Prism" spectrum (teal → indigo → violet → plum → wine → ember),
-// expressed as two gradient stops at two intensities:
+// Colour lives only in a shard's glowing edges. Each shard is a gemstone and
+// owns one slice of the "Geode" spectrum (aquamarine → sapphire → amethyst →
+// rhodolite → rose garnet → citrine), expressed as two gradient stops at two
+// intensities:
 //   deep — muted; sits under text on that shard's pages.
 //   edge — lifted; carries light against the nebula.
 
@@ -29,43 +30,43 @@ export const shards = [
   {
     id: "writing",
     label: "Writing",
-    deep: ["#0f5461", "#233070"],
-    edge: ["#26ceee", "#5b71db"],
+    deep: ["#1c595c", "#203968"],
+    edge: ["#43d5dc", "#4c87f8"],
     order: 1,
   },
   {
     id: "research",
     label: "Research",
-    deep: ["#233070", "#4a2a7e"],
-    edge: ["#5b71db", "#986edd"],
+    deep: ["#203968", "#473266"],
+    edge: ["#4c87f8", "#a876f2"],
     order: 2,
   },
   {
     id: "food",
     label: "Food",
-    deep: ["#8a3a2c", "#8f5a22"],
-    edge: ["#e18878", "#e9ac6c"],
+    deep: ["#673a21", "#675214"],
+    edge: ["#f68a4f", "#f6c330"],
     order: 3,
   },
   {
     id: "art",
     label: "Art",
-    deep: ["#7d2a4c", "#8a3a2c"],
-    edge: ["#dd6e9b", "#e18878"],
+    deep: ["#642a34", "#673a21"],
+    edge: ["#ed647c", "#f68a4f"],
     order: 4,
   },
   {
     id: "self",
     label: "Self",
-    deep: ["#4a2a7e", "#6e2d6f"],
-    edge: ["#986edd", "#d26cd3"],
+    deep: ["#473266", "#5e2951"],
+    edge: ["#a876f2", "#df61c0"],
     order: 5,
   },
   {
     id: "ai",
     label: "AI",
-    deep: ["#6e2d6f", "#7d2a4c"],
-    edge: ["#d26cd3", "#dd6e9b"],
+    deep: ["#5e2951", "#642a34"],
+    edge: ["#df61c0", "#ed647c"],
     order: 6,
   },
 ] as const satisfies readonly ShardDefinition[];
